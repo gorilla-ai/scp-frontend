@@ -6,6 +6,8 @@ import cx from 'classnames'
 
 import InfiniteScroll from 'react-infinite-scroll-component'
 
+import Button from '@material-ui/core/Button'
+
 import {downloadLink} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -306,18 +308,24 @@ class HostAnalysis extends Component {
       )
     }
   }
+  reloadContent = () => {
+    this.setState({scrollCount: 1, safetyScanRecord: []}, this.loadSafetyScanInfo);
+  }
+  loadMoreContent = () => {
+    const {scrollCount} = this.state;
+
+    this.setState({scrollCount: scrollCount + 1}, this.loadSafetyScanInfo);
+  }
   /**
    * Load device data
    * @method
    */
-  loadMoreContent = () => {
+  loadSafetyScanInfo = () => {
     const {baseUrl} = this.context;
     const {hostData, assessmentDatetime} = this.props;
     const {safetyScanRecord, scrollCount} = this.state;
-    let tempScrollCount = scrollCount;
-    tempScrollCount++;
 
-    const url = `${baseUrl}/api/v3/ipdevice?uuid=${hostData.ipDeviceUUID}&page=${tempScrollCount}&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`;
+    const url = `${baseUrl}/api/v3/ipdevice?uuid=${hostData.ipDeviceUUID}&page=${scrollCount}&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`;
 
     this.ah.one({
       url,
@@ -328,7 +336,6 @@ class HostAnalysis extends Component {
         if (data.safetyScanInfoExecuteRecord.length > 0) {
           this.setState({
             safetyScanRecord: _.concat(safetyScanRecord, data.safetyScanInfoExecuteRecord),
-            scrollCount: tempScrollCount,
             hasMore: true
           });
         } else {
@@ -369,32 +376,40 @@ class HostAnalysis extends Component {
     const {safetyScanRecord, hasMore} = this.state;
 
     return (
-      <div>
-        {safetyScanRecord.length > 0 &&
-          <InfiniteScroll
-            dataLength={safetyScanRecord.length}
-            next={this.loadMoreContent}
-            hasMore={hasMore}
-            height={530}>
-            <table className='c-table main-table'>
-              <thead>
-                <tr>
-                  <th>{t('host.txt-safetyScanType')}</th>
-                  <th>{t('host.txt-executionStatus')}</th>
-                  <th>{t('host.txt-createTime')}</th>
-                  <th>{t('hmd-scan.txt-responseTime')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {safetyScanRecord.map(this.displayScanRecordContent)}
-              </tbody>
-            </table>
-          </InfiniteScroll>
-        }
+      <div className='scan-info'>
+        <div className='header-title'>{t('host.endpoints.txt-safetyScanInfo')}</div>
+        <div className='info-content'>
+          <div className='info'>
+            <Button variant='contained' color='primary' className='btn refresh' onClick={this.reloadContent.bind(this)}>{t('hmd-scan.txt-refresh')}</Button>
+          </div>
+          <div className='scan-wrapper'>
+          {safetyScanRecord.length > 0 &&
+            <InfiniteScroll
+              dataLength={safetyScanRecord.length}
+              next={this.loadMoreContent}
+              hasMore={hasMore}
+              height={435}>
+              <table className='c-table main-table'>
+                <thead>
+                  <tr>
+                    <th>{t('host.txt-safetyScanType')}</th>
+                    <th>{t('host.txt-executionStatus')}</th>
+                    <th>{t('host.txt-createTime')}</th>
+                    <th>{t('hmd-scan.txt-responseTime')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {safetyScanRecord.map(this.displayScanRecordContent)}
+                </tbody>
+              </table>
+            </InfiniteScroll>
+          }
 
-        {safetyScanRecord.length === 0 &&
-          <div className='empty-msg'>{NOT_AVAILABLE}</div>
-        }
+          {safetyScanRecord.length === 0 &&
+            <div className='empty-msg'>{NOT_AVAILABLE}</div>
+          }
+          </div>
+        </div>
       </div>
     )
   }
