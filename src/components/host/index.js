@@ -3435,8 +3435,8 @@ class HostController extends Component {
           const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID});
           let hostData = {...data[0]};
 
-          if (activeHostInfo && activeHostInfo.networkBehaviorInfo) {
-            hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
+          if (activeHostInfo && activeHostInfo.severityLevel) {
+            hostData.severityLevel = activeHostInfo.severityLevel;
           } else if (host) {
             hostData.severityLevel = host.severityLevel;
           }
