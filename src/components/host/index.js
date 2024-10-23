@@ -3394,7 +3394,7 @@ class HostController extends Component {
       filters: [
         {
           condition: 'must',
-          query: 'configSource: hmd'
+          query: '(configSource: "hmd" OR netproxy.config_source: "hmd")'
         },
         {
           condition: 'must',

@@ -328,10 +328,10 @@ class SyslogController extends Component {
         filterData: [
           {
             condition: 'must',
-            query: 'configSource: ' + syslogParams.configSource
+            query: '(configSource: "' + syslogParams.configSource + '" OR netproxy.config_source: "' + syslogParams.configSource + '")'
           }, {
             condition: 'must',
-            query: 'LoghostIp: ' + syslogParams.loghostIp
+            query: '(LoghostIp: "' + syslogParams.loghostIp + '" OR netproxy.loghost_ip: "' + syslogParams.loghostIp + '")'
           }
         ],
         showFilter: true,
@@ -350,7 +350,7 @@ class SyslogController extends Component {
         filterData: [
           {
             condition: 'must',
-            query: 'configSource: ' + syslogParams.configSource
+            query: '(configSource: "' + syslogParams.configSource + '" OR netproxy.config_source: "' + syslogParams.configSource + '")'
           }, {
             condition: 'must',
             query: '_host: ' + syslogParams.ip
@@ -370,7 +370,7 @@ class SyslogController extends Component {
         searchInput: tempSearchInput,
         filterData: [{
           condition: 'must',
-          query: 'configSource: ' + syslogParams.configSource
+          query: '(configSource: "' + syslogParams.configSource + '" OR netproxy.config_source: "' + syslogParams.configSource + '")'
         }],
         showFilter: true,
         showMark: true
@@ -1185,27 +1185,32 @@ class SyslogController extends Component {
   addSearch = (field, value, type) => {
     const {filterData} = this.state;
     let currentFilterData = filterData;
-
+    let queryValue = value
     if (filterData.length === 0) {
       currentFilterData.push({});
     }
 
     if (field) {
-      value = field + ': "' + value + '"';
+      if (field === 'configSource')
+        queryValue = '(configSource: "' + value + '" OR netproxy.config_source: "' + value + '")';
+      else if (field === 'LoghostIp')
+        queryValue = '(LoghostIp: "' + value + '" OR netproxy.loghost_ip: "' + value + '")';
+      else
+        queryValue = field + ': "' + value + '"';
     }
 
     _.forEach(filterData, (val, i) => {
       if (filterData[filterData.length - 1].query) {
         currentFilterData.push({
           condition: type,
-          query: value
+          query: queryValue
         });
         return false;
       }
 
       if (!currentFilterData[i].query) {
         currentFilterData[i].condition = type;
-        currentFilterData[i].query = value;
+        currentFilterData[i].query = queryValue;
         return false;
       }
     })
