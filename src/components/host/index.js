@@ -135,6 +135,10 @@ const HMD_TRIGGER = [
     cmds: 'importGcb'
   },
   {
+    name: 'Update GPO',
+    cmds: 'syncGcbTemplates'
+  },
+  {
     name: 'File Integrity',
     cmds: 'getFileIntegrity',
     stop: 'FileIntegrityThread'
