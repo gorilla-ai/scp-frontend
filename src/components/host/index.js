@@ -4124,6 +4124,20 @@ class HostController extends Component {
 
     if (options === 'default') {
       url = `${baseUrl}${contextRoot}/api/v2/ipdevice/assessment/_export`;
+    } else if (options === 'scanFileV2') {
+      url = `${baseUrl}${contextRoot}/api/hmd/malwareUpdateToDate/_export`;
+
+      const fieldsList = ['exposedDevices', 'fileMD5', 'fileSHA1', 'fileSHA256', 'fileSize', 'virusTotal', 'companyName', 'isPE', 'isPEExtension', 'isVerifyTrust', 'virusName'];
+      let exportFields = {};
+
+      _.forEach(fieldsList, val => {
+        exportFields[val] = t('host.malware.txt-' + val);
+      })
+
+      requestData = {
+        ...requestData,
+        exportFields
+      };
     } else if (options === 'kbid') {
       url = `${baseUrl}${contextRoot}/api/hmd/kbid/_export`;
 
@@ -5409,6 +5423,9 @@ class HostController extends Component {
             <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleTrackHostList.bind(this, 'hostList')}>{t('host.txt-trackHostList')}</Button>
           }
           <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleSafetyScanBtn.bind(this, 'report', type)}>{t('txt-export-' + type)}</Button>
+          {type === 'scanFile' &&
+            <Button variant='outlined' color='primary' className='standard btn' onClick={this.getCSVfile.bind(this, 'scanFileV2')}>{t('txt-export-scanFileV2')}</Button>
+          }
           {type === 'getVansCpe' &&
             <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleReport.bind(this, 'nccst')} disabled={this.checkNCCSTdisabled()}>{t('host.txt-report-nccst')}</Button>
           }

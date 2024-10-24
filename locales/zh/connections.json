@@ -217,6 +217,7 @@
   "txt-exportCSV": "$t(txt-export)CSV",
   "txt-exportPDF": "$t(txt-export)PDF",
   "txt-export-scanFile": "$t(txt-export)Malware",
+  "txt-export-scanFileV2": "$t(txt-export)Malware_V2",
   "txt-export-gcbDetection": "$t(txt-export)GCB",
   "txt-export-getFileIntegrity": "$t(txt-export)File Integrity",
   "txt-export-getVansCpe": "$t(txt-export)CPE",
@@ -440,6 +441,19 @@
       "txt-reference": "參考",
       "txt-kibd": "可修補KBID"
     },
+    "malware": {
+      "txt-exposedDevices": "裝置數量",
+      "txt-fileMD5": "MD5",
+      "txt-fileSHA1": "SHA1",
+      "txt-fileSHA256": "SHA256",
+      "txt-fileSize": "檔案大小",
+      "txt-virusTotal": "Virus Total",
+      "txt-companyName": "企業名稱",
+      "txt-isPE": "是否為PE檔",
+      "txt-isPEExtension": "是否為PE副檔名",
+      "txt-isVerifyTrust": "是否為有效簽章",
+      "txt-virusName": "病毒名稱"
+    },
     "inventory": {
       "txt-discoveredVulnerability": "軟體漏洞清單",
       "txt-discoveredVulnerabilityCount": "軟體漏洞清單數量",
@@ -513,7 +527,6 @@
     "txt-report-vans": "回報VANS",
     "txt-report-nccst": "回報NCCST",
     "txt-report-kbid": "回報KBID",
-    "txt-kbid": "KBID",
     "txt-kbidName": "KBID名稱",
     "txt-ipOrHostName": "IP或主機",
     "txt-exposedDevices": "資產數量",

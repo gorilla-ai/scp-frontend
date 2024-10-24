@@ -217,6 +217,7 @@
   "txt-exportCSV": "$t(txt-export) CSV",
   "txt-exportPDF": "$t(txt-export) PDF",
   "txt-export-scanFile": "$t(txt-export) Malware",
+  "txt-export-scanFileV2": "$t(txt-export)Malware_V2",
   "txt-export-gcbDetection": "$t(txt-export) GCB",
   "txt-export-getFileIntegrity": "$t(txt-export) File Integrity",
   "txt-export-getVansCpe": "$t(txt-export) CPE",
@@ -440,6 +441,19 @@
       "txt-reference": "Reference",
       "txt-kibd": "KBID"
     },
+    "malware": {
+      "txt-exposedDevices": "Devices Count",
+      "txt-fileMD5": "MD5",
+      "txt-fileSHA1": "SHA1",
+      "txt-fileSHA256": "SHA256",
+      "txt-fileSize": "File Size",
+      "txt-virusTotal": "Virus Total",
+      "txt-companyName": "Company Name",
+      "txt-isPE": "Is PE",
+      "txt-isPEExtension": "Is PE Extension",
+      "txt-isVerifyTrust": "Is Verify Trust",
+      "txt-virusName": "Virus Name"
+    },
     "inventory": {
       "txt-discoveredVulnerability": "Discovered Vulnerability",
       "txt-discoveredVulnerabilityCount": "Discovered Vulnerability Count",
@@ -513,7 +527,6 @@
     "txt-report-vans": "Report VANS",
     "txt-report-nccst": "Report NCCST",
     "txt-report-kbid": "Report KBID",
-    "txt-kbid": "KBID",
     "txt-kbidName": "KBID Name",
     "txt-ipOrHostName": "IP or Host Name",
     "txt-exposedDevices": "Exposed Devices",
