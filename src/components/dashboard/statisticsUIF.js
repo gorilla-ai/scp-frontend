@@ -490,7 +490,7 @@ class StatisticsUIF extends Component {
     const {displayContent} = this.state;
 
     return (
-      <Grid item xs={4}>
+      <Grid key={i} item xs={4}>
         <FormControlLabel
           className='switch-control'
           control={
@@ -554,12 +554,12 @@ class StatisticsUIF extends Component {
     return (
       <div>
         <div className='sub-header'>
-          <Grid container justify='space-between'>
+          <Grid container justifyContent='space-between'>
             <Grid item xs={3}>
               {helper.getDashboardMenu('statisticsUIF')}
             </Grid>
             <Grid item xs={9}>
-              <Grid container justify='flex-end'>
+              <Grid container justifyContent='flex-end'>
                 <Grid item className='secondary-btn-group'>
                   <Button variant='outlined' color='primary' title={t('txt-export')} onClick={this.exportPDF} ><CloudDownloadIcon /></Button>
                   <Button variant='outlined' color='primary' title={t('txt-layout-setting')} onClick={this.openLayoutDialog}><BlurLinearIcon /></Button>
@@ -597,7 +597,7 @@ class StatisticsUIF extends Component {
         </div>
 
         {openEdit &&
-          <Grid container style={{backgroundColor: 'white', padding: '5px'}} justify='center' alignItems='center'>
+          <Grid container style={{backgroundColor: 'white', padding: '5px'}} justifyContent='center' alignItems='center'>
             <Typography color='error' display='inline'>{t('txt-layout-change')}</Typography>&nbsp;&nbsp;&nbsp;
             <Button variant='outlined' color='primary' onClick={this.handleChange.bind(this, 'openEdit', false)}>{t('txt-cancel')}</Button>&nbsp;&nbsp;&nbsp;
             <Button variant='outlined' color='primary' onClick={this.saveLayout.bind(this)} >{t('txt-save')}</Button>
