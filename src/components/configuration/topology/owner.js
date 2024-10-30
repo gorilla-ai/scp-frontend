@@ -94,7 +94,7 @@ class NetworkOwner extends Component {
    this.getTitleData();
    this.getOwnerData();
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'tableList') {
       this.toggleContent('tableList');
     }

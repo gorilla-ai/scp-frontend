@@ -264,7 +264,7 @@ class NetworkInventory extends Component {
       }
     }
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'tableList') {
       this.toggleContent('showList');
     }

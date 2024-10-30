@@ -20,7 +20,7 @@ function withLocale(Component) {
     state = {
     };
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
       if (!initialized) {
         this.createLocale()
         initialized = true

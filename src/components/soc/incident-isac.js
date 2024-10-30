@@ -63,7 +63,7 @@ class IncidentIsac extends Component {
     this.checkAccountType();
     this.getSettingInfo();
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'viewMode') {
       this.toggleContent('viewMode');
     }
