@@ -595,7 +595,7 @@ class HostController extends Component {
       });
     }
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'hostContent') {
       this.getSystemList();
       this.toggleFilter('off');
@@ -5267,13 +5267,13 @@ class HostController extends Component {
     }
 
     if (val === 'hmdSettings' && adminPrivilege) {
-      return <MenuItem><Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, val)}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
+      return <MenuItem key={i}><Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, val)}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
     } else if (val === 'hmdDownloadWindows') {
-      return <MenuItem><Button variant='outlined' color='primary' className='standard btn' onClick={this.hmdDownload.bind(this, 'windows')}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
+      return <MenuItem key={i}><Button variant='outlined' color='primary' className='standard btn' onClick={this.hmdDownload.bind(this, 'windows')}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
     } else if (val === 'hmdDownloadLinux') {
-      return <MenuItem><Button variant='outlined' color='primary' className='standard btn' onClick={this.hmdDownload.bind(this, 'linux')}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
+      return <MenuItem key={i}><Button variant='outlined' color='primary' className='standard btn' onClick={this.hmdDownload.bind(this, 'linux')}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
     } else if (val === 'uploadHMDfile') {
-      return <MenuItem><Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleHmdUploadFile}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
+      return <MenuItem key={i}><Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleHmdUploadFile}>{t('hmd-scan.txt-' + val)}</Button></MenuItem>
     }
   }
   /**

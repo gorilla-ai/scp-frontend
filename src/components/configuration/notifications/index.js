@@ -116,7 +116,7 @@ class Notifications extends Component {
 
     this.getMailServerInfo();
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'viewMode') {
       this.toggleContent('viewMode');
     }
@@ -162,8 +162,8 @@ class Notifications extends Component {
         };
 
         let tempSmsProvider = {...smsProvider};
-        tempSmsProvider.list = _.map(data3.rows, val => {
-          return <MenuItem value={val.ServiceProviderName}>{t('notifications.sms.txt-' + val.ServiceProviderName)}</MenuItem>
+        tempSmsProvider.list = _.map(data3.rows, (val, i) => {
+          return <MenuItem key={i} value={val.ServiceProviderName}>{t('notifications.sms.txt-' + val.ServiceProviderName)}</MenuItem>
         });
 
         if (data2['notify.sms.server.id'] && data2['notify.sms.server.id'].length > 0) {

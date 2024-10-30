@@ -299,8 +299,8 @@ class SearchOptions extends Component {
             size='small'
             value={searchInput.searchType}
             onChange={this.handleSearchTypeChange}>
-            <MenuItem id='searhTypeManual' value={'manual'}>{t('time-interval.txt-search-manual')}</MenuItem>
-            <MenuItem id='searhTypeAuto' value={'auto'}>{t('time-interval.txt-search-auto')}</MenuItem>
+            <MenuItem id='searhTypeManual' key='searhTypeManual' value={'manual'}>{t('time-interval.txt-search-manual')}</MenuItem>
+            <MenuItem id='searhTypeAuto' key='searhTypeAuto' value={'auto'}>{t('time-interval.txt-search-auto')}</MenuItem>
           </TextField>
         }
 
@@ -318,11 +318,11 @@ class SearchOptions extends Component {
                     size='small'
                     value={searchInput.refreshTime}
                     onChange={this.props.setSearchData}>
-                    <MenuItem id='updateInterval15s' value={'15000'}>{t('time-interval.txt-15s')}</MenuItem>
-                    <MenuItem id='updateInterval30s' value={'30000'}>{t('time-interval.txt-30s')}</MenuItem>
-                    <MenuItem id='updateInterval1m' value={'60000'}>{t('time-interval.txt-1m')}</MenuItem>
-                    <MenuItem id='updateInterval5m' value={'300000'}>{t('time-interval.txt-5m')}</MenuItem>
-                    <MenuItem id='updateInterval10m' value={'600000'}>{t('time-interval.txt-10m')}</MenuItem>
+                    <MenuItem id='updateInterval15s' key='updateInterval15s' value={'15000'}>{t('time-interval.txt-15s')}</MenuItem>
+                    <MenuItem id='updateInterval30s' key='updateInterval30s' value={'30000'}>{t('time-interval.txt-30s')}</MenuItem>
+                    <MenuItem id='updateInterval1m' key='updateInterval1m' value={'60000'}>{t('time-interval.txt-1m')}</MenuItem>
+                    <MenuItem id='updateInterval5m' key='updateInterval5m' value={'300000'}>{t('time-interval.txt-5m')}</MenuItem>
+                    <MenuItem id='updateInterval10m' key='updateInterval10m' value={'600000'}>{t('time-interval.txt-10m')}</MenuItem>
                   </TextField>
                 </div>
 
@@ -336,10 +336,10 @@ class SearchOptions extends Component {
                     size='small'
                     value={searchInput.searchInterval}
                     onChange={this.props.setSearchData}>
-                    <MenuItem id='timeInterval15m' value={'15m'}>{t('time-interval.txt-last15m')}</MenuItem>
-                    <MenuItem id='timeInterval30m' value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
-                    <MenuItem id='timeInterval1h' value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
-                    <MenuItem id='timeInterval12h' value={'12h'}>{t('time-interval.txt-last12h')}</MenuItem>
+                    <MenuItem id='timeInterval15m' key='timeInterval15m' value={'15m'}>{t('time-interval.txt-last15m')}</MenuItem>
+                    <MenuItem id='timeInterval30m' key='timeInterval30m' value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
+                    <MenuItem id='timeInterval1h' key='timeInterval1h' value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
+                    <MenuItem id='timeInterval12h' key='timeInterval12h' value={'12h'}>{t('time-interval.txt-last12h')}</MenuItem>
                   </TextField>
                 </div>
               </div>
@@ -355,12 +355,12 @@ class SearchOptions extends Component {
                 size='small'
                 value={searchInput.searchInterval}
                 onChange={this.props.setSearchData}>
-                <MenuItem id='timeInterval30m' value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
-                <MenuItem id='timeInterval1h' value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
-                <MenuItem id='timeInterval2h' value={'2h'}>{t('time-interval.txt-last2h')}</MenuItem>
-                <MenuItem id='timeIntervalToday' value={'today'}>{t('time-interval.txt-today')}</MenuItem>
-                <MenuItem id='timeInterval24h' value={'24h'}>{t('time-interval.txt-last24h')}</MenuItem>
-                <MenuItem id='timeIntervalWeek' value={'week'}>{t('time-interval.txt-week')}</MenuItem>
+                <MenuItem id='timeInterval30m' key='timeInterval30m' value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
+                <MenuItem id='timeInterval1h' key='timeInterval1h' value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
+                <MenuItem id='timeInterval2h' key='timeInterval2h' value={'2h'}>{t('time-interval.txt-last2h')}</MenuItem>
+                <MenuItem id='timeIntervalToday' key='timeIntervalToday' value={'today'}>{t('time-interval.txt-today')}</MenuItem>
+                <MenuItem id='timeInterval24h' key='timeInterval24h' value={'24h'}>{t('time-interval.txt-last24h')}</MenuItem>
+                <MenuItem id='timeIntervalWeek' key='timeIntervalWeek' value={'week'}>{t('time-interval.txt-week')}</MenuItem>
               </TextField>
             }
           </div>

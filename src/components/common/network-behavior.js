@@ -485,8 +485,8 @@ class NetworkBehavior extends Component {
           value={activeNetworkBehavior}
           exclusive
           onChange={this.toggleNetworkBtn}>
-          <ToggleButton id='networkBehaviorThreats' value='threats'>{t('txt-threats') + ' (' + helper.numberWithCommas(networkBehavior.threats[ipType].totalCount) + ')'}</ToggleButton>
-          <ToggleButton id='networkBehaviorSyslog' value='syslog'>{t('txt-syslog-en') + ' (' + helper.numberWithCommas(networkBehavior.syslog[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton id='networkBehaviorThreats' key='networkBehaviorThreats' value='threats'>{t('txt-threats') + ' (' + helper.numberWithCommas(networkBehavior.threats[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton id='networkBehaviorSyslog' key='networkBehaviorSyslog' value='syslog'>{t('txt-syslog-en') + ' (' + helper.numberWithCommas(networkBehavior.syslog[ipType].totalCount) + ')'}</ToggleButton>
         </ToggleButtonGroup>
 
         {datetime.from && datetime.to &&

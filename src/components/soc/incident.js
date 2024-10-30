@@ -1718,8 +1718,8 @@ class Incident extends Component {
               value={search.category}
               onChange={this.handleSearchMui}>
               {
-                _.map(_.range(0, 9), el => {
-                  return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                _.map(_.range(0, 9), (el, i) => {
+                  return <MenuItem key={i} value={el}>{it(`category.${el}`)}</MenuItem>
                 })
               }
             </TextField>
