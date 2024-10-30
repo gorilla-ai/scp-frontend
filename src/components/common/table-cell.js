@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
+import Popper from '@material-ui/core/Popper';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import {BaseDataContext} from './context'
 import helper from './helper'
@@ -139,24 +141,29 @@ class TableCell extends Component {
           </div>
         )
       } else { //Everythig else
-        if ((fieldName === '_Raw' || fieldName === 'message' || fieldName === 'msg') && !expandContent) {
-            return <div className='ellipsis-container'>
-                <div className='ellipsis-item'>
-                  <span className={this.getBackgroundColor(fieldValue)} title={fieldValue}>
-                    {fieldValue}
-                    {!_.includes(FILTER_EXCLUDE_FIELDS, fieldName) &&
-                      <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}></i>
-                    }
-                  </span>
+        if ((fieldName === '_Raw' || fieldName === 'message' || fieldName === 'msg')) {
+          if (expandContent) {
+            return <pre className={this.getBackgroundColor(fieldValue)}>
+                {fieldValue}
+              </pre>
+          } else {
+            return <Tooltip title={fieldValue} interactive={true} classes={{popper:'cell-tooltip'}}>
+                <div className='ellipsis-container'>
+                  <div className='ellipsis-item'>
+                    <span className={this.getBackgroundColor(fieldValue)}>
+                      {fieldValue}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </Tooltip>
+          }
         }
-        return <pre className={this.getBackgroundColor(fieldValue)} title={fieldValue}>
+        return <span className={this.getBackgroundColor(fieldValue)} title={fieldValue}>
             {fieldValue}
             {!_.includes(FILTER_EXCLUDE_FIELDS, fieldName) &&
             <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}></i>
             }
-          </pre>
+          </span>
       }
     }
   }
@@ -245,7 +252,7 @@ class TableCell extends Component {
     }
   }
   handleCellClick() {
-    this.setState({expandContent: !this.state.expandContent})
+    this.setState({expandContent: !this.state.expandContent});
   }
   render() {
     return (
