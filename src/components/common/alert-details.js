@@ -2454,7 +2454,8 @@ class AlertDetails extends Component {
           triggerFilesTask={this.triggerFilesTask}
           addToWhiteList={this.addToWhiteList}
           getHMDinfo={this.getHMDinfo}
-          loadEventTracing={this.loadEventTracing} />
+          loadEventTracing={this.loadEventTracing}
+          setActiveScanType={this.setActiveScanType} />
       )
     } else {
       return <span>{NOT_AVAILABLE}</span>
