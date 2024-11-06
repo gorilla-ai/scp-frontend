@@ -295,7 +295,7 @@ TableList.propTypes = {
   search: PropTypes.object.isRequired,
   data: PropTypes.object.isRequired,
   options: PropTypes.object.isRequired,
-  tableAnchor: PropTypes.string.isRequired,
+  tableAnchor: PropTypes.string,
   exportAnchor: PropTypes.string,
   getData: PropTypes.func.isRequired,
   getActiveData: PropTypes.func.isRequired,
