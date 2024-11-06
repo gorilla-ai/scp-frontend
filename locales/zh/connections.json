@@ -171,6 +171,9 @@
   "txt-connected": "已連線",
   "txt-disconnected": "已離線",
   "txt-notConnected": "未連線",
+  "txt-isLatestVersion": "最新版",
+  "txt-notUpgraded": "未升版",
+  "txt-notInstalled": "未安裝",
   "txt-unstable": "不穩定",
   "txt-unknown": "未知",
   "txt-severity": "嚴重等級",
@@ -488,6 +491,7 @@
     },
     "endpoints": {
       "txt-hmdStatus": "HMD狀態",
+      "txt-hmdVersion": "HMD版本",
       "txt-hostSeverityLevel": "主機安全等級",
       "txt-networkInfo": "網路資訊",
       "txt-deviceInfo": "設備資訊",

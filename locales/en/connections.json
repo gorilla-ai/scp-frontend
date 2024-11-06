@@ -171,6 +171,9 @@
   "txt-connected": "Connected",
   "txt-disconnected": "Disconnected",
   "txt-notConnected": "Not Connected",
+  "txt-isLatestVersion": "Latest Version",
+  "txt-notUpgraded": "Not Upgraded",
+  "txt-notInstalled": "Not Installed",
   "txt-unstable": "Unstable",
   "txt-unknown": "Unknown",
   "txt-severity": "Severity",
@@ -488,6 +491,7 @@
     },
     "endpoints": {
       "txt-hmdStatus": "HMD Status",
+      "txt-hmdVersion": "HMD Version",
       "txt-hostSeverityLevel": "Host Severity Level",
       "txt-networkInfo": "Network Info",
       "txt-deviceInfo": "Device Info",

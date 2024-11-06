@@ -484,6 +484,12 @@ class HostEndPoints extends Component {
           },
           {
             id: 2,
+            title: t('host.endpoints.txt-hmdVersion'),
+            type: 'version',
+            data: this.formatBarChartData('version', data.versionAgg)
+          },
+          {
+            id: 3,
             title: t('host.endpoints.txt-hostSeverityLevel'),
             type: 'severity',
             data: this.formatBarChartData('severity', data.severityAgg)
@@ -503,7 +509,7 @@ class HostEndPoints extends Component {
   /**
    * Format the bar chart data
    * @method
-   * @param {string} type - chart type ('status' or 'severity')
+   * @param {string} type - chart type ('status', 'version' or 'severity')
    * @param {object} data - chart data
    * @returns formatted chart data
    */
@@ -556,6 +562,13 @@ class HostEndPoints extends Component {
           },
           {
             id: 2,
+            title: t('host.endpoints.txt-hmdVersion'),
+            label: t('txt-version'),
+            data: this.formatPieChartData(data.versionAgg),
+            count: helper.numberWithCommas(data.versionTotal)
+          },
+          {
+            id: 3,
             title: t('host.endpoints.txt-hostSeverityLevel'),
             label: t('txt-severity'),
             data: this.formatPieChartData(data.severityAgg),
@@ -2100,6 +2113,9 @@ class HostEndPoints extends Component {
             xAxis={{
               type: 'category'
             }}
+            yAxis={{
+              allowDecimals: false
+            }}
             plotOptions={{
               series: {
                 maxPointWidth: 20
@@ -2115,7 +2131,7 @@ class HostEndPoints extends Component {
   /**
    * Show tooltip info when mouseover the chart
    * @method
-   * @param {string} type - chart type ('status' or 'severity')
+   * @param {string} type - chart type ('status', 'version' or 'severity')
    * @param {object} eventInfo - MouseoverEvents
    * @param {array.<object>} data - chart data
    * @returns HTML DOM
