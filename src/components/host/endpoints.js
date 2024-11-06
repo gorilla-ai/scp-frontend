@@ -31,6 +31,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
 const CONNECTION_STATUS = ['online', 'offline', 'inActivate'];
+const VERSION = ['isLatestVersion', 'notUpgraded', 'notInstalled'];
 const CONDITION_MODE = {
   '=': 'eq',
   '>': 'gt',
@@ -60,9 +61,8 @@ const FILTER_LIST = [
   },
   {
     name: 'version',
-    displayType: 'text_field',
-    filterType: 'multi_input',
-    searchType: 'condition_input'
+    displayType: 'auto_complete',
+    filterType: 'auto_complete'
   },
   {
     name: 'riskValue',
@@ -90,10 +90,7 @@ const ENDPOINTS_FILTER = {
   departmentSelected: [],
   system: [],
   connectionStatus: [],
-  version: [{
-    condition: '=',
-    input: ''
-  }],
+  version: [],
   riskValue: [{
     condition: '=',
     input: ''
@@ -211,6 +208,7 @@ class HostEndPoints extends Component {
       systemList: [],
       severityType: [],
       connectionStatus: [],
+      version: [],
       importDialogOpen: false,
       modalViewMoreOpen: false,
       endpointsSearch: _.cloneDeep(ENDPOINTS_SEARCH),
@@ -281,6 +279,7 @@ class HostEndPoints extends Component {
         this.getDepartmentTree();
         this.getSystemList();
         this.getSeverityType();
+        this.getVersion();
         this.getConnectionStatus();
       });
     }
@@ -636,6 +635,22 @@ class HostEndPoints extends Component {
     });
   }
   /**
+   * Get and set version
+   * @method
+   */
+  getVersion = () => {
+    const version = _.map(VERSION, val => {
+      return {
+        value: val,
+        text: t('txt-' + val)
+      };
+    });
+
+    this.setState({
+      version
+    });
+  }
+  /**
    * Get and set connection status
    * @method
    */
@@ -822,12 +837,9 @@ class HostEndPoints extends Component {
       });
     }
 
-    if (endpointsFilterList.version.length > 0) {
-      requestData.versionArray = _.map(endpointsFilterList.version, val => {
-        return {
-          mode: CONDITION_MODE[val.substr(0, 1)],
-          version: val.substr(2)
-        }
+    if (endpointsFilter.version.length > 0) {
+      requestData.versionArray = _.map(endpointsFilter.version, val => {
+        return val.value;
       });
     }
 
@@ -2204,6 +2216,7 @@ class HostEndPoints extends Component {
       systemList,
       severityType,
       connectionStatus,
+      version,
       importDialogOpen,
       modalViewMoreOpen,
       endpointsSearch,
@@ -2258,6 +2271,7 @@ class HostEndPoints extends Component {
             systemList={systemList}
             severityType={severityType}
             connectionStatus={connectionStatus}
+            version={version}
             filterList={FILTER_LIST}
             originalFilter={ENDPOINTS_FILTER}
             filter={endpointsFilter}

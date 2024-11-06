@@ -499,7 +499,7 @@ class FilterQuery extends Component {
    * @returns HTML DOM
    */
   showFilterDisplay = (val, i) => {
-    const {page, severityType, vendorType, connectionStatus} = this.props;
+    const {page, severityType, vendorType, connectionStatus, version} = this.props;
     const {filter, itemFilterList} = this.state;
     const filterName = val.name;
     const displayType = val.displayType;
@@ -521,6 +521,8 @@ class FilterQuery extends Component {
 
       if (filterName === 'connectionStatus') {
         selectOptions = connectionStatus;
+      } else if (filterName === 'version') {
+        selectOptions = version;
       } else if (filterName === 'risk') {
         selectOptions = severityType;
       }
@@ -692,6 +694,7 @@ FilterQuery.propTypes = {
   severityType: PropTypes.array,
   vendorType: PropTypes.array,
   connectionStatus: PropTypes.array,
+  version: PropTypes.array,
   filterList: PropTypes.array.isRequired,
   originalFilter: PropTypes.object.isRequired,
   filter: PropTypes.object.isRequired,
