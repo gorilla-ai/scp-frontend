@@ -181,9 +181,10 @@ class TableList extends Component {
       headerTitle = t('host.txt-kbid');
       searchLabel = t('host.txt-kbidName');
     } else if (page === 'endpoints') {
+      headerTitle = t('host.txt-endpoint');
       searchLabel = t('host.txt-ipOrHostName');
     }
-
+    
     return (
       <div>
         {datePickerOpen &&

@@ -32,6 +32,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
 const CONNECTION_STATUS = ['online', 'offline', 'inActivate'];
 const VERSION = ['isLatestVersion', 'notUpgraded', 'notInstalled'];
+const ENABLED_DISABLED = ['isEnabled', 'isDisabled'];
 const CONDITION_MODE = {
   '=': 'eq',
   '>': 'gt',
@@ -80,6 +81,16 @@ const FILTER_LIST = [
     displayType: 'text_field',
     filterType: 'multi_input',
     searchType: 'input'
+  },
+  {
+    name: 'fileIntegrity',
+    displayType: 'select_list',
+    filterType: 'select_list'
+  },
+  {
+    name: 'procMonitor',
+    displayType: 'select_list',
+    filterType: 'select_list'
   }
 ];
 const ENDPOINTS_SEARCH = {
@@ -91,6 +102,8 @@ const ENDPOINTS_FILTER = {
   system: [],
   connectionStatus: [],
   version: [],
+  fileIntegrity: '',
+  procMonitor: '',
   riskValue: [{
     condition: '=',
     input: ''
@@ -105,6 +118,8 @@ const ENDPOINTS_FILTER_LIST = {
   system: [],
   connectionStatus: [],
   version: [],
+  fileIntegrity: [],
+  procMonitor: [],
   riskValue: [],
   risk: [],
   memos: []
@@ -209,6 +224,8 @@ class HostEndPoints extends Component {
       severityType: [],
       connectionStatus: [],
       version: [],
+      fileIntegrity: [],
+      procMonitor: [],
       importDialogOpen: false,
       modalViewMoreOpen: false,
       endpointsSearch: _.cloneDeep(ENDPOINTS_SEARCH),
@@ -281,6 +298,8 @@ class HostEndPoints extends Component {
         this.getSeverityType();
         this.getVersion();
         this.getConnectionStatus();
+        this.getFileIntegrity();
+        this.getProcMonitor();
       });
     }
 
@@ -677,6 +696,38 @@ class HostEndPoints extends Component {
     return <div key={i}>{val}</div>
   }
   /**
+   * Get and set file integrity
+   * @method
+   */
+  getFileIntegrity = () => {
+    const fileIntegrity = _.map(ENABLED_DISABLED, val => {
+      return {
+        value: val,
+        text: t('txt-' + val)
+      };
+    });
+
+    this.setState({
+      fileIntegrity
+    });
+  }
+  /**
+   * Get and set process monitor
+   * @method
+   */
+  getProcMonitor = () => {
+    const procMonitor = _.map(ENABLED_DISABLED, val => {
+      return {
+        value: val,
+        text: t('txt-' + val)
+      };
+    });
+
+    this.setState({
+      procMonitor
+    });
+  }
+  /**
    * Handle popover open
    * @method
    * @param {array.<string>} memos - memos to be displayed
@@ -864,6 +915,12 @@ class HostEndPoints extends Component {
       requestData.memos = endpointsFilterList.memos;
     }
 
+    if (endpointsFilter.fileIntegrity === 'isEnabled' || endpointsFilter.fileIntegrity === 'isDisabled')
+      requestData.fileIntegrityEnable = endpointsFilter.fileIntegrity === 'isEnabled'
+
+    if (endpointsFilter.procMonitor === 'isEnabled' || endpointsFilter.procMonitor === 'isDisabled')
+      requestData.processMonitorEnable = endpointsFilter.procMonitor === 'isEnabled'
+    console.log(requestData)
     return requestData;
   }
   /**
@@ -2217,6 +2274,8 @@ class HostEndPoints extends Component {
       severityType,
       connectionStatus,
       version,
+      fileIntegrity,
+      procMonitor,
       importDialogOpen,
       modalViewMoreOpen,
       endpointsSearch,
@@ -2272,6 +2331,8 @@ class HostEndPoints extends Component {
             severityType={severityType}
             connectionStatus={connectionStatus}
             version={version}
+            fileIntegrity={fileIntegrity}
+            procMonitor={procMonitor}
             filterList={FILTER_LIST}
             originalFilter={ENDPOINTS_FILTER}
             filter={endpointsFilter}

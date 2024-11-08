@@ -15,6 +15,7 @@ import PopoverMaterial from '@material-ui/core/Popover'
 import TextField from '@material-ui/core/TextField'
 import TreeItem from '@material-ui/lab/TreeItem'
 import TreeView from '@material-ui/lab/TreeView'
+import Select from '@material-ui/core/Select'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -343,6 +344,14 @@ class FilterQuery extends Component {
       filter: tempFilter
     });
   }
+  handleSelectChange = (type, event) => {
+    let tempFilter = {...this.state.filter};
+    tempFilter[type] = event.target.value;
+
+    this.setState({
+      filter: tempFilter
+    });
+  }
   /**
    * Set search filter data
    * @method
@@ -499,7 +508,7 @@ class FilterQuery extends Component {
    * @returns HTML DOM
    */
   showFilterDisplay = (val, i) => {
-    const {page, severityType, vendorType, connectionStatus, version} = this.props;
+    const {page, severityType, vendorType, connectionStatus, version, fileIntegrity, procMonitor} = this.props;
     const {filter, itemFilterList} = this.state;
     const filterName = val.name;
     const displayType = val.displayType;
@@ -525,6 +534,12 @@ class FilterQuery extends Component {
         selectOptions = version;
       } else if (filterName === 'risk') {
         selectOptions = severityType;
+      } else if (filterName === 'fileIntegrity') {
+        selectOptions = fileIntegrity;
+        label = t('host.endpoints.txt-fileIntegrity');
+      } else if (filterName === 'procMonitor') {
+        selectOptions = procMonitor;
+        label = t('host.endpoints.txt-procMonitor');
       }
     }
 
@@ -544,6 +559,26 @@ class FilterQuery extends Component {
             InputProps={{
               readOnly: true
             }} />
+        </div>
+      )
+    } else if (displayType === 'select_list') {
+      const value = filter[filterName] ? filter[filterName] : '';
+
+      return (
+        <div key={i} className='group'>
+          <TextField
+            name={filterName}
+            label={label}
+            select
+            variant='outlined'
+            fullWidth
+            size='small'
+            value={value}
+            onChange={this.handleSelectChange.bind(this, filterName)} >
+            {_.map(selectOptions, (o) => {
+              return <MenuItem key={o.value} value={o.value}>{o.text}</MenuItem>
+            })}
+          </TextField>
         </div>
       )
     } else if (displayType === 'auto_complete') {
@@ -695,6 +730,8 @@ FilterQuery.propTypes = {
   vendorType: PropTypes.array,
   connectionStatus: PropTypes.array,
   version: PropTypes.array,
+  fileIntegrity: PropTypes.array,
+  procMonitor: PropTypes.array,
   filterList: PropTypes.array.isRequired,
   originalFilter: PropTypes.object.isRequired,
   filter: PropTypes.object.isRequired,
