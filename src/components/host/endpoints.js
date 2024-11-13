@@ -1,6 +1,4 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
-import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 import Button from '@material-ui/core/Button'
@@ -12,6 +10,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PieChart from 'react-chart/build/src/components/pie'
 import Popover from 'react-ui/build/src/components/popover'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
@@ -21,11 +20,9 @@ import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
 import HMDmoreInfo from '../common/hmd-more-info'
 import HostMenu from './common/host-menu'
-import ImportFile from './import-file'
 import MemoInput from './common/memo-input'
-import ReportRecord from './common/report-record'
 import TableList from './common/table-list'
-import UploadFile from './common/upload-file'
+import FileUpload from '../common/file-upload'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -228,11 +225,14 @@ class HostEndPoints extends Component {
       procMonitor: [],
       importDialogOpen: false,
       modalViewMoreOpen: false,
+      requestSentOpen: false,
+      uploadHmdFileOpen: false,
       endpointsSearch: _.cloneDeep(ENDPOINTS_SEARCH),
       endpointsFilter: _.cloneDeep(ENDPOINTS_FILTER),
       endpointsFilterList: _.cloneDeep(ENDPOINTS_FILTER_LIST),
       exportContextAnchor: null,
       tableContextAnchor: null,
+      moreContextAnchor: null,
       showMemoInfo: false,
       showEndpointInfo: false,
       showFilterQuery: false,
@@ -265,7 +265,8 @@ class HostEndPoints extends Component {
       currentHostId: '',
       currentRiskLevel: '',
       currentEndpointData: {},
-      severityStatistics: null
+      severityStatistics: null,
+      hmdFile: {}
     };
 
     this.ah = getInstance('chewbacca');
@@ -920,7 +921,7 @@ class HostEndPoints extends Component {
 
     if (endpointsFilter.procMonitor === 'isEnabled' || endpointsFilter.procMonitor === 'isDisabled')
       requestData.processMonitorEnable = endpointsFilter.procMonitor === 'isEnabled'
-    console.log(requestData)
+
     return requestData;
   }
   /**
@@ -1408,7 +1409,8 @@ class HostEndPoints extends Component {
   handleCloseMenu = () => {
     this.setState({
       exportContextAnchor: null,
-      tableContextAnchor: null
+      tableContextAnchor: null,
+      moreContextAnchor: null
     });
   }
   /**
@@ -2115,6 +2117,19 @@ class HostEndPoints extends Component {
     });
   }
   /**
+   * Handle more open menu
+   * @method
+   * @param {object} event - event object
+   */
+  handleMoreOpenMenu = (event) => {
+    this.setState({
+      moreContextAnchor: event.currentTarget
+    });
+  }
+  executeMoreAction = (type, hmdObj) => {
+    this.openConfirmModal(type, hmdObj)
+  }
+  /**
    * Export endpoints list
    * @method
    */
@@ -2263,6 +2278,287 @@ class HostEndPoints extends Component {
       </div>
     )
   }
+  /**
+   * Display confirm content
+   * @method
+   * @param {string} type - action type ('start' or 'stop')
+   * @param {string} name - action name
+   * @returns HTML DOM
+   */
+  getConfirmContent = (type, name) => {
+    let text = '';
+
+    if (type === 'start') {
+      text = t('txt-confirmProceed') + ': ' + name;
+    } else if (type === 'stop') {
+      text = t('txt-confirmTerminate') + ': ' + name;
+    }
+
+    return (
+      <div className='content'>
+        <span>{text}?</span>
+      </div>
+    )
+  }
+  /**
+   * Show the confirm modal dialog
+   * @method
+   * @param {string} type - action type ('start' or 'stop')
+   * @param {object} hmdObj - HMD object
+   */
+  openConfirmModal = (type, hmdObj) => {
+    PopupDialog.prompt({
+      id: 'modalWindowSmall',
+      confirmText: t('txt-confirm'),
+      cancelText: t('txt-cancel'),
+      display: this.getConfirmContent(type, hmdObj.name),
+      act: (confirmed) => {
+        if (confirmed) {
+          if (type === 'start') {
+            if (hmdObj.type === 'hmdUpgrade') {
+              this.handleHmdUpgrade(hmdObj);
+            } else {
+              this.triggerHmdAll(hmdObj);
+            }
+          } else if (type === 'stop') {
+            this.stopHmd(hmdObj);
+          }
+        }
+      }
+    });
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle HMD upgrade action
+   * @method
+   * @param {object} hmdObj - HMD object
+   */
+  handleHmdUpgrade = (hmdObj) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/endPoint/_upgrade/batch`;
+    const requestData = {
+      ...this.getEndpointsFilterRequestData()
+    };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.setState({
+      requestSentOpen: true
+    });
+  }
+  /**
+   * Handle trigger button for HMD trigger all
+   * @method
+   * @param {object} hmdObj - HMD object
+   */
+  triggerHmdAll = (hmdObj) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/endPoint/_retrigger/batch`;
+    let requestData = {
+      ...this.getEndpointsFilterRequestData(),
+      cmdJO: {
+        cmds: [hmdObj.cmds]
+      }
+    };
+    
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.setState({
+      requestSentOpen: true
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Stop HMD
+   * @method
+   * @param {object} hmdObj - HMD object
+   */
+  stopHmd = (hmdObj) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/endPoint/_retrigger/batch`;
+    const requestData = {
+      ...this.getEndpointsFilterRequestData(),
+      cmdJO: {
+        cmds: ['resetTaskConfig'],
+        taskThreads: [
+          {
+            _Name: hmdObj.stop,
+            _Enable: false
+          }
+        ]
+      }
+    };
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.setState({
+      requestSentOpen: true
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Display request sent dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  requestSentDialog = () => {
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.confirmRequestSent}
+    };
+
+    return (
+      <ModalDialog
+        id='requestSentDialog'
+        className='modal-dialog'
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+          <div className='msg'>{t('txt-requestSent')}</div>
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle HMD setup file upload
+   * @method
+   * @param {object} file - file uploaded by the user
+   */
+  getHmdSetupFile = (file) => {
+    this.setState({
+      hmdFile: file
+    });
+  }
+  /**
+   * Handle upload HMD setup file
+   * @method
+   * @returns ModalDialog component
+   */
+  uploadHmdFileDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleHmdUploadFile},
+      confirm: {text: t('txt-confirm'), handler: this.confirmHmdFileUpload}
+    };
+    const title = t('hmd-scan.txt-uploadHMDfile');
+    const fileTitle = t('hmd-scan.txt-hmdSetupFile') + '(.zip)';
+
+    return (
+      <ModalDialog
+        id='hmdFileUploadDialog'
+        className='modal-dialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        <FileUpload
+          id='fileUpload'
+          fileType='indicators'
+          supportText={fileTitle}
+          btnText={t('txt-upload')}
+          handleFileChange={this.getHmdSetupFile} />
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle HMD file upload confirm
+   * @method
+   */
+  confirmHmdFileUpload = () => {
+    const {baseUrl} = this.context;
+    const {hmdFile} = this.state;
+    let formData = new FormData();
+    formData.append('file', hmdFile);
+
+    if (!hmdFile.name) {
+      return;
+    }
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/setupFile/_upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-uploadSuccess'));
+
+        this.setState({
+          hmdFile: {}
+        });
+
+        this.toggleHmdUploadFile();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Confirm request sent
+   * @method
+   */
+  confirmRequestSent = () => {
+    this.setState({
+      requestSentOpen: false
+    });
+  }
+  /**
+   * Toggle HMD file upload dialog on/off
+   * @method
+   */
+  toggleHmdUploadFile = () => {
+    this.setState({
+      uploadHmdFileOpen: !this.state.uploadHmdFileOpen
+    });
+
+    this.handleCloseMenu();
+  }
   render() {
     const {
       account,
@@ -2278,6 +2574,8 @@ class HostEndPoints extends Component {
       procMonitor,
       importDialogOpen,
       modalViewMoreOpen,
+      requestSentOpen,
+      uploadHmdFileOpen,
       endpointsSearch,
       endpointsFilter,
       endpointsFilterList,
@@ -2287,6 +2585,7 @@ class HostEndPoints extends Component {
       showEndpointInfo,
       exportContextAnchor,
       tableContextAnchor,
+      moreContextAnchor,
       showFilterQuery,
       endpointsData,
       currentEndpointData
@@ -2317,6 +2616,14 @@ class HostEndPoints extends Component {
           <HMDmoreInfo
             hostData={currentEndpointData}
             toggleViewMore={this.toggleViewMore} />
+        }
+
+        {requestSentOpen &&
+          this.requestSentDialog()
+        }
+
+        {uploadHmdFileOpen &&
+          this.uploadHmdFileDialog()
         }
 
         {showFilterQuery &&
@@ -2365,14 +2672,18 @@ class HostEndPoints extends Component {
               options={tableOptions}
               exportAnchor={exportContextAnchor}
               tableAnchor={tableContextAnchor}
+              moreAnchor={moreContextAnchor}
               getData={this.getEndpointsData}
               getActiveData={this.getActiveEndpointInfo}
               toggleShowMemo={this.toggleShowMemo}
+              executeMoreAction={this.executeMoreAction}
               exportList={this.exportEndpointsList}
               toggleFilterQuery={this.toggleFilterQuery}
+              toggleHmdUploadFile={this.toggleHmdUploadFile}
               handleSearch={this.handleCpeChange}
               handleReset={this.handleResetBtn}
               handleExportMenu={this.handleExportOpenMenu}
+              handleMoreMenu={this.handleMoreOpenMenu}
               handleCloseMenu={this.handleCloseMenu} />
           </div>
         </div>

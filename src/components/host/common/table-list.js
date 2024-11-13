@@ -12,12 +12,15 @@ import Button from '@material-ui/core/Button'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
+import MoreHorizIcon from '@material-ui/icons/MoreHoriz'
+import Divider from '@material-ui/core/Divider'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
 import MuiTableContent from '../../common/mui-table-content'
+import NestedMenuItem from '../../common/nested-menu-item'
 
 let t = null;
 let f = null;
@@ -164,6 +167,7 @@ class TableList extends Component {
       options,
       tableAnchor,
       exportAnchor,
+      moreAnchor,
       cveSeverityLevel,
       monthlySeverityTrend
     } = this.props;
@@ -235,6 +239,41 @@ class TableList extends Component {
                 <MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>{t('host.kbid.txt-vulnerabilityList')}</MenuItem>
               </Menu>
             }
+            {page === 'endpoints' && moreAnchor &&
+              <Menu
+                anchorEl={moreAnchor}
+                keepMounted
+                open={Boolean(moreAnchor)}
+                onClose={this.props.handleCloseMenu}>
+                <NestedMenuItem
+                  ref={ref => {this.menuItemRef = ref}}
+                  innerRef={this.menuItemRef}
+                  label={t('host.endpoints.txt-endpointDetection')}
+                  parentMenuOpen={Boolean(moreAnchor)}
+                >
+                  <MenuItem onClick={this.props.executeMoreAction.bind(this, 'start', {name: t('host.endpoints.txt-malwareDetection'), cmds: 'scanFile'})}>{t('host.endpoints.txt-malwareDetection')}</MenuItem>
+                  <Divider />
+                  <MenuItem onClick={this.props.executeMoreAction.bind(this, 'start', {name: t('host.endpoints.txt-cveDetection'), cmds: 'getVans'})}>{t('host.endpoints.txt-cveDetection')}</MenuItem>
+                  <MenuItem onClick={this.props.executeMoreAction.bind(this, 'start', {name: t('host.endpoints.txt-kbidDetection'), cmds: 'getKbidList'})}>{t('host.endpoints.txt-kbidDetection')}</MenuItem>
+                  <MenuItem onClick={this.props.executeMoreAction.bind(this, 'start', {name: t('host.endpoints.txt-gcbDetection'), cmds: 'gcbDetection'})}>{t('host.endpoints.txt-gcbDetection')}</MenuItem>
+                  <MenuItem onClick={this.props.executeMoreAction.bind(this, 'start', {name: t('host.endpoints.txt-updateGpo'), cmds: 'syncGcbTemplates'})}>{t('host.endpoints.txt-updateGpo')}</MenuItem>
+                  <Divider />
+                  <MenuItem onClick={this.props.executeMoreAction.bind(this, 'stop', {name: t('host.endpoints.txt-procMonitorDisable'), cmds: 'setProcessWhiteList', stop: 'ProcessMonitorThread'})}>{t('host.endpoints.txt-procMonitorDisable')}</MenuItem>
+                  <MenuItem onClick={this.props.executeMoreAction.bind(this, 'stop', {name: t('host.endpoints.txt-fileIntegrityMonitorDisable'), cmds: 'getFileIntegrity', stop: 'FileIntegrityThread'})}>{t('host.endpoints.txt-fileIntegrityMonitorDisable')}</MenuItem>
+                </NestedMenuItem>
+                <NestedMenuItem
+                  ref={ref => {this.menuItemRef = ref}}
+                  innerRef={this.menuItemRef}
+                  label={t('host.endpoints.txt-hmd')}
+                  parentMenuOpen={Boolean(moreAnchor)}
+                >
+                  <MenuItem onClick={this.props.executeMoreAction.bind(this, 'start', {name: t('host.endpoints.txt-upgradeHmd'), type: 'hmdUpgrade'})}>{t('host.endpoints.txt-upgradeHmd')}</MenuItem>
+                  <Divider />
+                  <MenuItem onClick={this.props.toggleHmdUploadFile.bind(this)}>{t('host.endpoints.txt-uploadHmdPrograms')}</MenuItem>
+                  <MenuItem><Link to={{pathname: '/SCP/host', state: {activeContent: 'hmdSettings'}}}>{t('host.endpoints.txt-settings')}</Link></MenuItem>
+                </NestedMenuItem>
+              </Menu>
+            }
             <Button id='hostFilterQuery' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')} data-cy='hostFilterQueryBtn'>{t('txt-filterQuery')}</Button>
             {page === 'vulnerabilities' &&
               <React.Fragment>
@@ -254,7 +293,10 @@ class TableList extends Component {
               </React.Fragment>
             }
             {page === 'endpoints' &&
-              <Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.exportList} data-cy='hostExportBtn'>{t('txt-export')}</Button>
+              <React.Fragment>
+                <Button id='hostExportList' variant='outlined' color='primary' className='standard btn' onClick={this.props.exportList} data-cy='hostExportBtn'>{t('txt-export')}</Button>
+                <Button id='hostMoreMenu' variant='outlined' color='primary' className='standard btn' startIcon={<MoreHorizIcon/>} onClick={this.props.handleMoreMenu} data-cy='hostMoreBtn'>{t('txt-more')}</Button>
+              </React.Fragment>
             }
             
           </div>
@@ -296,11 +338,13 @@ TableList.propTypes = {
   search: PropTypes.object.isRequired,
   data: PropTypes.object.isRequired,
   options: PropTypes.object.isRequired,
-  tableAnchor: PropTypes.string,
-  exportAnchor: PropTypes.string,
+  tableAnchor: PropTypes.object,
+  exportAnchor: PropTypes.object,
+  moreAnchor: PropTypes.object,
   getData: PropTypes.func.isRequired,
   getActiveData: PropTypes.func.isRequired,
   toggleShowMemo: PropTypes.func,
+  executeMoreAction: PropTypes.func,
   exportList: PropTypes.func.isRequired,
   toggleFilterQuery: PropTypes.func.isRequired,
   handleSearch: PropTypes.func.isRequired,

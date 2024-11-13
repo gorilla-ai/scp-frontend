@@ -400,7 +400,7 @@ class HostController extends Component {
       hmd_list: [],
       activeTab: 'hostList', //'hostList', 'deviceMap', 'safetyScan' or 'vansCharts'
       activeSafetyTab: 'list', //'list' or 'la'
-      activeContent: 'hostContent', //'hostContent' or 'hmdSettings'
+      activeContent: this.props.location.state && this.props.location.state.activeContent ? this.props.location.state.activeContent : 'hostContent', //'hostContent' or 'hmdSettings'
       account: {
         id: '',
         login: false,
