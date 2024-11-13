@@ -601,6 +601,10 @@ class HostAnalysis extends Component {
       cmds: type
     };
 
+    if (type[0] === 'setProcessWhiteList') {
+      requestData.buildProcess = false;
+    }
+
     if (type[0] === 'compareIOC') {
       let pathData = [];
 
