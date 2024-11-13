@@ -2085,47 +2085,45 @@ class ThreatsController extends Component {
       timestamp: [dateTime.from, dateTime.to]
     };
 
+    let formattedFilterData = [];
+
+    _.forEach(filterData, val => {
+      let formattedQuery = val.query;
+
+      if (val.query.includes('Source')) {
+        formattedQuery = val.query.replace('Source: ', '');
+        formattedQuery = formattedQuery.substring(0, formattedQuery.lastIndexOf('('));
+
+        _.forEach(edgeData, val => {
+          if (val.agentName === formattedQuery) {
+            formattedQuery = '_edgeId: "' + val.agentId + '"'
+          }
+        })
+      }
+
+      formattedFilterData.push({
+        condition: val.condition,
+        query: formattedQuery
+      });
+    })
+
+    const filterDataArr = helper.buildFilterDataArray(formattedFilterData); //Remove empty filter array
+    const combinedFilterDataArr = _.concat(filterDataArr, edgeFilterData);
+
+    if (combinedFilterDataArr.length > 0) {
+      dataObj.filters = combinedFilterDataArr;
+    }
+
     if (options === 'tree') {
       dataObj.search = [PRIVATE_API.name, PUBLIC_API.name];
+    } else if (options === 'statistics') {
+      dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, INTERNAL_MASKED_SRC_IP_API.name, EXTERNAL_SRC_COUNTRY_API.name, EXTERNAL_SRC_IP_API.name, INTERNAL_MASKED_DEST_IP_API.name, EXTERNAL_DEST_COUNTRY_API.name, EXTERNAL_DEST_IP_API.name];
+    } else if (options === NET_TRAP_QUERY.name) {
+      dataObj.search = [NET_TRAP_QUERY.name];
     } else {
-      let formattedFilterData = [];
-
-      _.forEach(filterData, val => {
-        let formattedQuery = val.query;
-
-        if (val.query.includes('Source')) {
-          formattedQuery = val.query.replace('Source: ', '');
-          formattedQuery = formattedQuery.substring(0, formattedQuery.lastIndexOf('('));
-
-          _.forEach(edgeData, val => {
-            if (val.agentName === formattedQuery) {
-              formattedQuery = '_edgeId: "' + val.agentId + '"'
-            }
-          })
-        }
-
-        formattedFilterData.push({
-          condition: val.condition,
-          query: formattedQuery
-        });
-      })
-
-      const filterDataArr = helper.buildFilterDataArray(formattedFilterData); //Remove empty filter array
-      const combinedFilterDataArr = _.concat(filterDataArr, edgeFilterData);
-
-      if (combinedFilterDataArr.length > 0) {
-        dataObj.filters = combinedFilterDataArr;
-      }
-
-      if (options === 'statistics') {
-        dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, INTERNAL_MASKED_SRC_IP_API.name, EXTERNAL_SRC_COUNTRY_API.name, EXTERNAL_SRC_IP_API.name, INTERNAL_MASKED_DEST_IP_API.name, EXTERNAL_DEST_COUNTRY_API.name, EXTERNAL_DEST_IP_API.name];
-      } else if (options === NET_TRAP_QUERY.name) {
-        dataObj.search = [NET_TRAP_QUERY.name];
-      } else {
-        dataObj.sort = [{
-          '_eventDttm_': threatsData.sort.desc ? 'desc' : 'asc'
-        }];
-      }
+      dataObj.sort = [{
+        '_eventDttm_': threatsData.sort.desc ? 'desc' : 'asc'
+      }];
     }
 
     if (options == 'csv') {
