@@ -28,8 +28,11 @@ class MuiTableContentWithoutLoading extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   componentDidMount() {
+    this._isMounted = true;
+
     const resizeObserver = new ResizeObserver((entries) => {
-      this.setState({reload: new Date().getTime()})
+      if (this._isMounted)
+        this.setState({reload: new Date().getTime()});
     });
     if (this.container)
       resizeObserver.observe(this.container);
@@ -40,6 +43,8 @@ class MuiTableContentWithoutLoading extends Component {
     this.loadTableContent(prevProps);
   }
   componentWillUnmount() {
+    this._isMounted = false;
+    
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
