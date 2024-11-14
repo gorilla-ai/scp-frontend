@@ -172,6 +172,13 @@ class TableList extends Component {
       monthlySeverityTrend
     } = this.props;
     const {datePickerOpen} = this.state;
+    const {sessionRights} = this.context;
+    let adminPrivilege = false;
+
+    if (sessionRights.Module_Config) {
+      adminPrivilege = true;
+    }
+
     let headerTitle = '';
     let searchLabel = '';
 
@@ -268,9 +275,13 @@ class TableList extends Component {
                   parentMenuOpen={Boolean(moreAnchor)}
                 >
                   <MenuItem onClick={this.props.executeMoreAction.bind(this, 'start', {name: t('host.endpoints.txt-upgradeHmd'), type: 'hmdUpgrade'})}>{t('host.endpoints.txt-upgradeHmd')}</MenuItem>
-                  <Divider />
                   <MenuItem onClick={this.props.toggleHmdUploadFile.bind(this)}>{t('host.endpoints.txt-uploadHmdPrograms')}</MenuItem>
-                  <MenuItem><Link to={{pathname: '/SCP/host', state: {activeContent: 'hmdSettings'}}}>{t('host.endpoints.txt-settings')}</Link></MenuItem>
+                  { adminPrivilege &&
+                  <React.Fragment>
+                    <Divider />
+                    <MenuItem><Link to={{pathname: '/SCP/host', state: {activeContent: 'hmdSettings'}}}>{t('host.endpoints.txt-settings')}</Link></MenuItem>
+                  </React.Fragment>
+                  }
                 </NestedMenuItem>
               </Menu>
             }
