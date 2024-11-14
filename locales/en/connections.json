@@ -739,6 +739,7 @@
     "txt-alertThreatPublicDest": "External Destination IP",
     "txt-alertEdgeSeverityList": "Edge Alert Statistics",
     "txt-alertNetTrapBlackList": "NetTrap Query Black List",
+    "txt-alertCountByPattern": "Pattern Alert Statistics",
     "txt-alertTrackOverrideSuccess": "Update Alert Track Success",
     "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
     "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)"

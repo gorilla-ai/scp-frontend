@@ -739,6 +739,7 @@
     "txt-alertThreatPublicDest": "外部威脅目的IP",
     "txt-alertEdgeSeverityList": "Edge告警統計",
     "txt-alertNetTrapBlackList": "NetTrap黑名單查詢紀錄",
+    "txt-alertCountByPattern": "自定義告警統計",
     "txt-alertTrackOverrideSuccess": "更新追蹤告警成功",
     "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
     "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)"

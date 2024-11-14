@@ -66,6 +66,9 @@ const EXTERNAL_DEST_COUNTRY_API = {
 const EXTERNAL_DEST_IP_API = {
   name: 'ExternalDestIpWithSeverity'
 };
+const ALERT_COUNT_BY_PATTERN_API = {
+  name: 'PatternName'
+};
 const NET_TRAP_QUERY = {
   name: 'NetTrapQueryBlacklist'
 };
@@ -128,6 +131,10 @@ const TABLE_CHARTS_LIST = [
   {
     id: 'alertNetTrapBlackList',
     key: 'client'
+  },
+  {
+    id: 'alertCountByPattern',
+    key: 'patternName'
   }
 ];
 
@@ -1648,6 +1655,7 @@ class ThreatsController extends Component {
     })
 
     tempAlertTableData.alertNetTrapBlackList.chartFieldsArr = ['ip', 'domain', 'count'];
+    tempAlertTableData.alertCountByPattern.chartFieldsArr = ['key', 'doc_count'];
 
     this.setState({
       alertChartsList,
@@ -1714,7 +1722,7 @@ class ThreatsController extends Component {
 
     alertTableData[type].chartFieldsArr.forEach(tempData => {
       chartFields[tempData] = {
-        label: tempData === 'key' ? f('threatsField.' + key) : tempData,
+        label: tempData === 'key' ? f('threatsField.' + key) : f('threatsField.' + tempData) !== 'threatsField.' + tempData ? f('threatsField.' + tempData) : tempData,
         sortable: true,
         formatter: (value, allValue, i) => {
           return <span>{value}</span>
@@ -1936,7 +1944,8 @@ class ThreatsController extends Component {
           tempAlertTableData.alertThreatPrivateDest.chartData = data.aggregations[INTERNAL_MASKED_DEST_IP_API.name].chartIpArr;
           tempAlertTableData.alertThreatCountryDest.chartData = data.aggregations[EXTERNAL_DEST_COUNTRY_API.name];
           tempAlertTableData.alertThreatPublicDest.chartData = data.aggregations[EXTERNAL_DEST_IP_API.name];
-
+          tempAlertTableData.alertCountByPattern.chartData = data.aggregations[ALERT_COUNT_BY_PATTERN_API.name].buckets;
+          
           _.forEach(TABLE_CHARTS_LIST, val => {
             tempAlertTableData[val.id].chartFields = this.getThreatsTableData(val.id, val.key);
           })

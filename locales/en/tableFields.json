@@ -542,7 +542,9 @@
     "count": "Count",
     "Country": "Country",
     "agentName": "Agent Name",
-    "client": "Client"
+    "client": "Client",
+    "patternName": "Pattern Name",
+    "doc_count": "Count"
   },
   "esFields": {
     "date": "Date",

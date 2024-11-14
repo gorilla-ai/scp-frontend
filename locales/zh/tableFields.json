@@ -539,10 +539,12 @@
     "IP": "IP",
     "ip": "IP",
     "domain": "Domain",
-    "count": "Count",
+    "count": "數量",
     "Country": "國家",
     "agentName": "名稱",
-    "client": "Client"
+    "client": "Client",
+    "patternName": "自定義告警名稱",
+    "doc_count": "數量"
   },
   "esFields": {
     "date": "日期",
