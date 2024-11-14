@@ -1,21 +1,12 @@
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
 
-import Checkbox from '@material-ui/core/Checkbox'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
-import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
-
-import {BaseDataContext} from '../../common/context'
-import helper from '../../common/helper'
 import TtpEts from './ttp-ets'
 import TtpObsFile from './ttp-obs-file'
 import TtpObsSocket from './ttp-obs-socket'
