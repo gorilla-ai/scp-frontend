@@ -1055,7 +1055,7 @@ class HostVulnerabilities extends Component {
   displayCveInfo = () => {
     const {activeCveInfo, exposedDevicesSearch, exposedDevicesData, relatedSoftwareSearch, relatedSoftwareData, currentCveData} = this.state;
     const tableOptionsExposedDevices = {
-      tableBodyHeight: '550px',
+      tableBodyHeight: 'calc(75vh - 240px)',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('exposedDevices', 'currentPage', currentPage);
       },
@@ -1067,7 +1067,7 @@ class HostVulnerabilities extends Component {
       }
     };
     const tableOptionsRelatedSoftware = {
-      tableBodyHeight: '550px',
+      tableBodyHeight: 'calc(75vh - 240px)',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('relatedSoftware', 'currentPage', currentPage);
       },

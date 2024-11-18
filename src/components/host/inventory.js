@@ -953,7 +953,7 @@ class HostInventory extends Component {
       currentCpeData
     } = this.state;
     const tableOptionsExposedDevices = {
-      tableBodyHeight: '550px',
+      tableBodyHeight: 'calc(75vh - 240px)',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('exposedDevices', 'currentPage', currentPage);
       },
@@ -965,7 +965,7 @@ class HostInventory extends Component {
       }
     };
     const tableOptionsDiscoveredVulnerability = {
-      tableBodyHeight: '550px',
+      tableBodyHeight: 'calc(75vh - 240px)',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('discoveredVulnerability', 'currentPage', currentPage);
       },
