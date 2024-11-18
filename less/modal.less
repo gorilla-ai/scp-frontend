@@ -3082,19 +3082,44 @@ html[data-theme='dark'] {
     }
     .table-data {
       display: flex;
-      justify-content: space-between;
+      gap: 20px;
       table {
         border-collapse: separate;
         border: 1px solid var(--primaryBorder);
       }
-      .column {
-        width: 48%;
+      .column:first-child {
+        flex: 4;
+      }
+      .column:last-child {
+        flex: 8;
       }
       .group {
         position: relative;
         header {
           padding-top: 25px;
           padding-bottom: 10px;
+        }
+        .content {
+          border: 1px solid var(--primaryBorder);
+          width: 100%;
+          border-radius: 5px;
+          overflow: hidden;
+          .severity-level {
+            font-size: 3rem;
+            font-weight: bolder;
+            display: block;
+            text-align: center;
+          }
+          .radar-data-table {
+            border: 0;
+            border-top: 1px solid var(--primaryBorder);
+            border-radius: unset;
+            margin: 0 -10px;
+            min-width: 100%;
+            min-width: -moz-available;          
+            min-width: -webkit-fill-available;  
+            min-width: fill-available;
+          }
         }
         button {
           position: absolute;

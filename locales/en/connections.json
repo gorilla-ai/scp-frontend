@@ -499,6 +499,7 @@
       "txt-deviceInfo": "Device Info",
       "txt-securityAssessments": "Security Assessments",
       "txt-riskLevel": "Risk Level",
+      "txt-riskRadar": "Risk Radar Chart",
       "txt-installedSoftware": "Installed Software",
       "txt-discoveredVulnerabilityCount": "Discovered Vulnerability Count",
       "txt-hmdInfo": "HMD Info",

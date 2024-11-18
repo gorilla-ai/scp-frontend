@@ -499,6 +499,7 @@
       "txt-deviceInfo": "設備資訊",
       "txt-securityAssessments": "安全評估",
       "txt-riskLevel": "威脅等級",
+      "txt-riskRadar": "威脅雷達圖",
       "txt-installedSoftware": "已安裝軟體數",
       "txt-discoveredVulnerabilityCount": "發現漏洞數",
       "txt-hmdInfo": "HMD資訊",

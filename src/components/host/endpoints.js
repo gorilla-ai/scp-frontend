@@ -952,15 +952,23 @@ class HostEndPoints extends Component {
   getActiveEndpointInfo = (type) => {
     const {baseUrl} = this.context;
     const {currentHostId, currentRiskLevel} = this.state;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/endPoint/overview?hostId=${currentHostId}`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/endPoint/risk/radar?hostId=${currentHostId}`,
+        type: 'GET'
+      }
+    ];
 
-    this.ah.one({
-      url: `${baseUrl}/api/endPoint/overview?hostId=${currentHostId}`,
-      type: 'GET'
-    })
+    this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        let currentEndpointData = data;
+        let currentEndpointData = data[0] ? data[0] : {};
         currentEndpointData.riskLevel = currentRiskLevel;
+        currentEndpointData.radarResult = data[1] ? data[1] : {};
 
         this.setState({
           currentEndpointData
@@ -1715,7 +1723,7 @@ class HostEndPoints extends Component {
       severityStatistics
     } = this.state;
     const tableOptionsSafetyScanInfo = {
-      tableBodyHeight: '550px',
+      tableBodyHeight: 'calc(75vh - 240px)',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('safetyScanInfo', 'currentPage', currentPage);
       },
@@ -1727,7 +1735,7 @@ class HostEndPoints extends Component {
       }
     };
     const tableOptionsSoftwareInventory = {
-      tableBodyHeight: '550px',
+      tableBodyHeight: 'calc(75vh - 240px)',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('softwareInventory', 'currentPage', currentPage);
       },
@@ -1739,7 +1747,7 @@ class HostEndPoints extends Component {
       }
     };
     const tableOptionsDiscoveredVulnerability = {
-      tableBodyHeight: '550px',
+      tableBodyHeight: 'calc(75vh - 400px)',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('discoveredVulnerability', 'currentPage', currentPage);
       },
@@ -1751,7 +1759,7 @@ class HostEndPoints extends Component {
       }
     };
     const tableOptionsKBID = {
-      tableBodyHeight: '550px',
+      tableBodyHeight: 'calc(75vh - 240px)',
       onChangePage: (currentPage) => {
         this.handlePaginationChange('kbid', 'currentPage', currentPage);
       },
@@ -1783,6 +1791,7 @@ class HostEndPoints extends Component {
               page='endpoints'
               type='general-info'
               data={currentEndpointData}
+              alertLevelColors={ALERT_LEVEL_COLORS}
               toggleViewMore={this.toggleViewMore}
               triggerTask={this.triggerTask}
               handleUpdateButton={this.handleUpdateButton} />

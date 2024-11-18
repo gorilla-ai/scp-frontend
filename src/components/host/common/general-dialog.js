@@ -1,11 +1,15 @@
-import React, { Component } from 'react'
+import React, { Component, Fragment, useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+import Highcharts from 'highcharts'
+import HighchartsMore from 'highcharts/highcharts-more'
 
 import Button from '@material-ui/core/Button'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
+
+import DataTable from 'react-ui/build/src/components/table'
 
 import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
@@ -15,6 +19,132 @@ const NOT_AVAILABLE = 'N/A';
 
 let t = null;
 let f = null;
+
+HighchartsMore(Highcharts) //init module
+
+const RadarChart = (props) => {
+  const {data} = props;
+  const [polarChartSettings, setPolarChartSettings] = useState({})
+  const [dashboardInfo, setDashboardInfo] = useState({
+    dataFieldsArr: ['item', 'score'],
+    dataFields: {},
+    dataContent: [],
+    sort: {
+      field: 'score',
+      desc: true
+    }
+  })
+  const redarRef = useRef(null);
+
+  useEffect(() => {
+    loadRadarCharts();
+  }, []);
+
+  useEffect(() => {
+    if (redarRef.current) {
+      Highcharts.chart(redarRef.current, polarChartSettings);
+    }
+  }, [polarChartSettings]);
+
+  /**
+   * Set spider and table chart for Dashboard tab
+   * @method
+   */
+  const loadRadarCharts = () => {
+    let polarData = {
+      categories: [],
+      data: []
+    };
+    let tempDashboardInfo = _.clone(dashboardInfo);
+    let totalScore = '';
+
+    _.forEach(data, val => {
+      polarData.categories.push(val.key);
+      polarData.data.push(val.value);
+      tempDashboardInfo.dataContent.push({ //For Dashboard table chart
+        item: val.key,
+        score: val.value
+      });
+      totalScore = val.total;
+    })
+
+    const polarChartSettings = {
+      chart: {
+        polar: true,
+        type: 'line'
+      },
+      title: {
+        text: ''
+      },
+      credits: {
+        enabled: false
+      },
+      xAxis: {
+        categories: polarData.categories,
+        tickmarkPlacement: 'on',
+        lineWidth: 0
+      },
+      yAxis: {
+        gridLineInterpolation: 'polygon',
+        lineWidth: 0,
+        min: 0,
+        max: totalScore
+      },
+      legend: {
+        align: 'center',
+        verticalAlign: 'bottom',
+        layout: 'vertical'
+      },
+      series: [{
+        name: t('txt-score') + '(' + t('txt-maxScore') + ':' + totalScore + ')',
+        data: polarData.data,
+        pointPlacement: 'on'
+      }]
+    };
+
+    if (redarRef.current) {
+      Highcharts.chart(redarRef.current, polarChartSettings);
+    }
+
+    let tempFields = {};
+    tempDashboardInfo.dataFieldsArr.forEach(tempData => {
+      tempFields[tempData] = {
+        label: t(`txt-${tempData}`),
+        sortable: true,
+        formatter: (value, allValue, i) => {
+          return <span>{value}</span>
+        }
+      }
+    })
+
+    tempDashboardInfo.dataFields = tempFields;
+    setPolarChartSettings(polarChartSettings);
+    setDashboardInfo(tempDashboardInfo);
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {object} sort - sort data object
+   */
+  const handleTableSort = (sort) => {
+    let tempDashboardInfo = {...dashboardInfo};
+    tempDashboardInfo.sort.field = sort.field;
+    tempDashboardInfo.sort.desc = sort.desc;
+
+    setDashboardInfo(tempDashboardInfo);
+  }
+  return (
+    <Fragment>
+      <div ref={redarRef}></div>
+      <DataTable
+        className='main-table score radar-data-table'
+        fields={dashboardInfo.dataFields}
+        data={dashboardInfo.dataContent}
+        sort={dashboardInfo.dataContent.length === 0 ? {} : dashboardInfo.sort}
+        onSort={handleTableSort} />
+    </Fragment>
+  )
+}
 
 /**
  * Host table general dialog
@@ -57,7 +187,7 @@ class GeneralDialog extends Component {
    * @returns HTML DOM
    */
   showGeneralInfo = () => {
-    const {page, data} = this.props;
+    const {page, data, alertLevelColors} = this.props;
 
     if (page === 'vulnerabilities') {
       return (
@@ -181,6 +311,7 @@ class GeneralDialog extends Component {
         </table>
       )
     } else if (page === 'endpoints') {
+      const severityLevel = data.riskLevel ? t('txt-' + data.riskLevel.toLowerCase()) : NOT_AVAILABLE;
       const btnDisabled = !data.hasNewVersion;
       let btnText = t('txt-update');
 
@@ -196,6 +327,22 @@ class GeneralDialog extends Component {
           </div>
           <div className='update-dttm'>{t('host.endpoints.txt-updateDttm') + ': ' + (data.hbDttm ? helper.getFormattedDate(data.updateDttm, 'local') : NOT_AVAILABLE)}</div>
           <div className='table-data'>
+            <div className='column'>
+              <div className='group'>
+                <header>{t('host.endpoints.txt-riskLevel')}</header>
+                <div className="content">
+                  <span className='severity-level' style={{color: severityLevel === NOT_AVAILABLE ? 'inherit' : alertLevelColors[severityLevel]}}>{severityLevel}</span> 
+                </div>
+              </div>
+              <div className='group'>
+                <header>{t('host.endpoints.txt-riskRadar')}</header>
+                <div className="content">
+                  <RadarChart
+                    data={data.radarResult}
+                    />
+                </div>
+              </div>
+            </div>
             <div className='column'>
               <div className='group'>
                 <header>{t('host.endpoints.txt-networkInfo')}</header>
@@ -260,9 +407,7 @@ class GeneralDialog extends Component {
                   </tbody>
                 </table>
               </div>
-            </div>
 
-            <div className='column'>
               <div className='group'>
                 <header>{t('host.endpoints.txt-securityAssessments')}</header>
                 <table className='c-table main-table'>
@@ -282,7 +427,6 @@ class GeneralDialog extends Component {
                   </tbody>
                 </table>
               </div>
-
 
               <div className='group'>
                 <header>{t('host.endpoints.txt-hmdInfo')}</header>
