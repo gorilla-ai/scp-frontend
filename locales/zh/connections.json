@@ -529,7 +529,8 @@
       "txt-fileIntegrityMonitorDisable": "檔案完整性掃描 (停用)",
       "txt-upgradeHmd": "升級HMD",
       "txt-uploadHmdPrograms": "上傳HMD安裝檔",
-      "txt-settings": "設定"
+      "txt-settings": "設定",
+      "txt-updateDttm": "最近更新時間"
     },
     "txt-endpointSecuritySettings": "端點安全設定",
     "txt-securityDiagnostic": "資安健診",

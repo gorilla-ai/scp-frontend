@@ -194,7 +194,7 @@ class GeneralDialog extends Component {
             <Button variant='outlined' color='primary' className='btn' onClick={this.props.toggleViewMore}>{t('hmd-scan.txt-viewMore')}</Button>
             <Button variant='outlined' color='primary' className='btn' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'])}>{t('txt-reTrigger')}</Button>
           </div>
-
+          <div className='update-dttm'>{t('host.endpoints.txt-updateDttm') + ': ' + (data.hbDttm ? helper.getFormattedDate(data.updateDttm, 'local') : NOT_AVAILABLE)}</div>
           <div className='table-data'>
             <div className='column'>
               <div className='group'>

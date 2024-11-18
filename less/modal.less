@@ -3029,8 +3029,8 @@ html[data-theme='dark'] {
 #showCpeDialog-content,
 #showKbidDialog-content,
 #showEndpointDialog-content {
-  width: 1500px;
-  height: 700px;
+  min-width: 1500px;
+  min-height: 700px;
   #activeCveInfoButtons,
   #activeCpeInfoButtons,
   #activeKbidInfoButtons,
@@ -3065,14 +3065,17 @@ html[data-theme='dark'] {
   .search-count {
     margin-bottom: 15px;
   }
+  .update-dttm {
+    margin-bottom: 15px;
+  }
 }
 #showEndpointDialog-content {
   .overview {
-    margin-top: 20px;
     button:hover:not([disabled]) {
       background: none;
     }
     .overview-btn-group {
+      margin-bottom: 15px;
       button {
         margin-right: 10px;
       }
