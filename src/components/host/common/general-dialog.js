@@ -6,10 +6,12 @@ import Highcharts from 'highcharts'
 import HighchartsMore from 'highcharts/highcharts-more'
 
 import Button from '@material-ui/core/Button'
+import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
-
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import DataTable from 'react-ui/build/src/components/table'
+import {default as ah} from 'react-ui/build/src/utils/ajax-helper'
 
 import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
@@ -155,6 +157,9 @@ const RadarChart = (props) => {
 class GeneralDialog extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      remoteControlAnchor: null
+    }
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
@@ -181,13 +186,115 @@ class GeneralDialog extends Component {
   showKbidList = (val, i) => {
     return <div key={i}>{val}</div>
   }
-  /**
-   * Display general info
-   * @method
-   * @returns HTML DOM
-   */
+  handleRemoteControlClick = (e) => {
+    this.setState({remoteControlAnchor: e.currentTarget});
+  }
+  handleMenuClose = () => {
+    this.setState({
+      remoteControlAnchor: null
+    });
+  }
+  confirmRemoteControl = (type) => {
+    const {data} = this.props;
+    
+    this.handleMenuClose()
+
+    PopupDialog.prompt({
+      title: data.hostName,
+      id: 'modalWindowSmall',
+      confirmText: t('txt-confirm'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content delete'>
+          <span>{t('hmd-scan.txt-confirmTo')}{t('hmd-scan.txt-' + type)}?</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.handleRemoteControl(type);
+        }
+      }
+    });
+  }
+  handleRemoteControl = (type) => {
+    const {baseUrl} = this.context;
+    const {data} = this.props;
+
+    const url = `${baseUrl}/api/endPoint/retrigger`;
+    const requestData = {
+      hostId: data.hostId,
+      cmds: [type]
+    };
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(result => {
+      if (result) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  confirmCompressLogs = () => {
+    PopupDialog.prompt({
+      id: 'modalWindowSmall',
+      confirmText: t('txt-confirm'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content'>
+          <span>{t('txt-confirmProceed')}?</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.handleCompressLogs();
+        }
+      }
+    });
+  }
+  handleCompressLogs = () => {
+    const {baseUrl} = this.context;
+    const {data} = this.props;
+
+    const requestData = {
+      hostId: data.hostId,
+      cmds: ['getHmdLogs']
+    };
+
+    ah.one({
+      url: `${baseUrl}/api/hmd/retrigger`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  handleDownloadLogs = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {data} = this.props;
+
+    const url = `${baseUrl}${contextRoot}/api/hmd/file/_download?hostId=${data.hostId}`;
+    window.open(url, '_blank');
+    return;
+  }
   showGeneralInfo = () => {
     const {page, data, alertLevelColors} = this.props;
+    const {remoteControlAnchor} = this.state
 
     if (page === 'vulnerabilities') {
       return (
@@ -322,8 +429,28 @@ class GeneralDialog extends Component {
       return (
         <div className='overview'>
           <div className='overview-btn-group'>
-            <Button variant='outlined' color='primary' className='btn' onClick={this.props.toggleViewMore}>{t('hmd-scan.txt-viewMore')}</Button>
-            <Button variant='outlined' color='primary' className='btn' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'])}>{t('txt-reTrigger')}</Button>
+            <div className='overview-btn-group-left'>
+              <Button variant='outlined' color='primary' className='btn' onClick={this.props.toggleViewMore}>{t('hmd-scan.txt-viewMore')}</Button>
+              <Button variant='outlined' color='primary' className='btn' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'])}>{t('txt-reTrigger')}</Button>
+            </div>
+            <div className='overview-btn-group-right'>
+              <Button variant='outlined' color='primary' className='btn' onClick={this.handleRemoteControlClick.bind(this)}>{t('host.endpoints.txt-remoteControl')}</Button>
+              <Menu
+                anchorEl={remoteControlAnchor}
+                keepMounted
+                open={Boolean(remoteControlAnchor)}
+                onClose={this.handleMenuClose}>
+                <MenuItem onClick={this.confirmRemoteControl.bind(this, 'shutdownHost')}>{t('host.endpoints.txt-shutdownHost')}</MenuItem>
+                <MenuItem onClick={this.confirmRemoteControl.bind(this, 'logoffAllUsers')}>{t('host.endpoints.txt-logoffAllUsers')}</MenuItem>
+                <MenuItem onClick={this.confirmRemoteControl.bind(this, 'netcut')}>{t('host.endpoints.txt-netcut')}</MenuItem>
+                <MenuItem onClick={this.confirmRemoteControl.bind(this, 'netcutResume')}>{t('host.endpoints.txt-netcutResume')}</MenuItem>
+                <MenuItem onClick={this.confirmRemoteControl.bind(this, 'terminateHmd')}>{t('host.endpoints.txt-terminateHmd')}</MenuItem>
+              </Menu>
+              <Button variant='outlined' color='primary' className='btn' onClick={this.confirmCompressLogs.bind(this)}>{data.isUploaded ? t(`host.endpoints.txt-recompressLogs`) : t('host.endpoints.txt-compressLogs')}</Button>
+              {data.isUploaded &&
+              <Button variant='outlined' color='primary' className='btn' onClick={this.handleDownloadLogs.bind(this)}>{t('host.endpoints.txt-downloadLogs')}</Button>
+              }
+            </div>
           </div>
           <div className='update-dttm'>{t('host.endpoints.txt-updateDttm') + ': ' + (data.hbDttm ? helper.getFormattedDate(data.updateDttm, 'local') : NOT_AVAILABLE)}</div>
           <div className='table-data'>

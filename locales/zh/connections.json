@@ -531,7 +531,16 @@
       "txt-upgradeHmd": "升級HMD",
       "txt-uploadHmdPrograms": "上傳HMD安裝檔",
       "txt-settings": "設定",
-      "txt-updateDttm": "最近更新時間"
+      "txt-updateDttm": "最近更新時間",
+      "txt-remoteControl": "遠端控制",
+      "txt-compressLogs": "壓縮Logs",
+      "txt-recompressLogs": "重新壓縮Logs",
+      "txt-downloadLogs": "下載Logs",
+      "txt-shutdownHost": "關機",
+      "txt-logoffAllUsers": "登出",
+      "txt-netcut": "斷網",
+      "txt-netcutResume": "恢復",
+      "txt-terminateHmd": "結束"
     },
     "txt-endpointSecuritySettings": "端點安全設定",
     "txt-securityDiagnostic": "資安健診",

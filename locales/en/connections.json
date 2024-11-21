@@ -530,7 +530,17 @@
       "txt-fileIntegrityMonitorDisable": "File Integrity (Disable)",
       "txt-upgradeHmd": "Upgrade HMD",
       "txt-uploadHmdPrograms": "Upload HMD Programs",
-      "txt-settings": "Settings"
+      "txt-settings": "Settings",
+      "txt-updateDttm": "Update Time",
+      "txt-remoteControl": "Remote Control",
+      "txt-compressLogs": "Compress Logs",
+      "txt-recompressLogs": "Recompress Logs",
+      "txt-downloadLogs": "Download Logs",
+      "txt-shutdownHost": "Shutdown",
+      "txt-logoffAllUsers": "Log Off",
+      "txt-netcut": "Disconnected",
+      "txt-netcutResume": "Resume",
+      "txt-terminateHmd": "Terminate"
     },
     "txt-endpointSecuritySettings": "Endpoint Security Settings",
     "txt-securityDiagnostic": "Security Diagnostic",
