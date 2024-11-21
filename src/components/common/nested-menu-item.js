@@ -139,11 +139,11 @@ const NestedMenuItem = React.forwardRef((props, ref) => {
         anchorEl={menuItemRef.current}
         anchorOrigin={{
           vertical: 'top',
-          horizontal: 'right'
+          horizontal: 'left'
         }}
         transformOrigin={{
           vertical: 'top',
-          horizontal: 'left'
+          horizontal: 'right'
         }}
         anchorPosition={{
           left: -100,
