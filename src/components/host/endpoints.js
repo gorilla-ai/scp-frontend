@@ -135,7 +135,8 @@ const SAFETY_SCAN_INFO_DATA = {
   },
   totalCount: 0,
   currentPage: 0,
-  pageSize: 20
+  pageSize: 20,
+  hostId: ''
 };
 const SOFTWARE_INVENTORY_SEARCH = {
   keyword: '',
@@ -1023,7 +1024,7 @@ class HostEndPoints extends Component {
    */
   getSafetyScanInfo = (fromPage) => {
     const {baseUrl} = this.context;
-    const {safetyScanInfoSearch, safetyScanInfoData, currentHostId} = this.state;
+    const {safetyScanInfoSearch, safetyScanInfoData, currentHostId, currentEndpointData} = this.state;
     const sort = safetyScanInfoData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? safetyScanInfoData.currentPage : 0;
     let url = `${baseUrl}/api/endPoint/safetyScanInfo/record?page=${page + 1}&pageSize=${safetyScanInfoData.pageSize}`;
@@ -1085,7 +1086,9 @@ class HostEndPoints extends Component {
             }
           };
         });
-
+        
+        tempSafetyScanInfoData.hostId = currentHostId;
+        tempSafetyScanInfoData.ip = currentEndpointData.ip;
         tempSafetyScanInfoSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({

@@ -12,6 +12,7 @@ import TextField from '@material-ui/core/TextField'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import DataTable from 'react-ui/build/src/components/table'
 import {default as ah} from 'react-ui/build/src/utils/ajax-helper'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
@@ -291,6 +292,20 @@ class GeneralDialog extends Component {
     const url = `${baseUrl}${contextRoot}/api/hmd/file/_download?hostId=${data.hostId}`;
     window.open(url, '_blank');
     return;
+  }
+  handleExportSafetyScanInfo = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {data, search} = this.props;
+
+    let url = `${baseUrl}${contextRoot}/api/endPoint/safetyScanInfo/record/_export`;
+    let requestData = {
+      hostId: data.hostId,
+      ip: data.ip,
+      taskName: search.keyword,
+      exportFields: _.mapValues(_.keyBy(data.dataFields, 'name'), 'label')
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   showGeneralInfo = () => {
     const {page, data, alertLevelColors} = this.props;
@@ -737,38 +752,45 @@ class GeneralDialog extends Component {
         }
 
         <div className='search-field'>
-          <div className='group'>
-            <TextField
-              name='keyword'
-              className='search-text'
-              label={searchFieldText}
-              variant='outlined'
-              size='small'
-              value={search.keyword}
-              onChange={this.props.handleSearchChange}
-              data-cy='hostInfoDialogSearchField' />
-          </div>
-          {searchType === 'discoveredVulnerability' &&
+          <div className='search-field-left'>
             <div className='group'>
               <TextField
-                name='fix'
-                style={{width: '115px'}}
-                select
-                label={t('host.vulnerabilities.txt-fix')}
+                name='keyword'
+                className='search-text'
+                label={searchFieldText}
                 variant='outlined'
-                fullWidth
                 size='small'
-                value={search.fix}
+                value={search.keyword}
                 onChange={this.props.handleSearchChange}
-                data-cy='hostInfoDialogDeviceFixTextField'>
-                <MenuItem value='all'>{t('txt-all')}</MenuItem>
-                <MenuItem value='true'>{t('txt-fixed')}</MenuItem>
-                <MenuItem value='false'>{t('txt-notFixed')}</MenuItem>
-              </TextField>
+                data-cy='hostInfoDialogSearchField' />
             </div>
-          }
-          <Button id='hostGeneralSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogSoftwareSubmitBtn'>{t('txt-search')}</Button>
-          <Button id='hostGeneralClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, searchType)} data-cy='hostInfoDialogSoftwareClearBtn'>{t('txt-clear')}</Button>
+            {searchType === 'discoveredVulnerability' &&
+              <div className='group'>
+                <TextField
+                  name='fix'
+                  style={{width: '115px'}}
+                  select
+                  label={t('host.vulnerabilities.txt-fix')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={search.fix}
+                  onChange={this.props.handleSearchChange}
+                  data-cy='hostInfoDialogDeviceFixTextField'>
+                  <MenuItem value='all'>{t('txt-all')}</MenuItem>
+                  <MenuItem value='true'>{t('txt-fixed')}</MenuItem>
+                  <MenuItem value='false'>{t('txt-notFixed')}</MenuItem>
+                </TextField>
+              </div>
+            }
+            <Button id='hostGeneralSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogSoftwareSubmitBtn'>{t('txt-search')}</Button>
+            <Button id='hostGeneralClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, searchType)} data-cy='hostInfoDialogSoftwareClearBtn'>{t('txt-clear')}</Button>
+          </div>
+          <div className='search-field-right'>
+            {searchType === 'safetyScanInfo' &&
+            <Button id='hostGeneralClear' variant='outlined' color='primary' className='clear' onClick={this.handleExportSafetyScanInfo.bind(this)} data-cy='hostInfoDialogSoftwareClearBtn'>{t('txt-export')}</Button>
+            }
+          </div>
         </div>
         <div className='search-count'>{searchCountHeader + ': ' + helper.numberWithCommas(search.count)}</div>
 
