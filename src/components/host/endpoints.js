@@ -160,7 +160,7 @@ const DISCOVERED_VULNERABILITY_SEARCH = {
   count: 0
 };
 const DISCOVERED_VULNERABILITY_DATA = {
-  dataFieldsArr: ['cveId', 'severity', 'cvss', 'relatedSoftware', 'fix'],
+  dataFieldsArr: ['cveId', 'severity', 'cvss', 'relatedSoftware', 'exposedDevices', 'fix'],
   dataFields: [],
   dataContent: null,
   sort: {
@@ -176,7 +176,7 @@ const KBID_SEARCH = {
   count: 0
 };
 const KBID_DATA = {
-  dataFieldsArr: ['kbid', 'detectedDttm'],
+  dataFieldsArr: ['kbid', 'detectedDttm', 'exposedDevices'],
   dataFields: [],
   dataContent: null,
   sort: {
@@ -1382,7 +1382,7 @@ class HostEndPoints extends Component {
         tempKbidData.dataFields = _.map(kbidData.dataFieldsArr, val => {
           return {
             name: val,
-            label: t('host.kbid.txt-' + val),
+            label: f('hostDashboardFields.' + val),
             options: {
               filter: true,
               sort: true,

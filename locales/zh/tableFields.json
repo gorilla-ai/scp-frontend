@@ -797,7 +797,9 @@
     "product": "產品",
     "system": "系統",
     "version": "版本",
-    "fix": "修補狀況"
+    "fix": "修補狀況",
+    "kbid": "KBID",
+    "detectedDttm": "偵測時間"
   },
   "hostVulnerabilityFields": {
     "date": "日期",
