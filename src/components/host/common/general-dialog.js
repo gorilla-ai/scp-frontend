@@ -738,6 +738,9 @@ class GeneralDialog extends Component {
       } else if (searchType === 'kbid') {
         searchFieldText = t('host.txt-kbidName');
         searchCountHeader = t('txt-searchCount');
+      } else if (searchType === 'malware') {
+        searchFieldText = t('host.endpoints.txt-md5');
+        searchCountHeader = t('txt-searchCount');
       }
     }
 

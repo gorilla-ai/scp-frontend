@@ -798,8 +798,12 @@
     "system": "System",
     "version": "Version",
     "fix": "Fixed",
-    "txt-kbid": "KBID",
-    "txt-detectedDttm": "Detected Time"
+    "kbid": "KBID",
+    "detectedDttm": "Detected Time",
+    "fileMD5": "Hash Value (MD5)",
+    "filePath": "File Path",
+    "fileSize": "File Size",
+    "virusTotal": "Virus Total"
   },
   "hostVulnerabilityFields": {
     "date": "Date",

@@ -515,6 +515,7 @@
       "txt-softwareInventory": "Software Inventory",
       "txt-discoveredVulnerability": "Discovered Vulnerability",
       "txt-kbid": "KBID",
+      "txt-malware": "Malware",
       "txt-taskName": "Task Name",
       "txt-taskStatus": "Task Status",
       "txt-taskCreateDttm": "Create Datetime",
@@ -540,7 +541,8 @@
       "txt-logoffAllUsers": "Log Off",
       "txt-netcut": "Disconnected",
       "txt-netcutResume": "Resume",
-      "txt-terminateHmd": "Terminate"
+      "txt-terminateHmd": "Terminate",
+      "txt-md5": "Hash Value (MD5)"
     },
     "txt-endpointSecuritySettings": "Endpoint Security Settings",
     "txt-securityDiagnostic": "Security Diagnostic",

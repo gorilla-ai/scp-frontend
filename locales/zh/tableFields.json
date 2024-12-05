@@ -799,7 +799,11 @@
     "version": "版本",
     "fix": "修補狀況",
     "kbid": "KBID",
-    "detectedDttm": "偵測時間"
+    "detectedDttm": "偵測時間",
+    "fileMD5": "Hash Value (MD5)",
+    "filePath": "檔案路徑",
+    "fileSize": "檔案大小",
+    "virusTotal": "病毒數量"
   },
   "hostVulnerabilityFields": {
     "date": "日期",
