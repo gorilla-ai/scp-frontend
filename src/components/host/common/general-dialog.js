@@ -11,6 +11,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import DataTable from 'react-ui/build/src/components/table'
+import PieChart from 'react-chart/build/src/components/pie'
 import {default as ah} from 'react-ui/build/src/utils/ajax-helper'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
@@ -311,7 +312,72 @@ class GeneralDialog extends Component {
     const {page, data, alertLevelColors} = this.props;
     const {remoteControlAnchor} = this.state
 
-    if (page === 'vulnerabilities') {
+    if (page === 'malware') {
+      return (
+        <div className='overview'>
+          <div className='overview-btn-group'>
+            <div className='overview-btn-group-left'></div>
+            <div className='overview-btn-group-right'>
+              <Button variant='outlined' color='primary' className='btn' onClick={this.props.handleAddWhitelist.bind(this)}>{t('txt-addWhiteList')}</Button>
+            </div>
+          </div>
+          <div className='table-data'>
+            <div className='column'>
+              <div className='group'>
+                <header>{t('host.malware.txt-exposedDevices')}</header>
+                <div className="content">
+                {data.malwareDevicesCount && data.malwareDevicesCount.length > 0 &&
+                <PieChart
+                  id='malware-overview-bar-chart'
+                  holeSize={70}
+                  centerText={<div className='center-text'>{_.find(data.malwareDevicesCount, ['key', 'exposedDeviceCount']).value + '/' + (_.find(data.malwareDevicesCount, ['key', 'exposedDeviceCount']).value + _.find(data.malwareDevicesCount, ['key', 'notExposedDeviceCount']).value)} {t('host.malware.txt-endpoint')}</div>}
+                  data={data.malwareDevicesCount}
+                  colors={{
+                    key: {
+                      notExposedDeviceCount: '#CCCCCC',
+                      exposedDeviceCount: '#373BC4'
+                    }
+                  }}
+                  legend={{
+                    enabled: false
+                  }}
+                  onTooltip = {(eventInfo, data) => {
+                    return (
+                      <section>
+                        <span>{t('host.malware.txt-' + data[0].key)}: {data[0].value}</span>
+                      </section>
+                  )}}
+                  dataCfg={{
+                    splitSlice: ['key'],
+                    sliceSize: 'value'
+                  }} />
+                }
+                </div>
+              </div>
+            </div>
+            <div className='column'>
+              <div className='group'>
+                <header>{t('host.malware.txt-malwareInfo')}</header>
+                <table className='c-table main-table'>
+                  <tbody>
+                    {_.map(data.dataFieldsArr, (field) => {
+                      return <tr key={field}>
+                        <td className='header'><span>{t('host.malware.txt-' + field)}</span></td>
+                        {typeof(data.dataContent[field]) === 'boolean' &&
+                          <td><span>{t('txt-' + data.dataContent[field])}</span></td>
+                        }
+                        {typeof(data.dataContent[field]) !== 'boolean' &&
+                          <td><span>{data.dataContent[field] || NOT_AVAILABLE}</span></td>
+                        }
+                      </tr>
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+      </div>)
+    } else if (page === 'vulnerabilities') {
       return (
         <table className='c-table main-table'>
           <tbody>
@@ -623,60 +689,62 @@ class GeneralDialog extends Component {
     return (
       <React.Fragment>
         <div className='search-field'>
-          <div className='group'>
-            <TextField
-              name='hostName'
-              className='search-text'
-              label={t('host.vulnerabilities.txt-hostName')}
-              variant='outlined'
-              size='small'
-              value={search.hostName}
-              onChange={this.props.handleSearchChange}
-              data-cy='hostInfoDialogDeviceHostTextField' />
-          </div>
-          <div className='group'>
-            <TextField
-              name='ip'
-              className='search-text'
-              label={t('host.vulnerabilities.txt-ip')}
-              variant='outlined'
-              size='small'
-              value={search.ip}
-              onChange={this.props.handleSearchChange}
-              data-cy='hostInfoDialogDeviceIpTextField' />
-          </div>
-          <div className='group'>
-            <TextField
-              name='system'
-              className='search-text'
-              label={t('host.vulnerabilities.txt-system')}
-              variant='outlined'
-              size='small'
-              value={search.system}
-              onChange={this.props.handleSearchChange}
-              data-cy='hostInfoDialogDeviceSystemTextField' />
-          </div>
-          {page === 'vulnerabilities' &&
+          <div className='search-field-left'>
             <div className='group'>
               <TextField
-                name='fix'
-                style={{width: '115px'}}
-                select
-                label={t('host.vulnerabilities.txt-fix')}
+                name='hostName'
+                className='search-text'
+                label={t('host.vulnerabilities.txt-hostName')}
                 variant='outlined'
-                fullWidth
                 size='small'
-                value={search.fix}
+                value={search.hostName}
                 onChange={this.props.handleSearchChange}
-                data-cy='hostInfoDialogDeviceFixTextField'>
-                <MenuItem value='all'>{t('txt-all')}</MenuItem>
-                <MenuItem value='true'>{t('txt-fixed')}</MenuItem>
-                <MenuItem value='false'>{t('txt-notFixed')}</MenuItem>
-              </TextField>
+                data-cy='hostInfoDialogDeviceHostTextField' />
             </div>
-          }
-          <Button id='hostExposedSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogDeviceSubmitBtn'>{t('txt-search')}</Button>
-          <Button id='hostExposedClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'exposedDevices')} data-cy='hostInfoDialogDeviceClearBtn'>{t('txt-clear')}</Button>
+            <div className='group'>
+              <TextField
+                name='ip'
+                className='search-text'
+                label={t('host.vulnerabilities.txt-ip')}
+                variant='outlined'
+                size='small'
+                value={search.ip}
+                onChange={this.props.handleSearchChange}
+                data-cy='hostInfoDialogDeviceIpTextField' />
+            </div>
+            <div className='group'>
+              <TextField
+                name='system'
+                className='search-text'
+                label={t('host.vulnerabilities.txt-system')}
+                variant='outlined'
+                size='small'
+                value={search.system}
+                onChange={this.props.handleSearchChange}
+                data-cy='hostInfoDialogDeviceSystemTextField' />
+            </div>
+            {page === 'vulnerabilities' &&
+              <div className='group'>
+                <TextField
+                  name='fix'
+                  style={{width: '115px'}}
+                  select
+                  label={t('host.vulnerabilities.txt-fix')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={search.fix}
+                  onChange={this.props.handleSearchChange}
+                  data-cy='hostInfoDialogDeviceFixTextField'>
+                  <MenuItem value='all'>{t('txt-all')}</MenuItem>
+                  <MenuItem value='true'>{t('txt-fixed')}</MenuItem>
+                  <MenuItem value='false'>{t('txt-notFixed')}</MenuItem>
+                </TextField>
+              </div>
+            }
+            <Button id='hostExposedSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogDeviceSubmitBtn'>{t('txt-search')}</Button>
+            <Button id='hostExposedClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'exposedDevices')} data-cy='hostInfoDialogDeviceClearBtn'>{t('txt-clear')}</Button>
+          </div>
         </div>
         <div className='search-count'>{t('host.vulnerabilities.txt-exposedDevicesCount') + ': ' + helper.numberWithCommas(search.count)}</div>
 
@@ -715,7 +783,12 @@ class GeneralDialog extends Component {
     let searchFieldText = '';
     let searchCountHeader = '';
 
-    if (page === 'vulnerabilities') {
+    if (page === 'malware') {
+      if (searchType === 'relatedSoftware') {
+        searchFieldText = t('host.inventory.txt-productName');
+        searchCountHeader = t('host.vulnerabilities.txt-relatedSoftwareCount');
+      }
+    } else if (page === 'vulnerabilities') {
       if (searchType === 'relatedSoftware') {
         searchFieldText = t('host.inventory.txt-productName');
         searchCountHeader = t('host.vulnerabilities.txt-relatedSoftwareCount');
@@ -840,7 +913,8 @@ GeneralDialog.propTypes = {
   handleResetBtn: PropTypes.func,
   toggleViewMore: PropTypes.func,
   triggerTask: PropTypes.func,
-  handleUpdateButton: PropTypes.func
+  handleUpdateButton: PropTypes.func,
+  handleAddWhitelist: PropTypes.func,
 };
 
 export default GeneralDialog;

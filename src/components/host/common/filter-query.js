@@ -352,6 +352,14 @@ class FilterQuery extends Component {
       filter: tempFilter
     });
   }
+  handleTextChange = (type, event) => {
+    let tempFilter = {...this.state.filter};
+    tempFilter[type] = event.target.value;
+
+    this.setState({
+      filter: tempFilter
+    });
+  }
   /**
    * Set search filter data
    * @method
@@ -508,7 +516,7 @@ class FilterQuery extends Component {
    * @returns HTML DOM
    */
   showFilterDisplay = (val, i) => {
-    const {page, severityType, vendorType, connectionStatus, version, fileIntegrity, procMonitor} = this.props;
+    const {page, severityType, vendorType, connectionStatus, version, fileIntegrity, procMonitor, isPE, isPEExtension, isVerifyTrust} = this.props;
     const {filter, itemFilterList} = this.state;
     const filterName = val.name;
     const displayType = val.displayType;
@@ -517,7 +525,17 @@ class FilterQuery extends Component {
     let label = '';
     let selectOptions = '';
 
-    if (page === 'vulnerabilities') {
+    if (page === 'malware') {
+      label = f('malwareFields.' + filterName);
+
+      if (filterName === 'isPE') {
+        selectOptions = isPE;
+      } else if (filterName === 'isPEExtension') {
+        selectOptions = isPEExtension;
+      } else if (filterName === 'isVerifyTrust') {
+        selectOptions = isVerifyTrust;
+      }
+    } else if (page === 'vulnerabilities') {
       label = f('hostDashboardFields.' + filterName);
       selectOptions = severityType;
     } else if (page === 'inventory') {
@@ -544,23 +562,42 @@ class FilterQuery extends Component {
     }
 
     if (displayType === 'text_field') {
-      const value = itemFilterList[filterName] ? itemFilterList[filterName].join(', ') : '';
 
-      return (
-        <div key={i} className='group'>
-          <TextField
-            name={filterName}
-            label={label}
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={value}
-            onClick={this.handleFilterClick.bind(this, filterName, filterType, searchType)}
-            InputProps={{
-              readOnly: true
-            }} />
-        </div>
-      )
+      if (filterType) {
+        const value = itemFilterList[filterName] ? itemFilterList[filterName].join(', ') : '';
+
+        return (
+          <div key={i} className='group'>
+            <TextField
+              name={filterName}
+              label={label}
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={value}
+              onClick={this.handleFilterClick.bind(this, filterName, filterType, searchType)}
+              InputProps={{
+                readOnly: true
+              }} />
+          </div>
+        )
+      } else {
+        const value = filter[filterName] ? filter[filterName] : '';
+
+        return (
+          <div key={i} className='group'>
+            <TextField
+              name={filterName}
+              label={label}
+              variant='outlined'
+              fullWidth
+              size='small'
+              onChange={this.handleTextChange.bind(this, filterName)}
+              value={value} />
+          </div>
+        )
+      }
+
     } else if (displayType === 'select_list') {
       const value = filter[filterName] ? filter[filterName] : '';
 
@@ -732,6 +769,9 @@ FilterQuery.propTypes = {
   version: PropTypes.array,
   fileIntegrity: PropTypes.array,
   procMonitor: PropTypes.array,
+  isPE: PropTypes.array,
+  isPEExtension: PropTypes.array,
+  isVerifyTrust: PropTypes.array,
   filterList: PropTypes.array.isRequired,
   originalFilter: PropTypes.object.isRequired,
   filter: PropTypes.object.isRequired,

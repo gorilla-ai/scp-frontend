@@ -511,7 +511,22 @@
     "_IsPE": "是否為PE檔",
     "_IsPEextension": "是否為PE副檔名",
     "_IsVerifyTrust": "是否為有效簽章",
-    "hostIdArrCnt": "存在主機"
+    "hostIdArrCnt": "存在主機",
+    "fileMD5": "Hash Value (MD5)",
+    "fileSHA1": "Hash Value (SHA1)",
+    "fileSHA256": "Hash Value (SHA256)",
+    "fileSize": "檔案大小",
+    "companyName": "企業名稱",
+    "isPE": "PE檔",
+    "isPEExtension": "PE副檔名",
+    "isVerifyTrust": "有效簽章",
+    "virusTotal": "病毒數量",
+    "virusName": "病毒名稱",
+    "exposedDevices": "裝置數量",
+    "departmentSelected": "部門",
+    "departmentName": "部門",
+    "ip": "IP",
+    "hostName": "主機名稱"
   },
   "edgeFields": {
     "agentName": "名稱",
@@ -803,7 +818,10 @@
     "fileMD5": "Hash Value (MD5)",
     "filePath": "檔案路徑",
     "fileSize": "檔案大小",
-    "virusTotal": "病毒數量"
+    "virusTotal": "病毒數量",
+    "hostName": "主機名稱",
+    "departmentName": "部門",
+    "ip": "IP"
   },
   "hostVulnerabilityFields": {
     "date": "日期",

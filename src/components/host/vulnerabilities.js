@@ -1137,11 +1137,17 @@ class HostVulnerabilities extends Component {
       cancel: {text: t('txt-close'), handler: this.toggleShowCVE}
     };
 
+    let title = t('host.txt-vulnerabilities');
+
+    if (this.state.currentCveId) {
+      title +=  ' > ' + this.state.currentCveId;
+    }
+
     return (
       <ModalDialog
         id='showCveDialog'
         className='modal-dialog'
-        title={this.state.currentCveId}
+        title={title}
         draggable={true}
         global={true}
         actions={actions}

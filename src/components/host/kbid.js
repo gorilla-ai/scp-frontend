@@ -672,11 +672,17 @@ class HostKbid extends Component {
       cancel: {text: t('txt-close'), handler: this.toggleShowKBID}
     };
 
+    let title = t('host.txt-kbid');
+
+    if (this.state.currentKbid) {
+      title +=  ' > ' + this.state.currentKbid;
+    }
+
     return (
       <ModalDialog
         id='showKbidDialog'
         className='modal-dialog'
-        title={this.state.currentKbid}
+        title={title}
         draggable={true}
         global={true}
         actions={actions}

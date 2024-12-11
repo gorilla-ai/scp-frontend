@@ -71,6 +71,7 @@
   "txt-edit": "Edit",
   "txt-add": "Add",
   "txt-add2": "Add",
+  "txt-addWhiteList": "Add into Whitelist",
   "txt-existing": "Existing",
   "txt-more": "more",
   "txt-query": "Search",
@@ -264,6 +265,7 @@
   "txt-addedList": "Added List",
   "txt-fileNameEmpty": "Please check file name",
   "txt-fileNameInvalid": "File name can only contain letters, numbers, dash and underscore",
+  "txt-confirmWhiteList": "Confirm to add to whitelist?",
 
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
@@ -411,6 +413,7 @@
   "host": {
     "txt-hostList": "Host List",
     "txt-cpePage": "CPE",
+    "txt-malware": "Malware",
     "txt-vulnerabilities": "Vulnerabilities",
     "txt-inventory": "Inventory",
     "txt-kbid": "KBID",
@@ -447,8 +450,15 @@
       "txt-kibd": "KBID"
     },
     "malware": {
-      "txt-exposedDevices": "Devices Count",
-      "txt-fileMD5": "MD5",
+      "txt-malwareList": "Malware",
+      "txt-malwareDetails": "Malware Details",
+      "txt-malwareInfo": "Malware Info",
+      "txt-exposedDevices": "Exposed Devices",
+      "txt-exposedDevicesCount": "Exposed Devices Count",
+      "txt-exposedDeviceCount": "Exposed Devices Count",
+      "txt-notExposedDeviceCount": "Non-Exposed Devices Count",
+      "txt-endpointCount": "Endpoint Count",
+      "txt-fileMD5": "Hash Value (MD5)",
       "txt-fileSHA1": "SHA1",
       "txt-fileSHA256": "SHA256",
       "txt-fileSize": "File Size",
@@ -457,7 +467,14 @@
       "txt-isPE": "Is PE",
       "txt-isPEExtension": "Is PE Extension",
       "txt-isVerifyTrust": "Is Verify Trust",
-      "txt-virusName": "Virus Name"
+      "txt-virusName": "Virus Name",
+      "txt-dailyFoundMalwares": "Daily Found Malwares",
+      "txt-currentCount": "Existing",
+      "txt-reduceCount": "Removed",
+      "txt-top10MalwareEndpointCounts": "Top 10 Malware",
+      "txt-malware": "Malware",
+      "txt-endpoint": "Endware",
+      "txt-hostList": "Host List"
     },
     "inventory": {
       "txt-discoveredVulnerability": "Discovered Vulnerability",
@@ -487,7 +504,7 @@
     },
     "kbid": {
       "txt-kbidList": "KBID List",
-      "txt-vulnerabilityList": "Vulnerability List",
+      "txt-nccstList": "Host List",
       "txt-kbid": "KBID",
       "txt-detectedDttm": "Detected Time"
     },

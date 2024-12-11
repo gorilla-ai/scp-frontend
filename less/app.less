@@ -1120,6 +1120,43 @@ button.standard:hover:not([disabled]) {
         }
       }
     }
+    .chart-data-table {
+      margin: 10px auto;
+      width: calc(~"100% - 30px");
+      font-size: .9em;
+      table-layout: fixed;
+      th {
+        text-align: left;
+        padding: 3px;
+        &:first-child {
+          width: 50%;
+        }
+        &:last-child {
+          width: 60px;
+        }
+      }
+      tbody {
+        tr:nth-child(odd) {
+          background-color: #F7F7F7;
+          border: 1px solid #D2D2D2;
+          border-width: 1px 0;
+        }
+        td {
+          padding: 5px;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+          &:last-child {
+            text-align: right;
+          }
+          .bar {
+            height: 10px;
+            background-color: #373BC5;
+            width: 80%;
+          }
+        }
+      }
+    }
   }
   .table-menu { //table menu [...] button
     visibility: hidden;

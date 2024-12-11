@@ -182,7 +182,10 @@ class TableList extends Component {
     let headerTitle = '';
     let searchLabel = '';
 
-    if (page === 'vulnerabilities') {
+    if (page === 'malware') {
+      headerTitle = t('host.malware.txt-malwareList');
+      searchLabel = t('host.malware.txt-fileMD5');
+    } else if (page === 'vulnerabilities') {
       headerTitle = t('host.vulnerabilities.txt-vulnerabilityList');
       searchLabel = t('host.vulnerabilities.txt-cveName');
     } else if (page === 'inventory') {
@@ -208,6 +211,9 @@ class TableList extends Component {
           open={Boolean(tableAnchor)}
           onClose={this.props.handleCloseMenu}>
           <MenuItem onClick={this.props.getActiveData.bind(this, 'open')}>{t('txt-view')}</MenuItem>
+          {page === 'malware' &&
+            <MenuItem onClick={this.props.handleAddWhitelist.bind(this)}>{t('txt-addWhiteList')}</MenuItem>
+          }
           {page === 'endpoints' &&
             <MenuItem onClick={this.props.toggleShowMemo}>{t('txt-memo')}</MenuItem>
           }
@@ -216,6 +222,16 @@ class TableList extends Component {
         <div className='main-content'>
           <header className='main-header'>{headerTitle}</header>
           <div className='content-header-btns with-menu'>
+            {page === 'malware' &&
+              <Menu
+                anchorEl={exportAnchor}
+                keepMounted
+                open={Boolean(exportAnchor)}
+                onClose={this.props.handleCloseMenu}>
+                <MenuItem onClick={this.props.exportList.bind(this, 'malwareUpdateToDate')}>{t('host.malware.txt-malwareList')}</MenuItem>
+                <MenuItem onClick={this.props.exportList.bind(this, 'malware/devices')}>{t('host.malware.txt-hostList')}</MenuItem>
+              </Menu>
+            }
             {page === 'vulnerabilities' &&
               <Menu
                 anchorEl={exportAnchor}
@@ -243,7 +259,7 @@ class TableList extends Component {
                 open={Boolean(exportAnchor)}
                 onClose={this.props.handleCloseMenu}>
                 <MenuItem onClick={this.props.exportList.bind(this, 'kbid')}>{t('host.kbid.txt-kbidList')}</MenuItem>
-                <MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>{t('host.kbid.txt-vulnerabilityList')}</MenuItem>
+                <MenuItem onClick={this.props.exportList.bind(this, 'nccst')}>{t('host.kbid.txt-nccstList')}</MenuItem>
               </Menu>
             }
             {page === 'endpoints' && moreAnchor &&
@@ -286,6 +302,11 @@ class TableList extends Component {
               </Menu>
             }
             <Button id='hostFilterQuery' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')} data-cy='hostFilterQueryBtn'>{t('txt-filterQuery')}</Button>
+            {page === 'malware' &&
+              <React.Fragment>
+                <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
+              </React.Fragment>
+            }
             {page === 'vulnerabilities' &&
               <React.Fragment>
                 <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
@@ -354,6 +375,7 @@ TableList.propTypes = {
   moreAnchor: PropTypes.object,
   getData: PropTypes.func.isRequired,
   getActiveData: PropTypes.func.isRequired,
+  handleAddWhitelist: PropTypes.func,
   toggleShowMemo: PropTypes.func,
   executeMoreAction: PropTypes.func,
   exportList: PropTypes.func.isRequired,

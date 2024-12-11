@@ -1036,11 +1036,17 @@ class HostInventory extends Component {
       cancel: {text: t('txt-close'), handler: this.toggleShowCPE}
     };
 
+    let title = t('host.txt-inventory');
+
+    if (currentCpeData.product) {
+      title +=  ' > ' + currentCpeData.product;
+    }
+
     return (
       <ModalDialog
         id='showCpeDialog'
         className='modal-dialog'
-        title={currentCpeData.product}
+        title={title}
         draggable={true}
         global={true}
         actions={actions}

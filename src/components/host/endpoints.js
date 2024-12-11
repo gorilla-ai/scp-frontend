@@ -2021,7 +2021,7 @@ class HostEndPoints extends Component {
     const actions = {
       cancel: {text: t('txt-close'), handler: this.toggleShowEndpoint}
     };
-    let title = t('host.txt-endpointInfo');
+    let title = t('host.txt-endpoints');
 
     if (currentEndpointData.hostName) {
       title +=  ' > ' + currentEndpointData.hostName;

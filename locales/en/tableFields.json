@@ -511,7 +511,22 @@
     "_IsPE": "Is PE?",
     "_IsPEextension": "Is PEextension?",
     "_IsVerifyTrust": "Is VerifyTrust?",
-    "hostIdArrCnt": "Available in Host"
+    "hostIdArrCnt": "Available in Host",
+    "fileMD5": "Hash Value (MD5)",
+    "fileSHA1": "Hash Value (SHA1)",
+    "fileSHA256": "Hash Value (SHA256)",
+    "fileSize": "File Size",
+    "companyName": "Company Name",
+    "isPE": "PE File",
+    "isPEExtension": "PE Extension",
+    "isVerifyTrust": "Signature",
+    "virusTotal": "Virus Total",
+    "virusName": "Virus Name",
+    "exposedDevices": "Exposed Devices",
+    "departmentSelected": "Department",
+    "departmentName": "Department",
+    "ip": "IP",
+    "hostName": "Host Name"
   },
   "edgeFields": {
     "agentName": "Name",
@@ -803,7 +818,10 @@
     "fileMD5": "Hash Value (MD5)",
     "filePath": "File Path",
     "fileSize": "File Size",
-    "virusTotal": "Virus Total"
+    "virusTotal": "Virus Total"",
+    "hostName": "Host Name",
+    "departmentName": "Department",
+    "ip": "IP"
   },
   "hostVulnerabilityFields": {
     "date": "Date",
