@@ -734,8 +734,6 @@
   },
   "hmdDeviceFields": {
     "remarks": "Remarks",
-    "cpu": "CPU",
-    "ram": "RAM",
     "hostID": "Host ID",
     "hostName": "Hostname",
     "system": "System",
@@ -818,7 +816,7 @@
     "fileMD5": "Hash Value (MD5)",
     "filePath": "File Path",
     "fileSize": "File Size",
-    "virusTotal": "Virus Total"",
+    "virusTotal": "Virus Total",
     "hostName": "Host Name",
     "departmentName": "Department",
     "ip": "IP"
