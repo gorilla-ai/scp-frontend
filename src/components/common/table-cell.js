@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import cx from 'classnames'
 import Popper from '@material-ui/core/Popper';
 import Tooltip from '@material-ui/core/Tooltip';
+import { TableCell as MuiTableCell } from '@material-ui/core'
 
 import {BaseDataContext} from './context'
 import helper from './helper'
@@ -10,6 +11,18 @@ import helper from './helper'
 const FILTER_EXCLUDE_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_', '_Raw', 'message', 'msg'];
 
 let t = null;
+
+const oldRender = MuiTableCell.render
+
+MuiTableCell.render = function (...args) {
+    const [props, ...otherArgs] = args
+    if (typeof props === 'object' && props && 'isEmpty' in props) {
+        const { isEmpty, ...propsWithoutEmpty } = props
+        return oldRender.apply(this, [propsWithoutEmpty, ...otherArgs])
+    } else {
+        return oldRender.apply(this, args)
+    }
+}
 
 /**
  * Table Cell
