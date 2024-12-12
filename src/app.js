@@ -405,7 +405,7 @@ const createTheme = (themeName) => {
     case 'dark':
       return createDarkTheme();
     default:
-      return createDefaultTheme();
+      return createDarkTheme();
   }
 };
 
