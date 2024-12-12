@@ -1137,9 +1137,12 @@ button.standard:hover:not([disabled]) {
       }
       tbody {
         tr:nth-child(odd) {
-          background-color: #F7F7F7;
-          border: 1px solid #D2D2D2;
+          background-color: var(--tableRowOdd);
+          border: 1px solid var(--primaryBorder);
           border-width: 1px 0;
+        }
+        tr:nth-child(even) {
+          background-color: var(--tableRowEven);
         }
         td {
           padding: 5px;
