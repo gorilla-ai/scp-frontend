@@ -525,7 +525,9 @@ class FilterQuery extends Component {
     let label = '';
     let selectOptions = '';
 
-    if (page === 'malware') {
+    if (page === 'gcb') {
+      label = f('gcbFields.' + filterName);
+    } else if (page === 'malware') {
       label = f('malwareFields.' + filterName);
 
       if (filterName === 'isPE') {

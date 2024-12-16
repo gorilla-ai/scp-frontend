@@ -413,6 +413,7 @@
   "host": {
     "txt-hostList": "Host List",
     "txt-cpePage": "CPE",
+    "txt-gcb": "GCB",
     "txt-malware": "Malware",
     "txt-vulnerabilities": "Vulnerabilities",
     "txt-inventory": "Inventory",
@@ -448,6 +449,29 @@
       "txt-cveName": "CVE Name",
       "txt-reference": "Reference",
       "txt-kibd": "KBID"
+    },
+    "gcb": {
+      "txt-gcbList": "GCB List",
+      "txt-gcbDetails": "GCB Details",
+      "txt-gcbInfo": "GCB Info",
+      "txt-exposedDevices": "Exposed Devices",
+      "txt-exposedDevicesCount": "Exposed Devices Count",
+      "txt-exposedDeviceCount": "Exposed Devices Count",
+      "txt-notExposedDeviceCount": "Non-Exposed Devices Count",
+      "txt-successCount": "Success",
+      "txt-failCount": "Fail",
+      "txt-originalKey": "Original Key",
+      "txt-dailyFoundGcbs": "Daily GCB Count",
+      "txt-top10GcbEndpointCounts": "Top 10 GCB",
+      "txt-endpoint": "Endware",
+      "txt-hostList": "Host List",
+      "txt-cceId": "CCE-ID",
+      "txt-twGcbId": "TWGCB-ID",
+      "txt-type": "Type",
+      "txt-policyName": "Policy Name",
+      "txt-securityCategory": "Security Category",
+      "txt-srcFile": "Source File",
+      "txt-srcFilePath": "Source File Path"
     },
     "malware": {
       "txt-malwareList": "Malware",

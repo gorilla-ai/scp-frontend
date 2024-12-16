@@ -312,7 +312,66 @@ class GeneralDialog extends Component {
     const {page, data, alertLevelColors} = this.props;
     const {remoteControlAnchor} = this.state
 
-    if (page === 'malware') {
+    if (page === 'gcb') {
+      return (
+        <div className='overview'>
+          <div className='table-data'>
+            <div className='column'>
+              <div className='group'>
+                <header>{t('host.gcb.txt-exposedDevices')}</header>
+                <div className="content">
+                {data.gcbDevicesCount && data.gcbDevicesCount.length > 0 &&
+                <PieChart
+                  id='gcb-overview-pie-chart'
+                  holeSize={70}
+                  centerText={<div className='center-text'>{_.find(data.gcbDevicesCount, ['key', 'exposedDeviceCount']).value + '/' + (_.find(data.gcbDevicesCount, ['key', 'exposedDeviceCount']).value + _.find(data.gcbDevicesCount, ['key', 'notExposedDeviceCount']).value)} {t('host.gcb.txt-endpoint')}</div>}
+                  data={data.gcbDevicesCount}
+                  colors={{
+                    key: {
+                      notExposedDeviceCount: '#CCCCCC',
+                      exposedDeviceCount: '#373BC4'
+                    }
+                  }}
+                  legend={{
+                    enabled: false
+                  }}
+                  onTooltip = {(eventInfo, data) => {
+                    return (
+                      <section>
+                        <span>{t('host.gcb.txt-' + data[0].key)}: {data[0].value}</span>
+                      </section>
+                  )}}
+                  dataCfg={{
+                    splitSlice: ['key'],
+                    sliceSize: 'value'
+                  }} />
+                }
+                </div>
+              </div>
+            </div>
+            <div className='column'>
+              <div className='group'>
+                <header>{t('host.gcb.txt-gcbInfo')}</header>
+                <table className='c-table main-table'>
+                  <tbody>
+                    {_.map(data.dataFieldsArr, (field) => {
+                      return <tr key={field}>
+                        <td className='header'><span>{t('host.gcb.txt-' + field)}</span></td>
+                        {typeof(data.dataContent[field]) === 'boolean' &&
+                          <td><span>{t('txt-' + data.dataContent[field])}</span></td>
+                        }
+                        {typeof(data.dataContent[field]) !== 'boolean' &&
+                          <td><span>{data.dataContent[field] || NOT_AVAILABLE}</span></td>
+                        }
+                      </tr>
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+      </div>)
+    } else if (page === 'malware') {
       return (
         <div className='overview'>
           <div className='overview-btn-group'>
@@ -328,7 +387,7 @@ class GeneralDialog extends Component {
                 <div className="content">
                 {data.malwareDevicesCount && data.malwareDevicesCount.length > 0 &&
                 <PieChart
-                  id='malware-overview-bar-chart'
+                  id='malware-overview-pie-chart'
                   holeSize={70}
                   centerText={<div className='center-text'>{_.find(data.malwareDevicesCount, ['key', 'exposedDeviceCount']).value + '/' + (_.find(data.malwareDevicesCount, ['key', 'exposedDeviceCount']).value + _.find(data.malwareDevicesCount, ['key', 'notExposedDeviceCount']).value)} {t('host.malware.txt-endpoint')}</div>}
                   data={data.malwareDevicesCount}
@@ -783,12 +842,7 @@ class GeneralDialog extends Component {
     let searchFieldText = '';
     let searchCountHeader = '';
 
-    if (page === 'malware') {
-      if (searchType === 'relatedSoftware') {
-        searchFieldText = t('host.inventory.txt-productName');
-        searchCountHeader = t('host.vulnerabilities.txt-relatedSoftwareCount');
-      }
-    } else if (page === 'vulnerabilities') {
+    if (page === 'vulnerabilities') {
       if (searchType === 'relatedSoftware') {
         searchFieldText = t('host.inventory.txt-productName');
         searchCountHeader = t('host.vulnerabilities.txt-relatedSoftwareCount');
@@ -812,6 +866,9 @@ class GeneralDialog extends Component {
         searchFieldText = t('host.txt-kbidName');
         searchCountHeader = t('txt-searchCount');
       } else if (searchType === 'malware') {
+        searchFieldText = t('host.endpoints.txt-md5');
+        searchCountHeader = t('txt-searchCount');
+      } else if (searchType === 'gcb') {
         searchFieldText = t('host.endpoints.txt-md5');
         searchCountHeader = t('txt-searchCount');
       }

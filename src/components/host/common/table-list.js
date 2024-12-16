@@ -182,7 +182,10 @@ class TableList extends Component {
     let headerTitle = '';
     let searchLabel = '';
 
-    if (page === 'malware') {
+    if (page === 'gcb') {
+      headerTitle = t('host.gcb.txt-gcbList');
+      searchLabel = t('host.gcb.txt-originalKey');
+    } else if (page === 'malware') {
       headerTitle = t('host.malware.txt-malwareList');
       searchLabel = t('host.malware.txt-fileMD5');
     } else if (page === 'vulnerabilities') {
@@ -222,6 +225,15 @@ class TableList extends Component {
         <div className='main-content'>
           <header className='main-header'>{headerTitle}</header>
           <div className='content-header-btns with-menu'>
+            {page === 'gcb' &&
+              <Menu
+                anchorEl={exportAnchor}
+                keepMounted
+                open={Boolean(exportAnchor)}
+                onClose={this.props.handleCloseMenu}>
+                <MenuItem onClick={this.props.exportList.bind(this, 'gcbUpdateToDate')}>{t('host.gcb.txt-gcbList')}</MenuItem>
+              </Menu>
+            }
             {page === 'malware' &&
               <Menu
                 anchorEl={exportAnchor}
@@ -302,6 +314,11 @@ class TableList extends Component {
               </Menu>
             }
             <Button id='hostFilterQuery' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')} data-cy='hostFilterQueryBtn'>{t('txt-filterQuery')}</Button>
+            {page === 'gcb' &&
+              <React.Fragment>
+                <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
+              </React.Fragment>
+            }
             {page === 'malware' &&
               <React.Fragment>
                 <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
@@ -350,7 +367,7 @@ class TableList extends Component {
               <Button id='hostClearData' variant='outlined' color='primary' className='standard btn clear' onClick={this.props.handleReset.bind(this, searchType)} data-cy='hostSearchClearBtn'>{t('txt-clear')}</Button>
             </div>
 
-            <div className='search-count'>{t('host.inventory.txt-softwareCount') + ': ' + helper.numberWithCommas(search.count)}</div>
+            <div className='search-count'>{t('txt-searchCount') + ': ' + helper.numberWithCommas(search.count)}</div>
           </div>
 
           <MuiTableContent

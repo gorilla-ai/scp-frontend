@@ -497,7 +497,15 @@
     "_CceId": "CCE-ID",
     "_OriginalKey": "原廠設定名稱",
     "_Type": "種類",
-    "_CompareResult": "檢測結果"
+    "_CompareResult": "檢測結果",
+    "policyName": "原則設定名稱",
+    "originalKey": "Original Key",
+    "type": "類型",
+    "successExposedDevices": "裝置數量",
+    "twGcbId": "TWGCB-ID",
+    "cceId": "CCE-ID",
+    "departmentSelected": "部門",
+    "departmentName": "部門"
   },
   "malwareFields": {
     "_FileInfo": {
@@ -819,7 +827,10 @@
     "virusTotal": "病毒數量",
     "hostName": "主機名稱",
     "departmentName": "部門",
-    "ip": "IP"
+    "ip": "IP",
+    "compareResult": "比對結果",
+    "gcbValue": "GCB值",
+    "gpoValue": "GPO值"
   },
   "hostVulnerabilityFields": {
     "date": "日期",

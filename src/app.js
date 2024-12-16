@@ -28,6 +28,7 @@ import HostInventory from './components/host/inventory'
 import HostKbid from './components/host/kbid'
 import HostVulnerabilities from './components/host/vulnerabilities'
 import HostMalware from './components/host/malware'
+import HostGcb from './components/host/gcb'
 import Incident from './components/soc/incident'
 import IncidentDeviceStep from './components/soc/incident-device-with-step'
 import IncidentFlow from './components/soc/incident-flow'
@@ -126,6 +127,12 @@ const HostComp = () => (
 const HostCpeComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <HostCpe />
+  </BaseDataContext.Provider>
+);
+
+const HostGcbComp = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <HostGcb />
   </BaseDataContext.Provider>
 );
 
@@ -365,6 +372,7 @@ const Main = () => (
       <Route exact path='/SCP/host/kbid' component={HostKbidComp} />
       <Route exact path='/SCP/host/vulnerabilities' component={HostVulnerabilitiesComp} />
       <Route exact path='/SCP/host/malware' component={HostMalwareComp} />
+      <Route exact path='/SCP/host/gcb' component={HostGcbComp} />
       <Route exact path='/SCP/threats' component={ThreatsComp} />
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
       <Route exact path='/SCP/events/netflow' component={NetflowComp} />

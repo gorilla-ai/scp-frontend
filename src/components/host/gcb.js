@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, Fragment } from 'react'
 import _ from 'lodash'
 import moment from 'moment'
 
@@ -20,12 +20,6 @@ import TableList from './common/table-list'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const TRUE_FALSE = ['true', 'false'];
-const CONDITION_MODE = {
-  '=': 'eq',
-  '>': 'gt',
-  '<': 'lt'
-};
 const FILTER_LIST = [
   {
     name: 'departmentSelected',
@@ -33,54 +27,25 @@ const FILTER_LIST = [
     filterType: 'tree'
   },
   {
-    name: 'companyName',
+    name: 'type',
     displayType: 'text_field'
   },
   {
-    name: 'virusTotal',
-    displayType: 'text_field',
-    filterType: 'multi_input',
-    searchType: 'condition_input'
-  },
-  {
-    name: 'virusName',
+    name: 'policyName',
     displayType: 'text_field'
-  },
-  {
-    name: 'isPE',
-    displayType: 'select_list',
-    filterType: 'select_list'
-  },
-  {
-    name: 'isPEExtension',
-    displayType: 'select_list',
-    filterType: 'select_list'
-  },
-  {
-    name: 'isVerifyTrust',
-    displayType: 'select_list',
-    filterType: 'select_list'
   }
 ];
-const MALWARE_SEARCH = {
+const GCB_SEARCH = {
   keyword: '',
   count: 0
 };
-const MALWARE_FILTER = {
+const GCB_FILTER = {
   departmentSelected: [],
-  companyName: '',
-  virusTotal: [],
-  virusName: '',
-  isPE: '',
-  isPEExtension: '',
-  isVerifyTrust: ''
+  type: '',
+  policyName: ''
 };
-const MALWARE_FILTER_LIST = {
-  departmentSelected: [],
-  virusTotal: [],
-  isPE: [],
-  isPEExtension: [],
-  isVerifyTrust: []
+const GCB_FILTER_LIST = {
+  departmentSelected: []
 };
 const EXPOSED_DEVICES_SEARCH = {
   hostName: '',
@@ -90,7 +55,7 @@ const EXPOSED_DEVICES_SEARCH = {
   count: 0
 };
 const EXPOSED_DEVICES_DATA = {
-  dataFieldsArr: ['hostName', 'departmentName', 'ip', 'system', 'filePath', 'daysOpen'],
+  dataFieldsArr: ['hostName', 'departmentName', 'ip', 'system', 'compareResult', 'gcbValue', 'gpoValue'],
   dataFields: [],
   dataContent: null,
   sort: {
@@ -101,17 +66,17 @@ const EXPOSED_DEVICES_DATA = {
   currentPage: 0,
   pageSize: 20
 };
-let MALWARE_STATUS_COLORS = {};
+let GCB_STATUS_COLORS = {};
 
 let t = null;
 let f = null;
 
 /**
- * Host Malware
+ * Host Gcb
  * @class
- * @summary A react component to show the Host malware page
+ * @summary A react component to show the Host gcb page
  */
-class HostMalware extends Component {
+class HostGcb extends Component {
   constructor(props) {
     super(props);
 
@@ -130,21 +95,18 @@ class HostMalware extends Component {
       departmentList: [],
       departmentNameMapping: {},
       limitedDepartment: [],
-      isPE: [],
-      isPEExtension: [],
-      isVerifyTrust: [],
-      malwareSearch: _.cloneDeep(MALWARE_SEARCH),
-      malwareFilter: _.cloneDeep(MALWARE_FILTER),
-      malwareFilterList: _.cloneDeep(MALWARE_FILTER_LIST),
+      gcbSearch: _.cloneDeep(GCB_SEARCH),
+      gcbFilter: _.cloneDeep(GCB_FILTER),
+      gcbFilterList: _.cloneDeep(GCB_FILTER_LIST),
       exportContextAnchor: null,
       tableContextAnchor: null,
-      top10MalwareEndpointCounts: null,
-      dailyFoundMalwares: null,
-      showMalwareInfo: false,
+      top10GcbEndpointCounts: null,
+      dailyFoundGcbs: null,
+      showGcbInfo: false,
       showFilterQuery: false,
-      activeMalwareInfo: 'malwareDetails', //'malwareDetails' or 'exposedDevices'
-      malwareData: {
-        dataFieldsArr: ['_menu', 'fileMD5', 'fileSize', 'companyName', 'isPE', 'isPEExtension', 'isVerifyTrust', 'virusTotal', 'virusName', 'exposedDevices'],
+      activeGcbInfo: 'gcbDetails', //'gcbDetails' or 'exposedDevices'
+      gcbData: {
+        dataFieldsArr: ['_menu', 'originalKey', 'policyName', 'type', 'successExposedDevices'],
         dataFields: [],
         dataContent: null,
         sort: {
@@ -157,14 +119,14 @@ class HostMalware extends Component {
       },
       exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
       exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA),
-      currentFileMD5: '',
-      currentMalwareData: {
-        dataFieldsArr: ['fileMD5', 'fileSHA1', 'fileSHA256', 'fileSize', 'isPE', 'isPEExtension', 'isVerifyTrust', 'companyName', 'virusTotal', 'virusName'],
+      currentOriginalKey: '',
+      currentGcbData: {
+        dataFieldsArr: ['cceId', 'twGcbId', 'type', 'policyName', 'securityCategory', 'srcFile', 'srcFilePath'],
         dataContent: null,
-        malwareDevicesCount: null
+        gcbDevicesCount: null
       },
-      exportMalwareDataFieldsArr: ['fileMD5', 'fileSHA1', 'fileSHA256', 'fileSize', 'companyName', 'isPE', 'isPEExtension', 'isVerifyTrust', 'virusTotal', 'virusName', 'exposedDevices'],
-      exportHostDataFieldsArr: ['hostName', 'departmentName', 'ip', 'fileMD5', 'fileSHA1', 'fileSHA256', 'fileSize', 'companyName', 'isPE', 'isPEExtension', 'isVerifyTrust', 'virusTotal', 'virusName', 'exposedDevices']
+      exportGcbDataFieldsArr: ['originalKey', 'cceId', 'twGcbId', 'type', 'policyName', 'successExposedDevices', 'failExposedDevices'],
+      exportHostDataFieldsArr: ['hostName', 'departmentName', 'ip', 'originalKey', 'cceId', 'twGcbId', 'type', 'policyName', 'successExposedDevices', 'failExposedDevices']
     };
 
     this.ah = getInstance('chewbacca');
@@ -193,9 +155,6 @@ class HostMalware extends Component {
     }
 
     this.setLocaleLabel();
-    this.getIsPE();
-    this.getIsPEextension();
-    this.getIsVerifyTrust();
   }
   componentWillUnmount() {
     helper.clearTimer();
@@ -208,14 +167,14 @@ class HostMalware extends Component {
     const {locale} = this.context;
 
     if (locale === 'en') {
-      MALWARE_STATUS_COLORS = {
-        Removed: '#7ACC29',
-        Existing: '#CC2943'
+      GCB_STATUS_COLORS = {
+        Success: '#7ACC29',
+        Fail: '#CC2943'
       };
     } else if (locale === 'zh') {
-      MALWARE_STATUS_COLORS = {
-        已移除: '#7ACC29',
-        仍存在: '#CC2943'
+      GCB_STATUS_COLORS = {
+        成功: '#7ACC29',
+        失敗: '#CC2943'
       };
     }
   }
@@ -248,8 +207,8 @@ class HostMalware extends Component {
           if (account.limitedRole && account.departmentId) {
             this.setSelectedDepartment();
           } else {
-            this.getMalwareStatisticData();
-            this.getMalwareData();
+            this.getGcbStatisticData();
+            this.getGcbData();
           }
         });
       }
@@ -265,9 +224,9 @@ class HostMalware extends Component {
    */
   setSelectedDepartment = () => {
     const {baseUrl} = this.context;
-    const {account, departmentNameMapping, malwareFilter, malwareFilterList} = this.state;
-    let tempMalwareFilter = {...malwareFilter};
-    let tempMalwareFilterList = {...malwareFilterList};
+    const {account, departmentNameMapping, gcbFilter, gcbFilterList} = this.state;
+    let tempGcbFilter = {...gcbFilter};
+    let tempGcbFilterList = {...gcbFilterList};
 
     this.ah.one({
       url: `${baseUrl}/api/department/child/_set?id=${account.departmentId}`,
@@ -275,18 +234,18 @@ class HostMalware extends Component {
     })
     .then(data => {
       if (data) {
-        tempMalwareFilter.departmentSelected = data;
-        tempMalwareFilterList.departmentSelected = _.map(data, val => {
+        tempGcbFilter.departmentSelected = data;
+        tempGcbFilterList.departmentSelected = _.map(data, val => {
           return departmentNameMapping[val];
         });
 
         this.setState({
           limitedDepartment: data,
-          malwareFilter: tempMalwareFilter,
-          malwareFilterList: tempMalwareFilterList
+          gcbFilter: tempGcbFilter,
+          gcbFilterList: tempGcbFilterList
         }, () => {
-          this.getMalwareStatisticData();
-          this.getMalwareData();
+          this.getGcbStatisticData();
+          this.getGcbData();
         });
       }
       return null;
@@ -295,58 +254,22 @@ class HostMalware extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  getIsPE = () => {
-    const isPE = _.map(TRUE_FALSE, val => {
-      return {
-        value: val,
-        text: t('txt-' + val)
-      };
-    });
-
-    this.setState({
-      isPE
-    });
-  }
-  getIsPEextension = () => {
-    const isPEExtension = _.map(TRUE_FALSE, val => {
-      return {
-        value: val,
-        text: t('txt-' + val)
-      };
-    });
-
-    this.setState({
-      isPEExtension
-    });
-  }
-  getIsVerifyTrust = () => {
-    const isVerifyTrust = _.map(TRUE_FALSE, val => {
-      return {
-        value: val,
-        text: t('txt-' + val)
-      };
-    });
-
-    this.setState({
-      isVerifyTrust
-    });
-  }
   /**
-   * Get and set malware chart data
+   * Get and set gcb chart data
    * @method
    */
-  getMalwareStatisticData = () => {
+  getGcbStatisticData = () => {
     const {baseUrl} = this.context;
-    const {malwareFilter} = this.state;
+    const {gcbFilter} = this.state;
     let requestData = {};
 
-    if (malwareFilter.departmentSelected.length > 0) {
-      requestData.departmentArray = malwareFilter.departmentSelected;
+    if (gcbFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = gcbFilter.departmentSelected;
     }
 
     //Horizontal Bar Chart
     this.ah.one({
-      url: `${baseUrl}/api/hmd/malware/endpoint/count`,
+      url: `${baseUrl}/api/hmd/gcb/endpoint/count`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
@@ -354,7 +277,7 @@ class HostMalware extends Component {
     .then(data => {
       if (data) {
         this.setState({
-          top10MalwareEndpointCounts: data.rows
+          top10GcbEndpointCounts: data.rows
         });
       }
       return null;
@@ -365,31 +288,31 @@ class HostMalware extends Component {
 
     //Bar Chart
     this.ah.one({
-      url: `${baseUrl}/api/hmd/malware/daily/statistics`,
+      url: `${baseUrl}/api/hmd/gcb/daily/statistics`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
     .then(data => {
       if (data) {
-        let dailyFoundMalwares = [];
+        let dailyFoundGcbs = [];
 
-        _.keys(data.malwareCountAgg)
+        _.keys(data.gcbCountAgg)
         .forEach(key => {
-          _.keys(data.malwareCountAgg[key])
+          _.keys(data.gcbCountAgg[key])
           .forEach(key2 => {
-            if (data.malwareCountAgg[key][key2] >= 0) {
-              dailyFoundMalwares.push({
+            if (data.gcbCountAgg[key][key2] >= 0) {
+              dailyFoundGcbs.push({
                 date: key2,
-                count: data.malwareCountAgg[key][key2],
-                indicator: t('host.malware.txt-' + key)
+                count: data.gcbCountAgg[key][key2],
+                indicator: t('host.gcb.txt-' + key)
               })
             }
           })
         });
 
         this.setState({
-          dailyFoundMalwares: _.reverse(dailyFoundMalwares)
+          dailyFoundGcbs: _.reverse(dailyFoundGcbs)
         });
       }
       return null;
@@ -401,35 +324,35 @@ class HostMalware extends Component {
   /**
    * Show bar chart
    * @method
-   * @param {array.<object>} dailyFoundMalwares - chart data
+   * @param {array.<object>} dailyFoundGcbs - chart data
    * @returns HTML DOM
    */
-  showBarChart = (dailyFoundMalwares) => {
+  showBarChart = (dailyFoundGcbs) => {
     return (
       <div className='chart-group grow-2'>
-        {!dailyFoundMalwares &&
+        {!dailyFoundGcbs &&
           <div className='empty-data'>
-            <header>{t('host.malware.txt-dailyFoundMalwares')}</header>
+            <header>{t('host.gcb.txt-dailyFoundGcbs')}</header>
             <span><i className='fg fg-loading-2'></i></span>
           </div>
         }
-        {dailyFoundMalwares && dailyFoundMalwares.length === 0 &&
+        {dailyFoundGcbs && dailyFoundGcbs.length === 0 &&
           <div className='empty-data'>
-            <header>{t('host.malware.txt-dailyFoundMalwares')}</header>
+            <header>{t('host.gcb.txt-dailyFoundGcbs')}</header>
             <span>{t('txt-notFound')}</span>
           </div>
         }
-        {dailyFoundMalwares && dailyFoundMalwares.length > 0 &&
+        {dailyFoundGcbs && dailyFoundGcbs.length > 0 &&
           <BarChart
             stacked
             vertical
-            title={t('host.malware.txt-dailyFoundMalwares')}
+            title={t('host.gcb.txt-dailyFoundGcbs')}
             legend={{
               enabled: true,
               reversed: true
             }}
-            data={dailyFoundMalwares}
-            colors={MALWARE_STATUS_COLORS}
+            data={dailyFoundGcbs}
+            colors={GCB_STATUS_COLORS}
             dataCfg={{
               x: 'date',
               y: 'count',
@@ -454,37 +377,37 @@ class HostMalware extends Component {
       </div>
     )
   }
-  showHorizontalBarChart = (top10MalwareEndpointCounts) => {
+  showHorizontalBarChart = (top10GcbEndpointCounts) => {
     return (
       <div className='chart-group'>
-        {!top10MalwareEndpointCounts &&
+        {!top10GcbEndpointCounts &&
           <div className='empty-data'>
-            <header>{t('host.malware.txt-top10MalwareEndpointCounts')}</header>
+            <header>{t('host.gcb.txt-top10GcbEndpointCounts')}</header>
             <span><i className='fg fg-loading-2'></i></span>
           </div>
         }
-        {top10MalwareEndpointCounts && top10MalwareEndpointCounts.length === 0 &&
+        {top10GcbEndpointCounts && top10GcbEndpointCounts.length === 0 &&
           <div className='empty-data'>
-            <header>{t('host.malware.txt-top10MalwareEndpointCounts')}</header>
+            <header>{t('host.gcb.txt-top10GcbEndpointCounts')}</header>
             <span>{t('txt-notFound')}</span>
           </div>
         }
-        {top10MalwareEndpointCounts && top10MalwareEndpointCounts.length > 0 &&
+        {top10GcbEndpointCounts && top10GcbEndpointCounts.length > 0 &&
           <div className='empty-data'>
-            <header>{t('host.malware.txt-top10MalwareEndpointCounts')}</header>
+            <header>{t('host.gcb.txt-top10GcbEndpointCounts')}</header>
             <table className='chart-data-table'>
               <thead>
                 <tr>
-                  <th>{t('host.malware.txt-malware')}</th>
-                  <th>{t('host.malware.txt-endpoint')}</th>
+                  <th>{t('host.gcb.txt-originalKey')}</th>
+                  <th>{t('host.gcb.txt-endpoint')}</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-              {_.map(top10MalwareEndpointCounts, row => {
-                return <tr key={row.fileMD5}>
-                    <td title={row.fileMD5}>{row.fileMD5}</td>
-                    <td><div className='bar' style={{width: (row.exposedDevices / top10MalwareEndpointCounts[0].exposedDevices * 100) + '%'}}></div></td>
+              {_.map(top10GcbEndpointCounts, row => {
+                return <tr key={row.originalKey}>
+                    <td title={row.originalKey}>{row.originalKey}</td>
+                    <td><div className='bar' style={{width: (row.exposedDevices / top10GcbEndpointCounts[0].exposedDevices * 100) + '%'}}></div></td>
                     <td>{row.exposedDevices}</td>
                   </tr>
               })}
@@ -512,22 +435,22 @@ class HostMalware extends Component {
     )
   }
   /**
-   * Get and set malware data
+   * Get and set gcb data
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
    */
-  getMalwareData = (fromPage) => {
+  getGcbData = (fromPage) => {
     const {baseUrl} = this.context;
-    const {malwareSearch, malwareData} = this.state;
-    const sort = malwareData.sort.desc ? 'desc' : 'asc';
-    const page = fromPage === 'currentPage' ? malwareData.currentPage : 0;
+    const {gcbSearch, gcbData} = this.state;
+    const sort = gcbData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? gcbData.currentPage : 0;
     const requestData = {
-      ...this.getMalwareFilterRequestData()
+      ...this.getGcbFilterRequestData()
     };
-    let url = `${baseUrl}/api/hmd/malwareUpdateToDate/_search?page=${page + 1}&pageSize=${malwareData.pageSize}`;
+    let url = `${baseUrl}/api/hmd/gcbUpdateToDate/_search?page=${page + 1}&pageSize=${gcbData.pageSize}`;
 
-    if (malwareData.sort.field) {
-      url += `&orders=${malwareData.sort.field} ${sort}`;
+    if (gcbData.sort.field) {
+      url += `&orders=${gcbData.sort.field} ${sort}`;
     }
 
     this.ah.one({
@@ -538,45 +461,46 @@ class HostMalware extends Component {
     })
     .then(data => {
       if (data) {
-        let tempMalwareSearch = {...malwareSearch};
-        let tempMalwareData = {...malwareData};
+        let tempGcbSearch = {...gcbSearch};
+        let tempGcbData = {...gcbData};
 
         if (!data.rows || data.rows.length === 0) {
-          tempMalwareSearch.count = 0;
-          tempMalwareData.dataContent = [];
-          tempMalwareData.totalCount = 0;
+          tempGcbSearch.count = 0;
+          tempGcbData.dataContent = [];
+          tempGcbData.totalCount = 0;
 
           this.setState({
-            malwareSearch: tempMalwareSearch,
-            malwareData: tempMalwareData
+            gcbSearch: tempGcbSearch,
+            gcbData: tempGcbData
           });
           return null;
         }       
 
-        tempMalwareData.dataContent = data.rows;
-        tempMalwareData.totalCount = data.count;
-        tempMalwareData.currentPage = page;
-        tempMalwareData.dataFields = _.map(malwareData.dataFieldsArr, val => {
+        tempGcbData.dataContent = data.rows;
+        tempGcbData.totalCount = data.count;
+        tempGcbData.currentPage = page;
+        tempGcbData.dataFields = _.map(gcbData.dataFieldsArr, val => {
           return {
             name: val === '_menu' ? '' : val,
-            label: val === '_menu' ? '' : f('malwareFields.' + val),
+            label: val === '_menu' ? '' : f('gcbFields.' + val),
             options: {
               filter: true,
               sort: this.checkSortable(val),
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
-                const allValue = tempMalwareData.dataContent[dataIndex];
-                const value = tempMalwareData.dataContent[dataIndex][val];
+                const allValue = tempGcbData.dataContent[dataIndex];
+                const value = tempGcbData.dataContent[dataIndex][val];
 
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button className='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.fileMD5)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
+                      <Button className='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue.originalKey)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
                     </div>
                   )
-                } else if (val === 'isPE' || val === 'isPEExtension' || val === 'isVerifyTrust') {
-                  return <span className={'true-false-status true-false-status-' + value}>{t('txt-' + value)}</span>
-
+                } else if (val === 'successExposedDevices') {
+                  return <Fragment><span className='status-success'>{value}</span> <span className='status-fail'>{allValue.failExposedDevices}</span></Fragment>
+                } else if (val === 'failExposedDevices') {
+                  return null
                 } else {
                   return value;
                 }
@@ -584,11 +508,11 @@ class HostMalware extends Component {
             }
           };
         });
-        tempMalwareSearch.count = helper.numberWithCommas(data.count);
+        tempGcbSearch.count = helper.numberWithCommas(data.count);
 
         this.setState({
-          malwareSearch: tempMalwareSearch,
-          malwareData: tempMalwareData
+          gcbSearch: tempGcbSearch,
+          gcbData: tempGcbData
         });
       }
       return null;
@@ -604,7 +528,7 @@ class HostMalware extends Component {
    * @returns true for sortable field
    */
   checkSortable = (field) => {
-    const unSortableFields = ['_menu', 'exposedDevices'];
+    const unSortableFields = ['_menu', 'policyName'];
 
     if (_.includes(unSortableFields, field)) {
       return false;
@@ -613,96 +537,77 @@ class HostMalware extends Component {
     }
   }
   /**
-   * Get malware filter request data
+   * Get gcb filter request data
    * @method
    * @returns requestData object
    */
-  getMalwareFilterRequestData = () => {
-    const {malwareSearch, malwareFilter, malwareFilterList} = this.state;
+  getGcbFilterRequestData = () => {
+    const {gcbSearch, gcbFilter} = this.state;
     let requestData = {};
 
-    if (malwareSearch.keyword) {
-      requestData.fileMD5 = malwareSearch.keyword;
+    if (gcbSearch.keyword) {
+      requestData.originalKey = gcbSearch.keyword;
     }
 
-    if (malwareFilter.departmentSelected.length > 0) {
-      requestData.departmentArray = malwareFilter.departmentSelected;
+    if (gcbFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = gcbFilter.departmentSelected;
     }
 
-    if (malwareFilter.companyName.length > 0) {
-      requestData.companyName = malwareFilter.companyName;
+    if (gcbFilter.type.length > 0) {
+      requestData.type = gcbFilter.type;
     }
 
-    if (malwareFilter.virusTotal.length > 0) {
-      console.log(malwareFilter.virusTotal.length)
-      requestData.virusTotalArray = _.map(malwareFilterList.virusTotal, val => {
-        return {
-          mode: CONDITION_MODE[val.substr(0, 1)],
-          virusTotal: val.substr(2)
-        }
-      });
+    if (gcbFilter.policyName.length > 0) {
+      requestData.policyName = gcbFilter.policyName;
     }
-
-    if (malwareFilter.virusName.length > 0) {
-      requestData.virusName = malwareFilter.virusName;
-    }
-
-    if (malwareFilter.isPE === 'true' || malwareFilter.isPE === 'false')
-      requestData.isPE = malwareFilter.isPE === 'true'
-
-    if (malwareFilter.isPEExtension === 'true' || malwareFilter.isPEExtension === 'false')
-      requestData.isPEExtension = malwareFilter.isPEExtension === 'true'
-
-    if (malwareFilter.isVerifyTrust === 'true' || malwareFilter.isVerifyTrust === 'false')
-      requestData.isVerifyTrust = malwareFilter.isVerifyTrust === 'true'
 
     return requestData;
   }
   /**
    * Handle open menu
    * @method
-   * @param {string} fileMD5 - active malware fileMD5
+   * @param {string} originalKey - active gcb originalKey
    * @param {object} event - event object
    */
-  handleOpenMenu = (fileMD5, event) => {
+  handleOpenMenu = (originalKey, event) => {
     this.setState({
       tableContextAnchor: event.currentTarget,
-      currentFileMD5: fileMD5
+      currentOriginalKey: originalKey
     });
   }
   /**
    * Handle open exposed device menu
    * @method
-   * @param {string} fileMD5 - active malware fileMD5
+   * @param {string} originalKey - active gcb originalKey
    * @param {object} event - event object
    */
-  handleOpenExposedDeviceMenu = (fileMD5, event) => {
+  handleOpenExposedDeviceMenu = (originalKey, event) => {
     this.setState({
       tableContextAnchor: event.currentTarget,
-      currentFileMD5: fileMD5
+      currentOriginalKey: originalKey
     });
   }
   /**
-   * Get individual malware data
+   * Get individual gcb data
    * @method
    */
-  getActiveMalwareInfo = () => {
+  getActiveGcbInfo = () => {
     const {baseUrl} = this.context;
-    const {malwareFilter, currentFileMD5, currentMalwareData} = this.state;
+    const {gcbFilter, currentOriginalKey, currentGcbData} = this.state;
     let requestData = {};
 
-    if (malwareFilter.departmentSelected.length > 0) {
-      requestData.departmentArray = malwareFilter.departmentSelected;
+    if (gcbFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = gcbFilter.departmentSelected;
     }
-    requestData.fileMD5 = currentFileMD5
+    requestData.originalKey = currentOriginalKey
 
     const apiArr = [
       {
-        url: `${baseUrl}/api/hmd/malwareUpdateToDate/malwareInfo?fileMD5=${currentFileMD5}`,
+        url: `${baseUrl}/api/hmd/gcbUpdateToDate/gcbInfo?originalKey=${currentOriginalKey}`,
         type: 'GET'
       },
       {
-        url: `${baseUrl}/api/hmd/malware/devices/count?fileMD5=${currentFileMD5}`,
+        url: `${baseUrl}/api/hmd/gcb/devices/count?originalKey=${currentOriginalKey}`,
         data: JSON.stringify(requestData),
         type: 'POST',
         contentType: 'text/plain'
@@ -711,30 +616,30 @@ class HostMalware extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      let tempCurrentMalwareData = {...currentMalwareData};
+      let tempCurrentGcbData = {...currentGcbData};
       if (data[0]) {
-        if (!data[0].malwareInfo || data[0].malwareInfo.length === 0) {
-          tempCurrentMalwareData.dataContent = [];
+        if (!data[0].gcbInfo || data[0].gcbInfo.length === 0) {
+          tempCurrentGcbData.dataContent = [];
         } else {
-          tempCurrentMalwareData.dataContent = data[0].malwareInfo;
+          tempCurrentGcbData.dataContent = data[0].gcbInfo;
         }
       }
       
       if (data[1]) {
-        if (!data[1].malwareDevicesCount || data[1].malwareDevicesCount.length === 0) {
-          tempCurrentMalwareData.malwareDevicesCount = [];
+        if (!data[1].gcbDevicesCount || data[1].gcbDevicesCount.length === 0) {
+          tempCurrentGcbData.gcbDevicesCount = [];
         } else {
-          let tempMalwareDevicesCount = [];
-          tempMalwareDevicesCount.push({key: 'exposedDeviceCount', value: data[1].malwareDevicesCount.exposedDeviceCount});
-          tempMalwareDevicesCount.push({key: 'notExposedDeviceCount', value: data[1].malwareDevicesCount.endpointCount - data[1].malwareDevicesCount.exposedDeviceCount});
-          tempCurrentMalwareData.malwareDevicesCount = tempMalwareDevicesCount;
+          let tempGcbDevicesCount = [];
+          tempGcbDevicesCount.push({key: 'exposedDeviceCount', value: data[1].gcbDevicesCount.exposedDeviceCount});
+          tempGcbDevicesCount.push({key: 'notExposedDeviceCount', value: data[1].gcbDevicesCount.endpointCount - data[1].gcbDevicesCount.exposedDeviceCount});
+          tempCurrentGcbData.gcbDevicesCount = tempGcbDevicesCount;
         }
       }
       
       this.setState({
-        currentMalwareData: tempCurrentMalwareData
+        currentGcbData: tempCurrentGcbData
       }, () => {
-        this.toggleShowMalware();
+        this.toggleShowGcb();
       });
 
       this.handleCloseMenu();
@@ -761,12 +666,12 @@ class HostMalware extends Component {
    */
   getExposedDevices = (fromPage) => {
     const {baseUrl} = this.context;
-    const {malwareFilter, exposedDevicesSearch, exposedDevicesData, currentFileMD5} = this.state;
+    const {gcbFilter, exposedDevicesSearch, exposedDevicesData, currentOriginalKey} = this.state;
     const sort = exposedDevicesData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
-    let url = `${baseUrl}/api/hmd/malware/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
+    let url = `${baseUrl}/api/hmd/gcb/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
     let requestData = {
-      fileMD5: currentFileMD5
+      originalKey: currentOriginalKey
     };
 
     if (exposedDevicesData.sort.field) {
@@ -789,8 +694,8 @@ class HostMalware extends Component {
       requestData.fix = (exposedDevicesSearch.fix === 'true');
     }
 
-    if (malwareFilter.departmentSelected.length > 0) {
-      requestData.departmentArray = malwareFilter.departmentSelected;
+    if (gcbFilter.departmentSelected.length > 0) {
+      requestData.departmentArray = gcbFilter.departmentSelected;
     }
 
     this.ah.one({
@@ -831,12 +736,8 @@ class HostMalware extends Component {
                 const allValue = tempExposedDevicesData.dataContent[dataIndex];
                 const value = tempExposedDevicesData.dataContent[dataIndex][val];
 
-                if (val === '_menu') {
-                  return (
-                    <div className='table-menu active'>
-                      <Button className='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenExposedDeviceMenu.bind(this)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
-                    </div>
-                  )
+                if (val === 'compareResult') {
+                  return <span className={'status-' + (value ? 'success' : 'fail')}></span>
                 } else {
                   return value;
                 }
@@ -869,15 +770,15 @@ class HostMalware extends Component {
     });
   }
   /**
-   * Toggle show malware info
+   * Toggle show gcb info
    * @method
    */
-  toggleShowMalware = () => {
+  toggleShowGcb = () => {
     this.setState({
-      showMalwareInfo: !this.state.showMalwareInfo,
-      activeMalwareInfo: 'malwareDetails'
+      showGcbInfo: !this.state.showGcbInfo,
+      activeGcbInfo: 'gcbDetails'
     }, () => {
-      if (!this.state.showMalwareInfo) {
+      if (!this.state.showGcbInfo) {
         this.setState({
           exposedDevicesSearch: _.cloneDeep(EXPOSED_DEVICES_SEARCH),
           exposedDevicesData: _.cloneDeep(EXPOSED_DEVICES_DATA)
@@ -910,21 +811,21 @@ class HostMalware extends Component {
     });
   }
   /**
-   * Handle malware add to white list
+   * Handle gcb add to white list
    * @method
    */
   addToWhiteList = () => {
     const {baseUrl} = this.context;
-    const {currentFileMD5} = this.state;
+    const {currentOriginalKey} = this.state;
     const requestData = [{
-      fileMD5: currentFileMD5,
+      originalKey: currentcurrentOriginalKey,
       hasHandled: true
     }];
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
     ah.one({
-      url: `${baseUrl}/api/hmd/malwareList`,
+      url: `${baseUrl}/api/hmd/gcbList`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
@@ -940,22 +841,22 @@ class HostMalware extends Component {
     })
   }
   /**
-   * Toggle show malware button
+   * Toggle show gcb button
    * @method
    * @param {object} event - event object
-   * @param {string} type - malware button type ('malwareDetails' or 'exposedDevices')
+   * @param {string} type - gcb button type ('gcbDetails' or 'exposedDevices')
    */
-  toggleMalwareButtons = (event, type) => {
+  toggleGcbButtons = (event, type) => {
     if (!type) {
       return;
     }
     
     this.setState({
-      activeMalwareInfo: type
+      activeGcbInfo: type
     }, () => {
-      const {activeMalwareInfo} = this.state;
+      const {activeGcbInfo} = this.state;
 
-      if (activeMalwareInfo === 'exposedDevices') {
+      if (activeGcbInfo === 'exposedDevices') {
         this.getExposedDevices();
       }
     });
@@ -976,17 +877,17 @@ class HostMalware extends Component {
   /**
    * Handle reset button for host name search
    * @method
-   * @param {string} type - reset button type ('malwareSearch' or 'exposedDevices')
+   * @param {string} type - reset button type ('gcbSearch' or 'exposedDevices')
    */
   handleResetBtn = (type) => {
-    const {malwareSearch, exposedDevicesSearch} = this.state;
+    const {gcbSearch, exposedDevicesSearch} = this.state;
 
-    if (type === 'malwareSearch') {
-      let tempMalwareSearch = {...malwareSearch};
-      tempMalwareSearch.keyword = '';
+    if (type === 'gcbSearch') {
+      let tempGcbSearch = {...gcbSearch};
+      tempGcbSearch.keyword = '';
 
       this.setState({
-        malwareSearch: tempMalwareSearch
+        gcbSearch: tempGcbSearch
       });
     } else if (type === 'exposedDevices') {
       let tempExposedDevicesSearch = {...exposedDevicesSearch};
@@ -1000,12 +901,12 @@ class HostMalware extends Component {
     }
   }
   /**
-   * Display malware info content
+   * Display gcb info content
    * @method
    * @returns HTML DOM
    */
-  displayMalwareInfo = () => {
-    const {activeMalwareInfo, exposedDevicesSearch, exposedDevicesData, currentMalwareData} = this.state;
+  displayGcbInfo = () => {
+    const {activeGcbInfo, exposedDevicesSearch, exposedDevicesData, currentGcbData} = this.state;
     const tableOptionsExposedDevices = {
       tableBodyHeight: 'calc(75vh - 240px)',
       onChangePage: (currentPage) => {
@@ -1022,26 +923,26 @@ class HostMalware extends Component {
     return (
       <div>
         <ToggleButtonGroup
-          id='activeMalwareInfoButtons'
-          value={activeMalwareInfo}
+          id='activeGcbInfoButtons'
+          value={activeGcbInfo}
           exclusive
-          onChange={this.toggleMalwareButtons}>
-          <ToggleButton id='hostDialogMalwareDetails' value='malwareDetails' data-cy='hostInfoDialogDetailsBtn'>{t('host.malware.txt-malwareDetails')}</ToggleButton>
-          <ToggleButton id='hostDialogExposedDevices' value='exposedDevices' data-cy='hostInfoDialogDeviceBtn'>{t('host.malware.txt-exposedDevices')}</ToggleButton>
+          onChange={this.toggleGcbButtons}>
+          <ToggleButton id='hostDialogGcbDetails' value='gcbDetails' data-cy='hostInfoDialogDetailsBtn'>{t('host.gcb.txt-gcbDetails')}</ToggleButton>
+          <ToggleButton id='hostDialogExposedDevices' value='exposedDevices' data-cy='hostInfoDialogDeviceBtn'>{t('host.gcb.txt-exposedDevices')}</ToggleButton>
         </ToggleButtonGroup>
 
         <div className='main-content'>
-          {activeMalwareInfo === 'malwareDetails' &&
+          {activeGcbInfo === 'gcbDetails' &&
             <GeneralDialog
-              page='malware'
+              page='gcb'
               type='general-info'
-              data={currentMalwareData}
+              data={currentGcbData}
               handleAddWhitelist={this.confirmAddWhitelist} />
           }
 
-          {activeMalwareInfo === 'exposedDevices' &&
+          {activeGcbInfo === 'exposedDevices' &&
             <GeneralDialog
-              page='malware'
+              page='gcb'
               type='exposed-devices'
               search={exposedDevicesSearch}
               data={exposedDevicesData}
@@ -1055,55 +956,55 @@ class HostMalware extends Component {
     )
   }
   /**
-   * Show malware info dialog
+   * Show gcb info dialog
    * @method
    * @returns ModalDialog component
    */
-  showMalwareDialog = () => {
+  showGcbDialog = () => {
     const actions = {
-      cancel: {text: t('txt-close'), handler: this.toggleShowMalware}
+      cancel: {text: t('txt-close'), handler: this.toggleShowGcb}
     };
-    let title = t('host.txt-malware');
+    let title = t('host.txt-gcb');
 
-    if (this.state.currentFileMD5) {
-      title +=  ' > ' + this.state.currentFileMD5;
+    if (this.state.currentOriginalKey) {
+      title +=  ' > ' + this.state.currentOriginalKey;
     }
 
     return (
       <ModalDialog
-        id='showMalwareDialog'
+        id='showGcbDialog'
         className='modal-dialog'
         title={title}
         draggable={true}
         global={true}
         actions={actions}
         closeAction='cancel'
-        data-cy='showMalwareDialog'>
-        {this.displayMalwareInfo()}
+        data-cy='showGcbDialog'>
+        {this.displayGcbInfo()}
       </ModalDialog>
     )
   }
   /**
    * Handle table sort
    * @method
-   * @param {string} tableType - table type ('malware' or 'exposedDevices')
+   * @param {string} tableType - table type ('gcb' or 'exposedDevices')
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {malwareData, exposedDevicesData} = this.state;
-    let tempMalwareData = {...malwareData};
+    const {gcbData, exposedDevicesData} = this.state;
+    let tempGcbData = {...gcbData};
     let tempExposedDevicesData = {...exposedDevicesData};
     let tableField = field;
 
-    if (tableType === 'malware') {
-      tempMalwareData.sort.field = tableField;
-      tempMalwareData.sort.desc = sort;
+    if (tableType === 'gcb') {
+      tempGcbData.sort.field = tableField;
+      tempGcbData.sort.desc = sort;
 
       this.setState({
-        malwareData: tempMalwareData
+        gcbData: tempGcbData
       }, () => {
-        this.getMalwareData();
+        this.getGcbData();
       });
     } else if (tableType === 'exposedDevices') {
       tempExposedDevicesData.sort.field = tableField;
@@ -1119,22 +1020,22 @@ class HostMalware extends Component {
   /**
    * Handle table pagination change
    * @method
-   * @param {string} tableType - table type ('malware' or 'exposedDevices'')
+   * @param {string} tableType - table type ('gcb' or 'exposedDevices'')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {malwareData, exposedDevicesData} = this.state;
-    let tempMalwareData = {...malwareData};
+    const {gcbData, exposedDevicesData} = this.state;
+    let tempGcbData = {...gcbData};
     let tempExposedDevicesData = {...exposedDevicesData};
 
-    if (tableType === 'malware') {
-      tempMalwareData[type] = value;
+    if (tableType === 'gcb') {
+      tempGcbData[type] = value;
 
       this.setState({
-        malwareData: tempMalwareData
+        gcbData: tempGcbData
       }, () => {
-        this.getMalwareData(type);
+        this.getGcbData(type);
       });
     } else if (tableType === 'exposedDevices') {
       tempExposedDevicesData[type] = value;
@@ -1147,16 +1048,16 @@ class HostMalware extends Component {
     }
   }
   /**
-   * Handle malware search search
+   * Handle gcb search search
    * @method
    * @param {object} event - event object
    */
-  handleMalwareChange = (event) => {
-    let tempMalwareSearch = {...this.state.malwareSearch};
-    tempMalwareSearch[event.target.name] = event.target.value;
+  handleGcbChange = (event) => {
+    let tempGcbSearch = {...this.state.gcbSearch};
+    tempGcbSearch[event.target.name] = event.target.value;
 
     this.setState({
-      malwareSearch: tempMalwareSearch
+      gcbSearch: tempGcbSearch
     });
   }
   /**
@@ -1168,11 +1069,11 @@ class HostMalware extends Component {
   toggleFilterQuery = (type, filterData) => {
     if (type !== 'open') {
       this.setState({
-        malwareFilter: filterData.filter,
-        malwareFilterList: filterData.itemFilterList
+        gcbFilter: filterData.filter,
+        gcbFilterList: filterData.itemFilterList
       }, () => {
         if (type === 'confirm') {
-          this.getMalwareData();
+          this.getGcbData();
         }
       });
     }
@@ -1192,23 +1093,23 @@ class HostMalware extends Component {
     });
   }
   /**
-   * Export malware list
+   * Export gcb list
    * @method
-   * @param {string} type - export type ('malwareUpdateToDate' or 'malware/devices')
+   * @param {string} type - export type ('gcbUpdateToDate' or 'gcb/devices')
    */
-  exportMalwareList = (type) => {
+  exportGcbList = (type) => {
     const {baseUrl, contextRoot} = this.context;
-    const {exportMalwareDataFieldsArr, exportHostDataFieldsArr} = this.state;
+    const {exportGcbDataFieldsArr, exportHostDataFieldsArr} = this.state;
     let url = '';
     let exportFields = {};
     let requestData = {
-      ...this.getMalwareFilterRequestData()
+      ...this.getGcbFilterRequestData()
     };
 
-    let fieldsList = type === 'malwareUpdateToDate' ? _.cloneDeep(exportMalwareDataFieldsArr) : _.cloneDeep(exportHostDataFieldsArr);
+    let fieldsList = type === 'gcbUpdateToDate' ? _.cloneDeep(exportGcbDataFieldsArr) : _.cloneDeep(exportHostDataFieldsArr);
 
     _.forEach(fieldsList, val => {
-      exportFields[val] = f('malwareFields.' + val);
+      exportFields[val] = f('gcbFields.' + val);
     })
 
     requestData.exportFields = exportFields;
@@ -1227,38 +1128,38 @@ class HostMalware extends Component {
       isPE,
       isPEExtension,
       isVerifyTrust,
-      malwareSearch,
-      malwareFilter,
-      malwareFilterList,
-      dailyFoundMalwares,
-      top10MalwareEndpointCounts,
-      showMalwareInfo,
+      gcbSearch,
+      gcbFilter,
+      gcbFilterList,
+      dailyFoundGcbs,
+      top10GcbEndpointCounts,
+      showGcbInfo,
       showFilterQuery,
-      malwareData,
+      gcbData,
       exportContextAnchor,
       tableContextAnchor
     } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
-        this.handlePaginationChange('malware', 'currentPage', currentPage);
+        this.handlePaginationChange('gcb', 'currentPage', currentPage);
       },
       onChangeRowsPerPage: (numberOfRows) => {
-        this.handlePaginationChange('malware', 'pageSize', numberOfRows);
+        this.handlePaginationChange('gcb', 'pageSize', numberOfRows);
       },
       onColumnSortChange: (changedColumn, direction) => {
-        this.handleTableSort('malware', changedColumn, direction === 'desc');
+        this.handleTableSort('gcb', changedColumn, direction === 'desc');
       }
     };
 
     return (
       <div>
-        {showMalwareInfo &&
-          this.showMalwareDialog()
+        {showGcbInfo &&
+          this.showGcbDialog()
         }
 
         {showFilterQuery &&
           <FilterQuery
-            page='malware'
+            page='gcb'
             account={account}
             departmentList={departmentList}
             limitedDepartment={limitedDepartment}
@@ -1267,10 +1168,10 @@ class HostMalware extends Component {
             isPEExtension={isPEExtension}
             isVerifyTrust={isVerifyTrust}
             filterList={FILTER_LIST}
-            originalFilter={MALWARE_FILTER}
-            filter={malwareFilter}
-            originalItemFilterList={MALWARE_FILTER_LIST}
-            itemFilterList={malwareFilterList}
+            originalFilter={GCB_FILTER}
+            filter={gcbFilter}
+            originalItemFilterList={GCB_FILTER_LIST}
+            itemFilterList={gcbFilterList}
             toggleFilterQuery={this.toggleFilterQuery} />
         }
 
@@ -1284,25 +1185,25 @@ class HostMalware extends Component {
           <div className='parent-content'>
             <div className='main-statistics host'>
               <div className='statistics-content'>
-                {this.showBarChart(dailyFoundMalwares)}
-                {this.showHorizontalBarChart(top10MalwareEndpointCounts)}
+                {this.showBarChart(dailyFoundGcbs)}
+                {this.showHorizontalBarChart(top10GcbEndpointCounts)}
               </div>
             </div>
 
             <TableList
-              page='malware'
-              searchType='malwareSearch'
-              search={malwareSearch}
-              data={malwareData}
+              page='gcb'
+              searchType='gcbSearch'
+              search={gcbSearch}
+              data={gcbData}
               options={tableOptions}
               exportAnchor={exportContextAnchor}
               tableAnchor={tableContextAnchor}
-              getData={this.getMalwareData}
-              getActiveData={this.getActiveMalwareInfo}
+              getData={this.getGcbData}
+              getActiveData={this.getActiveGcbInfo}
               handleAddWhitelist={this.confirmAddWhitelist}
-              exportList={this.exportMalwareList}
+              exportList={this.exportGcbList}
               toggleFilterQuery={this.toggleFilterQuery}
-              handleSearch={this.handleMalwareChange}
+              handleSearch={this.handleGcbChange}
               handleReset={this.handleResetBtn}
               handleExportMenu={this.handleExportOpenMenu}
               handleCloseMenu={this.handleCloseMenu} />
@@ -1313,9 +1214,9 @@ class HostMalware extends Component {
   }
 }
 
-HostMalware.contextType = BaseDataContext;
+HostGcb.contextType = BaseDataContext;
 
-HostMalware.propTypes = {
+HostGcb.propTypes = {
 };
 
-export default HostMalware;
+export default HostGcb;

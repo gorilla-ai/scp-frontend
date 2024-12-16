@@ -497,7 +497,15 @@
     "_CceId": "CCE-ID",
     "_OriginalKey": "Name",
     "_Type": "Type",
-    "_CompareResult": "Result"
+    "_CompareResult": "Result",
+    "policyName": "Policy Name",
+    "originalKey": "Original Key",
+    "type": "Type",
+    "successExposedDevices": "Exposed Devices",
+    "twGcbId": "TWGCB-ID",
+    "cceId": "CCE-ID",
+    "departmentSelected": "Department",
+    "departmentName": "Department"
   },
   "malwareFields": {
     "_FileInfo": {
@@ -819,7 +827,10 @@
     "virusTotal": "Virus Total",
     "hostName": "Host Name",
     "departmentName": "Department",
-    "ip": "IP"
+    "ip": "IP",
+    "compareResult": "Compare Result",
+    "gcbValue": "GCB Value",
+    "gpoValue": "GPO Value"
   },
   "hostVulnerabilityFields": {
     "date": "Date",

@@ -59,6 +59,17 @@ html {
 
   --soarFlowDefault: #1a192b;
   --soarFlowMiniMap: #fff;
+
+  --statusOnline: #4BAF50;
+  --statusOffline: #979797;
+  --statusInactivate: #FF9802;
+
+  --riskLevelLow: #42A4F5;
+  --riskLevelMedium: #5B6AC0;
+  --riskLevelHigh: #7E57C2;
+
+  --statusTrue: #4BAF50;
+  --statusFalse: #F44336;
 }
 html[data-theme='dark'] {
   --primaryBackground: #000;
@@ -119,6 +130,17 @@ html[data-theme='dark'] {
 
   --soarFlowDefault: #ff0;
   --soarFlowMiniMap: #4b4b4b;
+
+  --statusOnline: #4BAF50;
+  --statusOffline: #979797;
+  --statusInactivate: #FF9802;
+
+  --riskLevelLow: #42A4F5;
+  --riskLevelMedium: #5B6AC0;
+  --riskLevelHigh: #7E57C2;
+
+  --statusTrue: #4BAF50;
+  --statusFalse: #F44336;
 }
 html, body, #app-container {
   font-family:"Segoe UI", "微軟正黑體", "新細明體";
@@ -1098,6 +1120,9 @@ button.standard:hover:not([disabled]) {
         border-radius: 5px;
         overflow: hidden;
         background-color: var(--primaryContentBackground);
+        &.grow-2 {
+          flex-grow: 2;
+        }
         .empty-data {
           position: relative;
           height: 458px;
@@ -4552,4 +4577,76 @@ button.standard:hover:not([disabled]) {
   z-index: 1000;
   font-size: 14px;
   padding: 10px;
+}
+
+@fa-font-path: "../../lib/keylines/fonts/fontAwesome5";
+
+@font-face {
+  font-family: 'FontAwesome';
+  src: url('@{fa-font-path}/fa-solid-900.eot');
+  src: url('@{fa-font-path}/fa-solid-900.eot?#iefix') format('embedded-opentype'),
+    url('@{fa-font-path}/fa-solid-900.woff') format('woff'),
+    url('@{fa-font-path}/fa-solid-900.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.online-status, .risk-level, .true-false-status, .status-success, .status-fail {
+  margin: 0 5px;
+}
+
+.online-status:before, .risk-level:before, .true-false-status:before {
+  font-family: "FontAwesome";
+  content: "\f111";
+  margin-right: 5px;
+}
+
+.status-success:before {
+  font-family: "FontAwesome";
+  content: "\f058";
+  margin-right: 5px;
+  color: var(--statusTrue);
+}
+
+.status-fail:before {
+  font-family: "FontAwesome";
+  content: "\f057";
+  margin-right: 5px;
+  color: var(--statusFalse);
+}
+
+.online-status-online:before {
+  color: var(--statusOnline);
+}
+
+.online-status-offline:before {
+  color: var(--statusOffline);
+}
+
+.online-status-inActivate:before {
+  color: var(--statusInactivate);
+}
+
+.risk-level-Low:before {
+  color: var(--riskLevelLow);
+}
+
+.risk-level-Medium:before {
+  color: var(--riskLevelMedium);
+}
+
+.risk-level-High:before {
+  color: var(--riskLevelHigh);
+}
+
+.true-false-status-true:before {
+  color: var(--statusTrue);
+}
+
+.true-false-status-false:before {
+  color: var(--statusFalse);
+}
+
+.true-false-status-false:before {
+  color: var(--statusFalse);
 }

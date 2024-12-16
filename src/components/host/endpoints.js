@@ -827,7 +827,9 @@ class HostEndPoints extends Component {
                     </div>
                   )
                 } else if (val === 'status' && value) {
-                  return <span>{t('txt-' + value)}</span>
+                  return <span className={'online-status online-status-' + value}>{t('txt-' + value)}</span>
+                } else if (val === 'risk' && value) {
+                  return <span className={'risk-level risk-level-' + value}>{value}</span>
                 } else if (val === 'hbDttm' && value) {
                   return <span>{helper.getFormattedDate(value, 'local')}</span>
                 } else if (val === 'memos' && value.length > 0) {

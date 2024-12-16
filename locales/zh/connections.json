@@ -413,6 +413,7 @@
   "host": {
     "txt-hostList": "主機列表",
     "txt-cpePage": "CPE維護",
+    "txt-gcb": "GCB",
     "txt-malware": "惡意程式",
     "txt-vulnerabilities": "Vulnerabilities",
     "txt-inventory": "Inventory",
@@ -475,6 +476,29 @@
       "txt-malware": "惡意程式",
       "txt-endpoint": "端點主機",
       "txt-hostList": "弱點主機清單"
+    },
+    "gcb": {
+      "txt-gcbList": "GCB清單",
+      "txt-gcbDetails": "GCB詳細資訊",
+      "txt-gcbInfo": "GCB資訊",
+      "txt-exposedDevices": "暴露的裝置",
+      "txt-exposedDevicesCount": "暴露的裝置數量",
+      "txt-exposedDeviceCount": "暴露的裝置數量",
+      "txt-notExposedDeviceCount": "未暴露的裝置數量",
+      "txt-successCount": "成功",
+      "txt-failCount": "失敗",
+      "txt-originalKey": "Original Key",
+      "txt-dailyFoundGcbs": "每日GCB數量",
+      "txt-top10GcbEndpointCounts": "10大GCB",
+      "txt-endpoint": "端點主機",
+      "txt-hostList": "弱點主機清單",
+      "txt-cceId": "CCE-ID",
+      "txt-twGcbId": "TWGCB-ID",
+      "txt-type": "類型",
+      "txt-policyName": "原則設定名稱",
+      "txt-securityCategory": "安全類別",
+      "txt-srcFile": "來源檔案",
+      "txt-srcFilePath": "來源檔案路徑"
     },
     "inventory": {
       "txt-discoveredVulnerability": "軟體漏洞清單",
