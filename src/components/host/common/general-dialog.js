@@ -801,6 +801,25 @@ class GeneralDialog extends Component {
                 </TextField>
               </div>
             }
+            {page === 'gcb' &&
+              <div className='group'>
+                <TextField
+                  name='compareResult'
+                  style={{width: '115px'}}
+                  select
+                  label={t('host.gcb.txt-compareResult')}
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={search.compareResult}
+                  onChange={this.props.handleSearchChange}
+                  data-cy='hostInfoDialogCompareResultTextField'>
+                  <MenuItem value='all'>{t('txt-all')}</MenuItem>
+                  <MenuItem value='true'>{t('txt-success')}</MenuItem>
+                  <MenuItem value='false'>{t('txt-fail')}</MenuItem>
+                </TextField>
+              </div>
+            }
             <Button id='hostExposedSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogDeviceSubmitBtn'>{t('txt-search')}</Button>
             <Button id='hostExposedClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'exposedDevices')} data-cy='hostInfoDialogDeviceClearBtn'>{t('txt-clear')}</Button>
           </div>
