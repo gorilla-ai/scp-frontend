@@ -382,7 +382,7 @@ class MlRule extends Component {
 
       let mlPrediction = {}
       if (allValue.mlPrediction)
-        _.forEach(JSON.parse(allValue.mlPrediction.replace(/\\/g, '')), (p) => {
+        _.forEach(eval(allValue.mlPrediction), (p) => {
           mlPrediction[_.keys(p)[0]] = p[_.keys(p)[0]];
         });
       tempMlRule.info.mlPrediction = mlPrediction;
