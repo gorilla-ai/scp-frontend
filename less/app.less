@@ -3063,6 +3063,9 @@ button.standard:hover:not([disabled]) {
               margin: 5px 0;
               padding: 5px;
               text-align: left;
+              .MuiFormControl-root {
+                background-color: transparent;
+              }
               .full-field {
                 width: 100%;
               }
@@ -3097,20 +3100,11 @@ button.standard:hover:not([disabled]) {
                 flex-direction: row;
                 align-items: center;
                 margin-top: 0;
+                align-items: baseline;
                 .fg-recode {
                   float: left;
                   margin-right: 5px;
                   margin-top: 5px;
-                }
-              }
-              &.rule-type {
-                .MuiFormControl-root {
-                  background-color: transparent;
-                }
-              }
-              &.threshold-weight {
-                .MuiFormControl-root {
-                  background-color: transparent;
                 }
               }
               &.training-data-time {

@@ -41,6 +41,22 @@ const FORM_VALIDATION = {
     valid: true,
     msg: ''
   },
+  aggColumn: {
+    valid: true,
+    msg: ''
+  },
+  observeColumn: {
+    valid: true,
+    msg: ''
+  },
+  trainingDataTime: {
+    valid: true,
+    msg: ''
+  },
+  trainingTimeScale: {
+    valid: true,
+    msg: ''
+  },
   title: {
     valid: true,
     msg: ''
@@ -370,7 +386,7 @@ class QueryOpenSave extends Component {
       const {baseUrl} = this.context;
       const {page, account, queryData, queryDataPublic, notifyEmailData} = this.props;
       const {newQueryName, soc, socTemplateEnable, formValidation} = this.state;
-      let tempFormValidation = {...formValidation};
+      let tempFormValidation = _.cloneDeep(FORM_VALIDATION);
       let tempFilterData = [];
       let url = '';
       let queryText = {};
@@ -450,14 +466,6 @@ class QueryOpenSave extends Component {
         }
       }
 
-      this.setState({
-        formValidation: tempFormValidation
-      });
-
-      if (!validate) {
-        return;
-      }
-
       if (type === 'save' && page === 'logs') { //Form validation
         if (patternCheckbox) {
           if (pattern.ruleCatgory === 'Pattern') {
@@ -479,16 +487,50 @@ class QueryOpenSave extends Component {
               this.clearErrorInfo();
             }
           } else if (pattern.ruleCatgory === 'ML') {
-            if (!pattern.trainingDataTime || isNaN(Number(pattern.trainingDataTime)) || !pattern.trainingTimeScale || isNaN(Number(pattern.trainingTimeScale))) {
-              this.setState({
-                info: t('txt-allRequired')
-              });
-              return;
+            if (!pattern.aggColumn) {
+              tempFormValidation.aggColumn.valid = false;
+              tempFormValidation.aggColumn.msg = t('txt-required');
+              validate = false;
+            }
+            if (!pattern.observeColumn) {
+              tempFormValidation.observeColumn.valid = false;
+              tempFormValidation.observeColumn.msg = t('txt-required');
+              validate = false;
+            }
+
+            if (pattern.trainingDataTime === '') {
+              tempFormValidation.trainingDataTime.valid = false;
+              tempFormValidation.trainingDataTime.msg = t('txt-required');
+              validate = false;
             } else {
-              this.clearErrorInfo();
+              if (isNaN(Number(pattern.trainingDataTime)) || Number(pattern.trainingDataTime) < 0) {
+                tempFormValidation.trainingDataTime.valid = false;
+                tempFormValidation.trainingDataTime.msg = t('txt-checkFormat');
+                validate = false;
+              }
+            }
+
+            if (pattern.trainingTimeScale === '') {
+              tempFormValidation.trainingTimeScale.valid = false;
+              tempFormValidation.trainingTimeScale.msg = t('txt-required');
+              validate = false;
+            } else {
+              if (isNaN(Number(pattern.trainingTimeScale)) || Number(pattern.trainingTimeScale) < 0) {
+                tempFormValidation.trainingTimeScale.valid = false;
+                tempFormValidation.trainingTimeScale.msg = t('txt-checkFormat');
+                validate = false;
+              }
             }
           }
         }
+      }
+
+      this.setState({
+        formValidation: tempFormValidation
+      });
+
+      if (!validate) {
+        return;
       }
 
       if (page === 'hostList') {
@@ -1555,7 +1597,7 @@ class QueryOpenSave extends Component {
    */
   getQueryAlertContent = (type) => {
     const {account, queryData, moduleWithSOC} = this.props;
-    const {pattern, severityList, periodMinList, patternCheckbox, publicCheckbox, dialogOpenType} = this.state;
+    const {pattern, severityList, periodMinList, patternCheckbox, publicCheckbox, dialogOpenType, formValidation} = this.state;
     let severityType = '';
     let patternCheckboxChecked = '';
     let patternCheckboxDisabled = '';
@@ -1662,43 +1704,33 @@ class QueryOpenSave extends Component {
             </FormControl>
             <div className='other-field'>
               <TextField
-                  id='aggColumn'
-                  name='aggColumn'
-                  variant='outlined'
-                  fullWidth={true}
-                  size='small'
-                  onChange={this.handleDataChange}
-                  required
-                  select
-                  label={t('events.connections.txt-groupBy')}
-                  value={pattern.aggColumn}
-                  disabled={disabledStatus}>
-                  {
-                    _.map(_.drop(account.fields), val => {
-                      return <MenuItem key={val} value={val}>{this.getCustomFieldName(val)}</MenuItem>
-                    })
-                  }
-                </TextField>
+                id='aggColumn'
+                name='aggColumn'
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                onChange={this.handleDataChange}
+                required
+                error={!formValidation.aggColumn.valid}
+                helperText={formValidation.aggColumn.msg}
+                label={t('events.connections.txt-groupBy')}
+                value={pattern.aggColumn}
+                disabled={disabledStatus} />
             </div>
             <div className='other-field'>
               <TextField
-                  id='observeColumn'
-                  name='observeColumn'
-                  variant='outlined'
-                  fullWidth={true}
-                  size='small'
-                  onChange={this.handleDataChange}
-                  required
-                  select
-                  label={t('events.connections.txt-y')}
-                  value={pattern.observeColumn}
-                  disabled={disabledStatus}>
-                  {
-                    _.map(_.drop(account.fields), val => {
-                      return <MenuItem key={val} value={val}>{this.getCustomFieldName(val)}</MenuItem>
-                    })
-                  }
-                </TextField>
+                id='observeColumn'
+                name='observeColumn'
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                onChange={this.handleDataChange}
+                required
+                error={!formValidation.observeColumn.valid}
+                helperText={formValidation.observeColumn.msg}
+                label={t('events.connections.txt-y')}
+                value={pattern.observeColumn}
+                disabled={disabledStatus} />
             </div>
             <div className='other-field'>
               <TextField
@@ -1712,6 +1744,8 @@ class QueryOpenSave extends Component {
                 value={pattern.trainingDataTime}
                 onChange={this.handleDataChange}
                 required
+                error={!formValidation.trainingDataTime.valid}
+                helperText={formValidation.trainingDataTime.msg}
                 disabled={disabledStatus}
                 InputProps={{
                   inputProps: { min: 0 },
@@ -1731,6 +1765,8 @@ class QueryOpenSave extends Component {
                 value={pattern.trainingTimeScale}
                 onChange={this.handleDataChange}
                 required
+                error={!formValidation.trainingTimeScale.valid}
+                helperText={formValidation.trainingTimeScale.msg}
                 disabled={disabledStatus}
                 InputProps={{
                   inputProps: { min: 0 }

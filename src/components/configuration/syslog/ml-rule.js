@@ -42,15 +42,27 @@ const ML_RULE_SEARCH = {
 const FORM_VALIDATION = {
   name: {
     valid: true,
+    msg: ''
   },
   queryScript: {
     valid: true,
+    msg: ''
+  },
+  aggColumn: {
+    valid: true,
+    msg: ''
+  },
+  observeColumn: {
+    valid: true,
+    msg: ''
   },
   trainingDataTime: {
     valid: true,
+    msg: ''
   },
   trainingTimeScale: {
     valid: true,
+    msg: ''
   }
 };
 
@@ -553,7 +565,7 @@ class MlRule extends Component {
                 size='small'
                 required
                 error={!formValidation.name.valid}
-                helperText={formValidation.name.valid ? '' : t('txt-required')}
+                helperText={formValidation.name.msg}
                 value={mlRule.info.name}
                 onChange={this.handleMlRuleChange}
                 disabled={activeContent === 'viewMlRule'}
@@ -608,7 +620,7 @@ class MlRule extends Component {
                 required
                 error={!formValidation.queryScript.valid}
                 helperText={
-                  formValidation.queryScript.valid ? '' : t('txt-required')
+                  formValidation.queryScript.msg
                 }
                 value={mlRule.info.queryScript}
                 onChange={this.handleMlRuleChange}
@@ -639,19 +651,11 @@ class MlRule extends Component {
                 size='small'
                 onChange={this.handleMlRuleChange}
                 required
-                select
+                error={!formValidation.aggColumn.valid}
+                helperText={formValidation.aggColumn.msg}
                 label={t('events.connections.txt-groupBy')}
                 value={mlRule.info.aggColumn}
-                disabled={activeContent !== 'addMlRule'}>
-                {
-                  _.map(fieldsArr, val => {
-                    return <MenuItem key={val} value={val}>{this.getCustomFieldName(val)}</MenuItem>
-                  })
-                }
-                {mlRule.info.aggColumn && !_.includes(fieldsArr, mlRule.info.aggColumn) &&
-                  <MenuItem key={mlRule.info.aggColumn} value={mlRule.info.aggColumn}>{this.getCustomFieldName(mlRule.info.aggColumn)}</MenuItem>
-                }
-              </TextField>
+                disabled={activeContent !== 'addMlRule'} />
             </div>
             <div className='group full'>
               <TextField
@@ -662,19 +666,11 @@ class MlRule extends Component {
                 size='small'
                 onChange={this.handleMlRuleChange}
                 required
-                select
+                error={!formValidation.observeColumn.valid}
+                helperText={formValidation.observeColumn.msg}
                 label={t('events.connections.txt-y')}
                 value={mlRule.info.observeColumn}
-                disabled={activeContent !== 'addMlRule'}>
-                {
-                  _.map(fieldsArr, val => {
-                    return <MenuItem key={val} value={val}>{this.getCustomFieldName(val)}</MenuItem>
-                  })
-                }
-                {mlRule.info.observeColumn && !_.includes(fieldsArr, mlRule.info.observeColumn) &&
-                  <MenuItem key={mlRule.info.observeColumn} value={mlRule.info.observeColumn}>{this.getCustomFieldName(mlRule.info.observeColumn)}</MenuItem>
-                }
-              </TextField>
+                disabled={activeContent !== 'addMlRule'} />
             </div>
             <div className='group full training-data-time'>
               <TextField
@@ -688,6 +684,8 @@ class MlRule extends Component {
                 value={mlRule.info.trainingDataTime}
                 onChange={this.handleMlRuleChange}
                 required
+                error={!formValidation.trainingDataTime.valid}
+                helperText={formValidation.trainingDataTime.msg}
                 disabled={activeContent !== 'addMlRule'}
                 InputProps={{
                   inputProps: { min: 0 },
@@ -707,6 +705,8 @@ class MlRule extends Component {
                 value={mlRule.info.trainingTimeScale}
                 onChange={this.handleMlRuleChange}
                 required
+                error={!formValidation.trainingTimeScale.valid}
+                helperText={formValidation.trainingTimeScale.msg}
                 disabled={activeContent !== 'addMlRule'}
                 InputProps={{
                   inputProps: { min: 0 }
@@ -984,11 +984,9 @@ class MlRule extends Component {
     const { baseUrl, session } = this.context;
     const {
       activeContent,
-      mlRule,
-      formValidation,
-      currentMlRuleData
+      mlRule
     } = this.state;
-    let tempFormValidation = { ...formValidation };
+    let tempFormValidation = _.cloneDeep(FORM_VALIDATION);
     let validate = true;
     let requestType = '';
 
@@ -996,34 +994,55 @@ class MlRule extends Component {
       return;
     }
 
-    if (mlRule.info.name) {
-      formValidation.name.valid = true;
-    } else {
-      formValidation.name.valid = false;
+    if (!mlRule.info.name) {
+      tempFormValidation.name.valid = false;
+      tempFormValidation.name.msg = t('txt-required');
       validate = false;
     }
 
-    if (mlRule.info.queryScript) {
-      formValidation.queryScript.valid = true;
-    } else {
-      formValidation.queryScript.valid = false;
+    if (!mlRule.info.queryScript) {
+      tempFormValidation.queryScript.valid = false;
+      tempFormValidation.queryScript.msg = t('txt-required');
       validate = false;
     }
 
-    if (mlRule.info.trainingDataTime < 0) {
-      formValidation.trainingDataTime.valid = false;
+    if (!mlRule.info.aggColumn) {
+      tempFormValidation.aggColumn.valid = false;
+      tempFormValidation.aggColumn.msg = t('txt-required');
       validate = false;
-    } else {
-      formValidation.trainingDataTime.valid = true;
     }
 
-    if (mlRule.info.trainingTimeScale < 0) {
-      formValidation.trainingTimeScale.valid = false;
+    if (!mlRule.info.observeColumn) {
+      tempFormValidation.observeColumn.valid = false;
+      tempFormValidation.observeColumn.msg = t('txt-required');
       validate = false;
-    } else {
-      formValidation.trainingTimeScale.valid = true;
     }
 
+    if (mlRule.info.trainingDataTime === '') {
+      tempFormValidation.trainingDataTime.valid = false;
+      tempFormValidation.trainingDataTime.msg = t('txt-required');
+      validate = false;
+    } else {
+      if (isNaN(Number(mlRule.info.trainingDataTime)) || Number(mlRule.info.trainingDataTime) < 0) {
+        console.log(t('txt-checkFormat'))
+        tempFormValidation.trainingDataTime.valid = false;
+        tempFormValidation.trainingDataTime.msg = t('txt-checkFormat');
+        validate = false;
+      }
+    }
+
+    if (mlRule.info.trainingTimeScale === '') {
+      tempFormValidation.trainingTimeScale.valid = false;
+      tempFormValidation.trainingTimeScale.msg = t('txt-required');
+      validate = false;
+    } else {
+      if (isNaN(Number(mlRule.info.trainingTimeScale)) || Number(mlRule.info.trainingTimeScale) < 0) {
+        tempFormValidation.trainingTimeScale.valid = false;
+        tempFormValidation.trainingTimeScale.msg = t('txt-checkFormat');
+        validate = false;
+      }
+    }
+    console.log(tempFormValidation)
     this.setState({
       formValidation: tempFormValidation,
     });
