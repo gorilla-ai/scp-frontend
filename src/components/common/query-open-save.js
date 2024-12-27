@@ -7,10 +7,15 @@ import {ReactMultiEmail} from 'react-multi-email'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
 import Checkbox from '@material-ui/core/Checkbox'
+import RadioGroup from '@material-ui/core/RadioGroup'
+import Radio from '@material-ui/core/Radio'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormControl from '@material-ui/core/FormControl'
+import FormLabel from '@material-ui/core/FormLabel'
 import MenuItem from '@material-ui/core/MenuItem'
 import Switch from '@material-ui/core/Switch'
 import TextField from '@material-ui/core/TextField'
+import InputAdornment from '@material-ui/core/InputAdornment'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -45,6 +50,20 @@ const FORM_VALIDATION = {
     msg: ''
   }
 };
+const PATTERN_INIT_DATA = {
+  name: '',
+  ruleCatgory: 'Pattern', // 'Pattern' or 'ML'
+  severity: 'Emergency',
+  aggColumn: '',
+  periodMin: 10,
+  threshold: 1,
+  ruleType: 'abnormal',
+  observeColumn: '',
+  trainingDataTime: 1,
+  trainingTimeScale: 1,
+  trainingTimeScaleUnit: 'hour',
+  thresholdWeight: 'low'
+}
 
 let t = null;
 let f = null;
@@ -67,13 +86,7 @@ class QueryOpenSave extends Component {
       severityList: [],
       periodMinList: [],
       newQueryName: true,
-      pattern: {
-        name: '',
-        aggColumn: '',
-        periodMin: 10,
-        threshold: 1,
-        severity: 'Emergency'
-      },
+      pattern: PATTERN_INIT_DATA,
       soc: {
         id: '',
         severity: 'Emergency',
@@ -447,22 +460,33 @@ class QueryOpenSave extends Component {
 
       if (type === 'save' && page === 'logs') { //Form validation
         if (patternCheckbox) {
-          if (!pattern.threshold || !_.includes(PERIOD_MIN, Number(pattern.periodMin))) {
-            this.setState({
-              info: t('txt-allRequired')
-            });
-            return;
-          } else {
-            this.clearErrorInfo();
-          }
-
-          if (pattern.threshold > 1000) {
-            this.setState({
-              info: t('events.connections.txt-threasholdMax')
-            });
-            return;
-          } else {
-            this.clearErrorInfo();
+          if (pattern.ruleCatgory === 'Pattern') {
+            if (!pattern.threshold || !_.includes(PERIOD_MIN, Number(pattern.periodMin))) {
+              this.setState({
+                info: t('txt-allRequired')
+              });
+              return;
+            } else {
+              this.clearErrorInfo();
+            }
+  
+            if (pattern.threshold > 1000) {
+              this.setState({
+                info: t('events.connections.txt-threasholdMax')
+              });
+              return;
+            } else {
+              this.clearErrorInfo();
+            }
+          } else if (pattern.ruleCatgory === 'ML') {
+            if (!pattern.trainingDataTime || isNaN(Number(pattern.trainingDataTime)) || !pattern.trainingTimeScale || isNaN(Number(pattern.trainingTimeScale))) {
+              this.setState({
+                info: t('txt-allRequired')
+              });
+              return;
+            } else {
+              this.clearErrorInfo();
+            }
           }
         }
       }
@@ -584,7 +608,7 @@ class QueryOpenSave extends Component {
 
       if (type === 'save' && page === 'logs') {
         requestData.aggColumn = pattern.aggColumn;
-
+        
         if (patternCheckbox) {
           requestData.emailList = notifyEmailData;
 
@@ -592,15 +616,26 @@ class QueryOpenSave extends Component {
             requestData.severity = pattern.severity;
           }
 
-          if (pattern.periodMin) {
-            requestData.periodMin = Number(pattern.periodMin);
-          }
+          if (pattern.ruleCatgory === 'Pattern') {
+            if (pattern.periodMin) {
+              requestData.periodMin = Number(pattern.periodMin);
+            }
 
-          if (pattern.threshold) {
-            requestData.threshold = Number(pattern.threshold);
-          }
+            if (pattern.threshold) {
+              requestData.threshold = Number(pattern.threshold);
+            }
 
-          requestData.isPublic = publicCheckbox;
+            requestData.isPublic = publicCheckbox;
+          } else if (pattern.ruleCatgory === 'ML') {
+            requestData.ruleType = pattern.ruleType;
+            requestData.observeColumn = pattern.observeColumn;
+            if (pattern.trainingDataTime)
+              requestData.trainingDataTime = Number(pattern.trainingDataTime);
+            if (pattern.trainingTimeScale)
+              requestData.trainingTimeScale = Number(pattern.trainingTimeScale);
+            requestData.trainingTimeScaleUnit = pattern.trainingTimeScaleUnit;
+            requestData.thresholdWeight = pattern.thresholdWeight;
+          }
         } else { //Pattern script checkbox is unchecked
           requestData.emailList = [];
 
@@ -911,13 +946,7 @@ class QueryOpenSave extends Component {
 
             if (page === 'logs') {
               tempQueryData.patternId = '';
-              tempQueryData.pattern = {
-                name: '',
-                aggColumn: '',
-                periodMin: 10,
-                threshold: 1,
-                severity: ''
-              };
+              tempQueryData.pattern = PATTERN_INIT_DATA;
 
               if (newQueryList[0].patternId) {
                 tempQueryData.patternId = newQueryList[0].patternId;
@@ -1082,20 +1111,14 @@ class QueryOpenSave extends Component {
 
     if (fieldType === 'id') {
       if (type === 'open' || type === 'save') {
-        let tempPattern = {...pattern};
+        let tempPattern = PATTERN_INIT_DATA;
         let patternCheckbox = false;
         let publicCheckbox = false;
         tempQueryData.id = value;
         tempQueryData.openFlag = true;
         tempQueryData.query = {}; //Reset data to empty
         tempQueryData.patternId = '';
-        tempQueryData.pattern = {
-          name: '',
-          aggColumn: '',
-          periodMin: 10,
-          threshold: 1,
-          severity: ''
-        };
+        tempQueryData.pattern = PATTERN_INIT_DATA;
 
         tempQueryData.soc = {
           severity: 'Emergency',
@@ -1155,7 +1178,7 @@ class QueryOpenSave extends Component {
                 tempPattern.name = val.patternName;
               }
 
-              if (val.aggColumn) {
+              if (val.aggColumn !== undefined) {
                 tempQueryData.pattern.aggColumn = val.aggColumn;
                 tempPattern.aggColumn = val.aggColumn;
               }
@@ -1168,6 +1191,41 @@ class QueryOpenSave extends Component {
               if (val.threshold) {
                 tempQueryData.pattern.threshold = val.threshold;
                 tempPattern.threshold = val.threshold;
+              }
+
+              if (val.ruleCatgory) {
+                tempQueryData.pattern.ruleCatgory = val.ruleCatgory;
+                tempPattern.ruleCatgory = val.ruleCatgory;
+              }
+
+              if (val.ruleType) {
+                tempQueryData.pattern.ruleType = val.ruleType;
+                tempPattern.ruleType = val.ruleType;
+              }
+
+              if (val.trainingDataTime) {
+                tempQueryData.pattern.trainingDataTime = val.trainingDataTime;
+                tempPattern.trainingDataTime = val.trainingDataTime;
+              }
+
+              if (val.trainingTimeScale) {
+                tempQueryData.pattern.trainingTimeScale = val.trainingTimeScale;
+                tempPattern.trainingTimeScale = val.trainingTimeScale;
+              }
+
+              if (val.trainingTimeScaleUnit) {
+                tempQueryData.pattern.trainingTimeScaleUnit = val.trainingTimeScaleUnit;
+                tempPattern.trainingTimeScaleUnit = val.trainingTimeScaleUnit;
+              }
+
+              if (val.thresholdWeight) {
+                tempQueryData.pattern.thresholdWeight = val.thresholdWeight;
+                tempPattern.thresholdWeight = val.thresholdWeight;
+              }
+
+              if (val.observeColumn) {
+                tempQueryData.pattern.observeColumn = val.observeColumn;
+                tempPattern.observeColumn = val.observeColumn;
               }
 
               if (val.severity) {
@@ -1296,6 +1354,26 @@ class QueryOpenSave extends Component {
       }
     }
 
+    if (event.target.name === 'ruleCatgory') {
+      tempPattern = PATTERN_INIT_DATA;
+      tempPattern[event.target.name] = event.target.value;
+
+      this.setState({
+        publicCheckbox: false,
+        soc: {
+          id: '',
+          severity: 'Emergency',
+          limitQuery: 10,
+          title: '',
+          eventDescription: '',
+          impact: 4,
+          category: 1,
+          status: true
+        },
+        socTemplateEnable: false
+      });
+    }
+    
     this.setState({
       pattern: tempPattern,
       soc: tempSoc
@@ -1455,13 +1533,28 @@ class QueryOpenSave extends Component {
     )
   }
   /**
+   * Get custom field name
+   * @method
+   * @param {string} field - field name
+   * @returns field name
+   */
+  getCustomFieldName = (field) => {
+    const {account} = this.props;
+
+    if (_.has(account.logsLocale, field)) {
+      return account.logsLocale[field];
+    } else {
+      return f(`logsFields.${field}`);
+    }
+  }
+  /**
    * Get query alert content
    * @method
    * @param {string} type - query dialog type ('open' or 'save')
    * @returns HTML DOM
    */
   getQueryAlertContent = (type) => {
-    const {queryData, moduleWithSOC} = this.props;
+    const {account, queryData, moduleWithSOC} = this.props;
     const {pattern, severityList, periodMinList, patternCheckbox, publicCheckbox, dialogOpenType} = this.state;
     let severityType = '';
     let patternCheckboxChecked = '';
@@ -1484,18 +1577,29 @@ class QueryOpenSave extends Component {
     }
 
     return (
-      <div>
-        <FormControlLabel
-          label={t('events.connections.txt-addPatternScript')}
-          control={
-            <Checkbox
-              id='patternCheckbox'
-              className='checkbox-ui'
-              checked={patternCheckboxChecked}
-              onChange={this.togglePatternCheckbox}
-              color='primary' />
-          }
-          disabled={patternCheckboxDisabled} />
+      <div className='severity-header'>
+        <FormControl>
+          <FormControlLabel
+            label={t('events.connections.txt-addPatternScript')}
+            control={
+              <Checkbox
+                id='patternCheckbox'
+                className='checkbox-ui'
+                checked={patternCheckboxChecked}
+                onChange={this.togglePatternCheckbox}
+                color='primary' />
+            }
+            disabled={patternCheckboxDisabled} />
+          <RadioGroup
+            row
+            name='ruleCatgory'
+            value={pattern.ruleCatgory}
+            onChange={this.handleDataChange}
+          >
+            <FormControlLabel value="Pattern" control={<Radio className='checkbox-ui' />} disabled={disabledStatus} label={t('events.connections.txt-addPatternScriptPattern')} />
+            <FormControlLabel value="ML" control={<Radio className='checkbox-ui' />} disabled={disabledStatus} label={t('events.connections.txt-addPatternScriptMl')} />
+          </RadioGroup>
+        </FormControl>
         <div className='group severity-section'>
           <div className='top-group'>
             <div className='severity-level'>
@@ -1507,12 +1611,13 @@ class QueryOpenSave extends Component {
                 label={f('syslogPatternTableFields.severity')}
                 variant='outlined'
                 size='small'
-                value={severityType}
+                value={severityList.length > 0 ? severityType : ''}
                 onChange={this.handleDataChange}
                 disabled={disabledStatus}>
                 {severityList}
               </TextField>
             </div>
+            {pattern.ruleCatgory === 'Pattern' &&
             <div className='other-field'>
               <TextField
                 className='add-column'
@@ -1525,6 +1630,8 @@ class QueryOpenSave extends Component {
                 onChange={this.handleDataChange}
                 disabled={disabledStatus} />
             </div>
+            }
+            {pattern.ruleCatgory === 'Pattern' &&
             <FormControlLabel
               label={t('events.connections.txt-public')}
               control={
@@ -1536,7 +1643,134 @@ class QueryOpenSave extends Component {
                   color='primary' />
               }
               disabled={disabledStatus} />
+            }
           </div>
+          {pattern.ruleCatgory === 'ML' &&
+          <div className='ml-section'>
+            <FormControl>
+              <FormLabel className='label-ruleType' id='ruleType'>{t('events.connections.txt-ruleType')}</FormLabel>
+              <RadioGroup
+                row
+                name='ruleType'
+                aria-labelledby='ruleType'
+                value={pattern.ruleType}
+                onChange={this.handleDataChange}
+              >
+                <FormControlLabel value="abnormal" control={<Radio className='checkbox-ui' disabled={disabledStatus} />} label={t('events.connections.txt-ruleType-abnormal')} />
+                <FormControlLabel value="unusual" control={<Radio className='checkbox-ui' disabled={disabledStatus} />} label={t('events.connections.txt-ruleType-unusual')} />
+              </RadioGroup>
+            </FormControl>
+            <div className='other-field'>
+              <TextField
+                  id='aggColumn'
+                  name='aggColumn'
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
+                  onChange={this.handleDataChange}
+                  required
+                  select
+                  label={t('events.connections.txt-groupBy')}
+                  value={pattern.aggColumn}
+                  disabled={disabledStatus}>
+                  {
+                    _.map(_.drop(account.fields), val => {
+                      return <MenuItem key={val} value={val}>{this.getCustomFieldName(val)}</MenuItem>
+                    })
+                  }
+                </TextField>
+            </div>
+            <div className='other-field'>
+              <TextField
+                  id='observeColumn'
+                  name='observeColumn'
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
+                  onChange={this.handleDataChange}
+                  required
+                  select
+                  label={t('events.connections.txt-y')}
+                  value={pattern.observeColumn}
+                  disabled={disabledStatus}>
+                  {
+                    _.map(_.drop(account.fields), val => {
+                      return <MenuItem key={val} value={val}>{this.getCustomFieldName(val)}</MenuItem>
+                    })
+                  }
+                </TextField>
+            </div>
+            <div className='other-field'>
+              <TextField
+                name='trainingDataTime'
+                type='number'
+                className='trainingDataTime'
+                label={t('events.connections.txt-trainingDataTime')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={pattern.trainingDataTime}
+                onChange={this.handleDataChange}
+                required
+                disabled={disabledStatus}
+                InputProps={{
+                  inputProps: { min: 0 },
+                  startAdornment: <InputAdornment position="start">{t('events.connections.txt-trainingDataTimePrefix')}</InputAdornment>,
+                  endAdornment: <InputAdornment position="end">{t('events.connections.txt-trainingDataTimePostfix')}</InputAdornment>
+                }}
+                />
+            </div>
+            <div className='other-field trainingTimeScale-field'>
+              <TextField
+                name='trainingTimeScale'
+                type='number'
+                className='trainingTimeScale'
+                label={t('events.connections.txt-trainingTimeScale')}
+                variant='outlined'
+                size='small'
+                value={pattern.trainingTimeScale}
+                onChange={this.handleDataChange}
+                required
+                disabled={disabledStatus}
+                InputProps={{
+                  inputProps: { min: 0 }
+                }}
+                />
+              <TextField
+                  id='trainingTimeScaleUnit'
+                  name='trainingTimeScaleUnit'
+                  className='trainingTimeScaleUnit'
+                  variant='outlined'
+                  size='small'
+                  onChange={this.handleDataChange}
+                  required
+                  select
+                  value={pattern.trainingTimeScaleUnit}
+                  disabled={disabledStatus}>
+                  {
+                    _.map(['minute', 'hour', 'day'], val => {
+                      return <MenuItem key={val} value={val}>{t('events.connections.txt-trainingTimeScale-' + val)}</MenuItem>
+                    })
+                  }
+                </TextField>
+            </div>
+            <FormControl>
+              <FormLabel className='label-thresholdWeight' id='thresholdWeight'>{t('events.connections.txt-thresholdWeight')}</FormLabel>
+              <RadioGroup
+                row
+                name='thresholdWeight'
+                aria-labelledby='thresholdWeight'
+                value={pattern.thresholdWeight}
+                onChange={this.handleDataChange}
+              >
+                <FormControlLabel value="low" control={<Radio className='checkbox-ui' disabled={disabledStatus} />} label={t('events.connections.txt-thresholdWeightLow')} />
+                <FormControlLabel value="medium" control={<Radio className='checkbox-ui' disabled={disabledStatus} />} label={t('events.connections.txt-thresholdWeightMedium')} />
+                <FormControlLabel value="high" control={<Radio className='checkbox-ui' disabled={disabledStatus} />} label={t('events.connections.txt-thresholdWeightHigh')} />
+              </RadioGroup>
+            </FormControl>
+          </div>
+          }
+          {pattern.ruleCatgory === 'Pattern' &&
           <div className='period'>
             <span className='support-text'>{t('events.connections.txt-patternQuery1')}</span>
             <TextField
@@ -1545,7 +1779,7 @@ class QueryOpenSave extends Component {
               variant='outlined'
               size='small'
               required
-              value={pattern.periodMin}
+              value={periodMinList.length > 0 ? pattern.periodMin : ''}
               onChange={this.handleDataChange}
               disabled={disabledStatus}>
               {periodMinList}
@@ -1564,6 +1798,7 @@ class QueryOpenSave extends Component {
               disabled={disabledStatus} />
             <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
           </div>
+          }
           {type === 'open' && queryData.emailList.length > 0 &&
             <div>
               <label>{t('notifications.txt-notifyEmail')}</label>
@@ -1976,7 +2211,7 @@ class QueryOpenSave extends Component {
             className='combo-box query-name dropdown'
             options={queryList}
             value={activeQuery}
-            getOptionLabel={(option) => option.text}
+            getOptionLabel={(option) => option && option.text ? option.text : ''}
             renderInput={this.renderQueryList}
             onChange={this.handleQueryChange.bind(this, 'id')} />
 
