@@ -711,6 +711,7 @@
     "trainingStatus-Trained": "Trained",
     "createDttm": "Create Date Time",
     "lastUpdateDttm": "Last Updated Date Time",
+    "modelUpdateDttm": "Model Last Updated Date Time",
     "queryScript": "Query Script",
     "severity": "Severity",
     "isDetection": "Enabled",

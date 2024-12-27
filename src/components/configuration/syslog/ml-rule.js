@@ -119,6 +119,7 @@ class MlRule extends Component {
           name: '',
           createDttm: '',
           lastUpdateDttm: '',
+          modelUpdateDttm: '',
           severity: 'Emergency',
           isDetection: true,
           queryScript: '',
@@ -298,7 +299,7 @@ class MlRule extends Component {
                     return <span className={'training-status training-status-' + value}>{f('syslogMlRuleTableFields.trainingStatus-' + value)}</span>
                   } else if (val === 'isDetection') {
                     return value ? t('txt-true') : t('txt-false');
-                  } else if (val === 'createDttm' || val === 'lastUpdateDttm') {
+                  } else if (val === 'createDttm' || val === 'modelUpdateDttm') {
                     return helper.getFormattedDate(value, 'local');
                   } else if (val === '_menu') {
                     return (
@@ -358,6 +359,7 @@ class MlRule extends Component {
         ruleType: 'abnormal',
         createDttm: '',
         lastUpdateDttm: '',
+        modelUpdateDttm: '',
         trainingStatus: 'Waiting',
         isDetection: true
       };
@@ -377,7 +379,8 @@ class MlRule extends Component {
         thresholdWeight: allValue.thresholdWeight,
         trainingStatus: allValue.trainingStatus,
         createDttm: allValue.createDttm,
-        lastUpdateDttm: allValue.lastUpdateDttm
+        lastUpdateDttm: allValue.lastUpdateDttm,
+        modelUpdateDttm: allValue.modelUpdateDttm
       };
 
       let mlPrediction = {}
@@ -400,6 +403,7 @@ class MlRule extends Component {
         name: '',
         createDttm: '',
         lastUpdateDttm: '',
+        modelUpdateDttm: '',
         severity: 'Emergency',
         isDetection: true,
         queryScript: '',
@@ -758,7 +762,7 @@ class MlRule extends Component {
               <table className='c-table main-table ip'>
                 <tbody>
                   <tr><td>{f('syslogMlRuleTableFields.createDttm')}</td><td>{helper.getFormattedDate(mlRule.info.createDttm, 'local')}</td></tr>
-                  <tr><td>{f('syslogMlRuleTableFields.lastUpdateDttm')}</td><td>{helper.getFormattedDate(mlRule.info.lastUpdateDttm, 'local')}</td></tr>
+                  <tr><td>{f('syslogMlRuleTableFields.modelUpdateDttm')}</td><td>{helper.getFormattedDate(mlRule.info.modelUpdateDttm, 'local')}</td></tr>
                   <tr>
                     <td>{f('syslogMlRuleTableFields.trainingStatus')}</td>
                     <td><span className={'training-status training-status-' + mlRule.info.trainingStatus}>{f('syslogMlRuleTableFields.trainingStatus-' + mlRule.info.trainingStatus)}</span></td>
