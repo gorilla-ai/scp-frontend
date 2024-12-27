@@ -51,7 +51,7 @@ const EXPOSED_DEVICES_SEARCH = {
   hostName: '',
   ip: '',
   system: '',
-  compareResult: '',
+  compareResult: 'all',
   count: 0
 };
 const EXPOSED_DEVICES_DATA = {
