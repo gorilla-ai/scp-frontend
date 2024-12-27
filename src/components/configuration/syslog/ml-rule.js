@@ -299,7 +299,7 @@ class MlRule extends Component {
                     return <span className={'training-status training-status-' + value}>{f('syslogMlRuleTableFields.trainingStatus-' + value)}</span>
                   } else if (val === 'isDetection') {
                     return value ? t('txt-true') : t('txt-false');
-                  } else if (val === 'createDttm' || val === 'modelUpdateDttm') {
+                  } else if (val === 'createDttm' || val === 'lastUpdateDttm' || val === 'modelUpdateDttm') {
                     return helper.getFormattedDate(value, 'local');
                   } else if (val === '_menu') {
                     return (
