@@ -169,7 +169,8 @@ class IncidentManagement extends Component {
         _.map(_.range(41, 45), el => {
           return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
         })
-      ]
+      ],
+      incidentCommentOpen: false
     };
 
     this.ah = getInstance('chewbacca');
@@ -3550,7 +3551,14 @@ class IncidentManagement extends Component {
     });
   }
   openIncidentComment = () => {
-    this.incidentComment.open();
+    this.setState({
+      incidentCommentOpen: true
+    });
+  }
+  handleIncidentCommentClose = () => {
+    this.setState({
+      incidentCommentOpen: false
+    });
   }
   openIncidentTag = (id) => {
     this.handleCloseMenu();
@@ -3920,7 +3928,8 @@ class IncidentManagement extends Component {
       uploadAttachmentOpen,
       statisticsReportOpen,
       sendIncidentOpen,
-      loadListType
+      loadListType,
+      incidentCommentOpen
     } = this.state;
     let insertCheck = false;
     let sendCheck = false;
@@ -3949,7 +3958,9 @@ class IncidentManagement extends Component {
 
     return (
       <div>
-        <IncidentComment ref={ref => { this.incidentComment = ref }} />
+        {incidentCommentOpen &&
+          <IncidentComment onClose={this.handleIncidentCommentClose.bind(this)} />
+        }
 
         {loadListType === 0 &&
           <IncidentTag ref={ref => { this.incidentTag = ref }} onLoad={this.loadCondition.bind(this,'button','expired')} />

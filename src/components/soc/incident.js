@@ -147,7 +147,8 @@ class Incident extends Component {
         _.map(_.range(41, 45), el => {
           return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
         })
-      ]
+      ],
+      incidentCommentOpen: false
     };
 
     this.ah = getInstance('chewbacca');
@@ -2481,7 +2482,14 @@ class Incident extends Component {
     });
   }
   openIncidentComment = () => {
-    this.incidentComment.open();
+    this.setState({
+      incidentCommentOpen: true
+    });
+  }
+  handleIncidentCommentClose = () => {
+    this.setState({
+      incidentCommentOpen: false
+    });
   }
   openIncidentTag = (id) => {
     this.handleCloseMenu();
@@ -2898,7 +2906,8 @@ class Incident extends Component {
       incident, 
       contextAnchor,
       currentData,
-      accountType
+      accountType,
+      incidentCommentOpen
     } = this.state;
     
     let superUserCheck = false;
@@ -2921,7 +2930,9 @@ class Incident extends Component {
 
     return (
       <div>
-        <IncidentComment ref={ref => {this.incidentComment = ref}} />
+        {incidentCommentOpen &&
+          <IncidentComment onClose={this.handleIncidentCommentClose.bind(this)} />
+        }
         <IncidentTag ref={ref => {this.incidentTag = ref}} onLoad={this.loadData.bind(this,'currentPage')} />
         <IncidentFlowDialog ref={ref => {this.incidentFlowDialog = ref}} />
         <IncidentReview ref={ref => {this.incidentReview = ref}} loadTab={'flow'} onLoad={this.loadData.bind(this,'currentPage')} />

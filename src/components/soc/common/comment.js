@@ -1,51 +1,40 @@
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Form from 'react-ui/build/src/components/form'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Textarea from 'react-ui/build/src/components/textarea'
 
-import Drawer from '@material-ui/core/Drawer'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
-import ListItemText from '@material-ui/core/ListItemText'
 import MenuItem from '@material-ui/core/MenuItem'
-import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import TextField from '@material-ui/core/TextField'
-import {withStyles} from '@material-ui/core'
 
 import {BaseDataContext} from '../../common/context'
 import helper from '../../common/helper'
 
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {default as ah} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let et = null;
 let it = null;
 
-const INIT = {
-  open: false,
-  comments: [],
-  selected: 'new',
-  comment: null
-};
-
 class IncidentComment extends Component {
   constructor(props) {
     super(props);
-
+    this.state = {
+      commentList: [],
+      selectedCommandId: 'new',
+      title: '',
+      command: ''
+    }
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     it = global.chewbaccaI18n.getFixedT(null, 'incident');
-
-    this.state = _.cloneDeep(INIT)
   }
-  open = () => {
+  componentDidMount() {
+    this.fetchCommentList();
+  }
+  componentDidUpdate(prevProps, prevState) {
+  }
+  fetchCommentList = () => {
     const {baseUrl} = this.context
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
@@ -54,111 +43,48 @@ class IncidentComment extends Component {
       url: `${baseUrl}/api/soc/command/_search`
     })
     .then(data => {
-      this.setState({
-        open: true,
-        comments: data.rt,
-        selected: 'new',
-        comment: {}
-      });
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  refresh = () => {
-    const {baseUrl} = this.context;
-
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
-
-    ah.one({
-      url: `${baseUrl}/api/soc/command/_search`
-    })
-    .then(data => {
-      this.setState({
-        open: true,
-        comments: data.rt,
-        selected: 'selected'
-      });
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  close = () => {
-    this.setState({
-      open: false,
-      comments: [],
-      selected: 'new',
-      comment: null
-    });
-  }
-  handleChange = (field, value) => {
-    this.setState({
-      [field]: value
-    }, () => {
-      if (field === 'selected') {
-        if (value === 'new') {
-          this.setState({
-            comment: {}
-          });
-        } else {
-          const {comments} = this.state;
-          const target = _.find(comments, {id: value});
-
-          this.setState({
-            comment: {
-              title: target.title,
-              command: target.command
-            }
-          });
-        }
+      if (data && data.rt) {
+        this.setState({
+          commentList: data.rt
+        });
       }
     })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
-  handleChangeMuiComment = (event, title, command, id) => {
-    let value = {
-      command:command,
-      title:title
-    };
+  handleClose = () => {
+    const {onClose} = this.props;
+    onClose();
+  }
+  handleDataChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value
+    });
+  }
+  handleSelectChange = (e) => {
+    const {commentList} = this.state;
+    const comment = _.find(commentList, {id: e.target.value});
 
-    if (event.target.name === 'title') {
-      value.title = event.target.value;
-    } else if (event.target.name === 'command') {
-      value.command = event.target.value;
+    if (comment) {
+      this.setState({
+        selectedCommandId: comment.id,
+        title: comment.title,
+        command: comment.command
+      })
+    } else {
+      this.setState({
+        selectedCommandId: 'new',
+        title: '',
+        command: ''
+      })
     }
-
-    this.setState({
-      ['comment']: value
-    });
-  }
-  handleChangeMui = (event) => {
-    this.setState({
-      [event.target.name]: event.target.value
-    }, () => {
-      if (event.target.name === 'selected') {
-        if (event.target.value === 'new') {
-          this.setState({
-            comment: {}
-          });
-        } else {
-          const {comments} = this.state;
-          const target = _.find(comments, {id: event.target.value});
-
-          this.setState({
-            comment: {
-              title: target.title,
-              command: target.command
-            }
-          });
-        }
-      }
-    })
   }
   addComment = () => {
     const {baseUrl} = this.context;
-    const {comment} = this.state;
+    const {title, command} = this.state;
 
-    if (!comment.title || !comment.command) {
+    if (!title || !command) {
       PopupDialog.alert({
         title: t('txt-tips'),
         display: it('txt-required'),
@@ -168,8 +94,8 @@ class IncidentComment extends Component {
     }
 
     const payload = {
-      title: comment.title, 
-      command: comment.command
+      title, 
+      command
     };
 
     helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
@@ -182,14 +108,7 @@ class IncidentComment extends Component {
       dataType: 'json'
     })
     .then(data => {
-      this.setState({
-        open: false,
-        comments: [],
-        selected: 'new',
-        comment: null
-      }, () => {
-        this.open();
-      });
+      this.handleClose();
 
       helper.showPopupMsg('', t('txt-success'), it('txt-new') + it('txt-comment-example') + t('txt-success'));
     })
@@ -199,9 +118,9 @@ class IncidentComment extends Component {
   }
   editComment = () => {
     const {baseUrl} = this.context;
-    const {comment, selected} = this.state;
+    const {title, command, selectedCommandId} = this.state;
 
-    if (!comment.title || !comment.command) {
+    if (!title || !command) {
       PopupDialog.alert({
         title: t('txt-tips'),
         display: it('txt-required'),
@@ -211,9 +130,9 @@ class IncidentComment extends Component {
     }
 
     const payload = {
-      id: selected,
-      title: comment.title, 
-      command: comment.command
+      id: selectedCommandId,
+      title, 
+      command
     };
 
     PopupDialog.prompt({
@@ -233,7 +152,7 @@ class IncidentComment extends Component {
             dataType: 'json'
           })
           .then(data => {
-            this.close();
+            this.handleClose();
 
             helper.showPopupMsg('', t('txt-success'), it('txt-update') + it('txt-comment-example') + t('txt-success'));
           })
@@ -246,7 +165,7 @@ class IncidentComment extends Component {
   }
   deleteComment = () => {
     const {baseUrl} = this.context;
-    const {comment, selected} = this.state;
+    const {title, selectedCommandId} = this.state;
 
     PopupDialog.prompt({
       title: t('txt-delete'),
@@ -254,7 +173,7 @@ class IncidentComment extends Component {
       cancelText: t('txt-cancel'),
       display: (
         <div className='content delete'>
-          <span>{t('txt-delete-msg')}: {comment.title} ?</span>
+          <span>{t('txt-delete-msg')}: {title} ?</span>
         </div>
       ),
       act: (confirmed, data) => {
@@ -262,18 +181,11 @@ class IncidentComment extends Component {
           helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
 
           ah.one({
-            url: `${baseUrl}/api/soc/command?id=${selected}`,
+            url: `${baseUrl}/api/soc/command?id=${selectedCommandId}`,
             type: 'DELETE'
           })
           .then(data => {
-            this.setState({
-              open: false,
-              comments: [],
-              selected: 'new',
-              comment: null
-            }, () => {
-              this.open();
-            });
+            this.handleClose();
 
             helper.showPopupMsg('', t('txt-success'), it('txt-delete') + it('txt-comment-example') + t('txt-success'));
           })
@@ -285,34 +197,25 @@ class IncidentComment extends Component {
     })
   }
   render() {
-    const {open, comments, selected, comment} = this.state;
-    const actions_old = {
-      cancel: {text: t('txt-cancel'), className:'standard', handler: this.close},
-      delete: {text: t('txt-delete'), handler: this.deleteComment},
-      edit: {text: t('txt-edit'), handler: this.editComment}
-    };
-    const actions_new = {
-      cancel: {text: t('txt-cancel'), className:'standard', handler: this.close},
-      add: {text: t('txt-add'), handler: this.addComment}
-    };
+    const {commentList, selectedCommandId, title, command} = this.state;
 
-    if (!open) {
-      return null;
+    const actions = {
+      cancel: {text: t('txt-cancel'), className:'standard', handler: this.handleClose}
+    };
+    if (selectedCommandId === 'new') {
+      actions['add'] = {text: t('txt-add'), handler: this.addComment}
+    } else {
+      actions['edit'] = {text: t('txt-edit'), handler: this.editComment}
+      actions['delete'] = {text: t('txt-delete'), handler: this.deleteComment}
     }
-
-    const actions = selected === 'new' ? actions_new : actions_old;
-
-    let list = _.map(comments, el => {
+    
+    let commentSelectList = _.map(commentList, el => {
       return {
         text: el.title,
         value: el.id
       };
     });
-
-    list.push({
-      text: it('txt-comment-new'),
-      value: 'new'
-    });
+    commentSelectList = _.concat([{text: it('txt-comment-new'), value: 'new'}], commentSelectList);
 
     return (
       <ModalDialog
@@ -324,45 +227,42 @@ class IncidentComment extends Component {
         actions={actions}>
         <div className='left'>
           <TextField
-            id='selected'
-            name='selected'
             variant='outlined'
             fullWidth={true}
             size='small'
             required
             multiline
-            value={selected}
+            value={selectedCommandId}
             select
-            onChange={this.handleChangeMui}>
+            onChange={this.handleSelectChange}>
             {
-              _.map(list, el => {
-                return <MenuItem value={el.value}>{el.text}</MenuItem>
+              _.map(commentSelectList, el => {
+                return <MenuItem key={el.value} value={el.value}>{el.text}</MenuItem>
               })
             }
           </TextField>
         </div>
         <div className='right'>
-          <label htmlFor='title'>{it('txt-title')}</label>
           <TextField
             name='title'
+            label={it('txt-title')}
             variant='outlined'
             fullWidth={true}
             size='small'
             required
-            value={comment.title}
-            onChange={(event) => this.handleChangeMuiComment(event, comment.title, comment.command, comment.id)}>
+            value={title}
+            onChange={this.handleDataChange}>
           </TextField>
-          <label htmlFor='comment'>{it('txt-comment')}</label>
-          <TextareaAutosize
+          <TextField
             name='command'
-            className='textarea-autosize'
-            value={comment.command}
-            minRows={8}
-            required
+            label={it('txt-comment')}
+            multiline
+            value={command}
+            rows={8}
             variant='outlined'
             fullWidth={true}
             size='small'
-            onChange={(event) => this.handleChangeMuiComment(event, comment.title, comment.command, comment.id)} />
+            onChange={this.handleDataChange} />
         </div>
       </ModalDialog>
     )
