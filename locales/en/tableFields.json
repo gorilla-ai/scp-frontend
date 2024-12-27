@@ -699,6 +699,24 @@
     "isDetection": "Enabled",
     "enabledStatus": "Enabled"
   },
+  "syslogMlRuleTableFields": {
+    "patternName": "ML Rule Name",
+    "observeColumn": "Observe Column",
+    "ruleType": "Rule Type",
+    "ruleType-abnormal": "Abnormal",
+    "ruleType-unusual": "Unusual",
+    "trainingStatus": "Training Status",
+    "trainingStatus-Waiting": "Waiting",
+    "trainingStatus-Training": "Training",
+    "trainingStatus-Trained": "Trained",
+    "createDttm": "Create Date Time",
+    "lastUpdateDttm": "Last Updated Date Time",
+    "queryScript": "Query Script",
+    "severity": "Severity",
+    "isDetection": "Enabled",
+    "enabledStatus": "Enabled",
+    "trainingCurve": "Training Curve"
+  },
   "threatsTableFields": {
     "threatText": "Threat Info",
     "threatType": "threat Type",

@@ -40,7 +40,7 @@ class Config extends Component {
   componentDidMount() {
     const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('severity');
     const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner');
-    const openSyslog = this.getActiveFrame('config') || this.getActiveFrame('pattern');
+    const openSyslog = this.getActiveFrame('config') || this.getActiveFrame('pattern') || this.getActiveFrame('mlRule');
     const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges');
 
     this.setState({
@@ -79,6 +79,7 @@ class Config extends Component {
       owner: '/SCP/configuration/topology/owner',
       config: '/SCP/configuration/syslog/config',
       pattern: '/SCP/configuration/syslog/pattern',
+      mlRule: '/SCP/configuration/syslog/ml-rule',
       audit: '/SCP/configuration/audit',
       account: '/SCP/configuration/user/account',
       privileges: '/SCP/configuration/user/privileges',
@@ -181,7 +182,7 @@ class Config extends Component {
         }
 
         <div id='config-link-syslog' className='item frame syslog' onClick={this.handleOpen.bind(this, 'openSyslog', openSyslog)}>
-          <span className={`${this.getActiveFrame('config') || this.getActiveFrame('pattern')}`}>{t('txt-syslogManage')}</span>
+          <span className={`${this.getActiveFrame('config') || this.getActiveFrame('pattern') || this.getActiveFrame('mlRule')}`}>{t('txt-syslogManage')}</span>
           <i className={`c-link fg fg-arrow-${openSyslog ? 'top' : 'bottom'}`}></i>
         </div>
 
@@ -195,6 +196,11 @@ class Config extends Component {
             <div className='subframe'>
               <Link id='config-link-pattern' to='/SCP/configuration/syslog/pattern'>
                 <span className={`${this.getActiveFrame('pattern')}`}>{t('txt-systemDefinedPattern')}</span>
+              </Link>
+            </div>
+            <div className='subframe'>
+              <Link id='config-link-ml-rule' to='/SCP/configuration/syslog/ml-rule'>
+                <span className={`${this.getActiveFrame('mlRule')}`}>{t('txt-mlRuleManagement')}</span>
               </Link>
             </div>
           </div>

@@ -2089,6 +2089,11 @@ html[data-theme='dark'] {
       margin-left: 5px;
     }
   }
+  .severity-header {
+    > .MuiFormControl-root {
+      flex-direction: row;
+    }
+  }
   .severity-section {
     padding: 10px;
     padding-top: 15px;
@@ -2148,6 +2153,36 @@ html[data-theme='dark'] {
     }
     .email-disabled {
       height: 44px;
+    }
+  }
+  .ml-section {
+    margin-bottom: 10px;
+    .label-ruleType, .label-thresholdWeight {
+      font-size: 0.85rem;
+    }
+    label.MuiFormControlLabel-root {
+      margin-bottom: 0;
+    }
+    .MuiFormControl-root {
+      background-color: transparent;
+    }
+    .MuiInputAdornment-root p {
+      color: var(--primaryTextColor);
+    }
+    .trainingDataTime, .trainingTimeScale {
+      input {
+        text-align: right;
+      }
+    }
+    .trainingTimeScale-field {
+      display: flex;
+      gap: 5px;
+      .trainingTimeScale {
+        flex: auto;
+      }
+      .trainingTimeScaleUnit {
+        flex: 1;
+      }
     }
   }
   #patternCheckbox {

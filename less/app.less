@@ -1216,8 +1216,7 @@ button.standard:hover:not([disabled]) {
         margin-right: 5px
       }
       .batch-updates {
-        margin-top: -8px;
-        margin-left: 5px;
+        margin: 3px 0 -3px 5px;
       }
     }
   }
@@ -3094,10 +3093,29 @@ button.standard:hover:not([disabled]) {
                 }
               }
               &.severity-level {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                margin-top: 0;
                 .fg-recode {
                   float: left;
                   margin-right: 5px;
                   margin-top: 5px;
+                }
+              }
+              &.rule-type {
+                .MuiFormControl-root {
+                  background-color: transparent;
+                }
+              }
+              &.threshold-weight {
+                .MuiFormControl-root {
+                  background-color: transparent;
+                }
+              }
+              &.training-data-time {
+                .MuiInputAdornment-root p {
+                  color: var(--primaryTextColor);
                 }
               }
               #severityLevel {
@@ -3108,6 +3126,24 @@ button.standard:hover:not([disabled]) {
                 margin-top: 5px;
                 .number {
                   width: 90px;
+                }
+              }
+              .rule-type, .threshold-weight {
+                margin-left: 0;
+              }
+              .trainingDataTime, .trainingTimeScale {
+                input {
+                  text-align: right;
+                }
+              }
+              &.trainingTimeScale-field {
+                display: flex;
+                gap: 5px;
+                .trainingTimeScale {
+                  flex: auto;
+                }
+                .trainingTimeScaleUnit {
+                  flex: 1;
                 }
               }
               .support-text {
@@ -3272,7 +3308,64 @@ button.standard:hover:not([disabled]) {
               background-color: var(--formBackground);
               width: 100%;
             }
-
+            &.prediction-chart {
+              padding: 0;
+              section {
+                width: 100%;
+                .c-table {
+                  width: 100%;
+                  td {
+                    padding: 10px;
+                    .mlPredictionSelect {
+                      float: right;
+                    }
+                  }
+                }
+              }
+              .group {
+                background: var(--primaryContentBackground);
+                margin: 0;
+              }
+              .unusual-legend {
+                width: 100%;
+                display: flex;
+                padding: 0 10px 0 38px;
+                .unusual-legend-item {
+                  width: 20%;
+                  height: 10px;
+                  &:nth-child(1) {
+                    background: #5A77E2;
+                  }
+                  &:nth-child(2) {
+                    background: #5AD2E2;
+                  }
+                  &:nth-child(3) {
+                    background: #5AE26A;
+                  }
+                  &:nth-child(4) {
+                    background: #E2975A;
+                  }
+                  &:nth-child(5) {
+                    background: #E25A77;
+                  }
+                }
+              }
+              .unusual-legend-label {
+                width: 100%;
+                display: flex;
+                padding: 0 0 0 36px;
+                .unusual-legend-label-item {
+                  font-size: 11px;
+                  width: 19%;
+                  flex: auto;
+                  &:nth-child(6) {
+                    width: 18px;
+                    flex: none;
+                    text-align: right;
+                  }
+                }
+              }
+            }
           }
           .steps-indicator { //For Config Topology Inventory page
             display: flex;
@@ -4513,6 +4606,7 @@ button.standard:hover:not([disabled]) {
     min-height: 400px;
     .content {
       display: flex;
+      gap: 10px;
       .left {
         width: 30%;
         select {
@@ -4521,6 +4615,9 @@ button.standard:hover:not([disabled]) {
       }
       .right {
         width: 70%;
+        row-gap: 10px;
+        display: flex;
+        flex-direction: column;
       }
     }
   }
@@ -4595,7 +4692,7 @@ button.standard:hover:not([disabled]) {
   margin: 0 5px;
 }
 
-.online-status:before, .risk-level:before, .true-false-status:before {
+.online-status:before, .risk-level:before, .true-false-status:before, .training-status:before {
   font-family: "FontAwesome";
   content: "\f111";
   margin-right: 5px;
@@ -4649,4 +4746,16 @@ button.standard:hover:not([disabled]) {
 
 .true-false-status-false:before {
   color: var(--statusFalse);
+}
+
+.training-status-Waiting:before {
+  color: var(--statusOffline);
+}
+
+.training-status-Training:before {
+  color: var(--statusInactivate);
+}
+
+.training-status-Trained:before {
+  color: var(--statusTrue);
 }

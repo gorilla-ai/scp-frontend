@@ -54,6 +54,7 @@ import StatisticsUIF from './components/dashboard/statisticsUIF'
 import Syslog from './components/events/syslog/index'
 import SyslogConfig from './components/configuration/syslog/syslog'
 import SyslogPattern from './components/configuration/syslog/pattern'
+import SyslogMlRule from './components/configuration/syslog/ml-rule'
 import Threats from './components/threats/index'
 import ThreatIntelligence from './components/configuration/threat/threat'
 import UserAccounts from './components/configuration/user/accounts/index'
@@ -247,6 +248,12 @@ const syslogPattern = () => (
   </BaseDataContext.Provider>
 );
 
+const syslogMlRule = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <SyslogMlRule />
+  </BaseDataContext.Provider>
+);
+
 const userAccounts = () => (
   <BaseDataContext.Provider value={baseData}>
     <UserAccounts />
@@ -386,6 +393,7 @@ const Main = () => (
       <Route exact path='/SCP/configuration/topology/owner' component={NetworkTopologyOwner} />
       <Route exact path='/SCP/configuration/syslog/config' component={syslogConfig} />
       <Route exact path='/SCP/configuration/syslog/pattern' component={syslogPattern} />
+      <Route exact path='/SCP/configuration/syslog/ml-rule' component={syslogMlRule} />
       <Route exact path='/SCP/configuration/user/account' component={userAccounts} />
       <Route exact path='/SCP/configuration/user/privileges' component={userPrivileges} />
       <Route exact path='/SCP/account' component={Account} />

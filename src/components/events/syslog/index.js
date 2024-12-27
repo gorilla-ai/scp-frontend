@@ -33,6 +33,21 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const UTC_TIME_PATTERN = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z$/;
 
+const PATTERN_INIT_DATA = {
+  name: '',
+  ruleCatgory: 'Pattern', // 'Pattern' or 'ML'
+  severity: 'Emergency',
+  aggColumn: '',
+  periodMin: 10,
+  threshold: 1,
+  ruleType: 'abnormal',
+  observeColumn: '',
+  trainingDataTime: 1,
+  trainingTimeScale: 1,
+  trainingTimeScaleUnit: 'hour',
+  thresholdWeight: 'low'
+}
+
 let t = null;
 let f = null;
 let et = null;
@@ -2111,10 +2126,17 @@ class SyslogController extends Component {
           tempQueryData.emailList = queryData.list[0].emailList;
           tempQueryData.patternId = queryData.list[0].patternId;
           tempQueryData.pattern.name = queryData.list[0].patternName;
+          tempQueryData.pattern.ruleCatgory = queryData.list[0].ruleCatgory;
+          tempQueryData.pattern.severity = queryData.list[0].severity;
           tempQueryData.pattern.aggColumn = queryData.list[0].aggColumn;
           tempQueryData.pattern.periodMin = queryData.list[0].periodMin;
-          tempQueryData.pattern.severity = queryData.list[0].severity;
           tempQueryData.pattern.threshold = queryData.list[0].threshold;
+          tempQueryData.pattern.ruleType = queryData.list[0].ruleType;
+          tempQueryData.pattern.observeColumn = queryData.list[0].observeColumn;
+          tempQueryData.pattern.trainingDataTime = queryData.list[0].trainingDataTime;
+          tempQueryData.pattern.trainingTimeScale = queryData.list[0].trainingTimeScale;
+          tempQueryData.pattern.trainingTimeScaleUnit = queryData.list[0].trainingTimeScaleUnit;
+          tempQueryData.pattern.thresholdWeight = queryData.list[0].thresholdWeight;
           tempQueryData.isPublic = queryData.list[0].isPublic;
         }
 
@@ -2140,13 +2162,7 @@ class SyslogController extends Component {
       let tempQueryData = {...queryData};
 
       if (queryData.list.length > 0) {
-        tempQueryData.pattern = {
-          name: '',
-          aggColumn: '',
-          periodMin: 10,
-          threshold: 1,
-          severity: 'Emergency'
-        };
+        tempQueryData.pattern = PATTERN_INIT_DATA;
       }
 
       this.setState({

@@ -3,7 +3,6 @@
     "en":"English",
     "zh":"中文"
   },
-
   "txt-on": "On",
   "txt-off": "Off",
   "txt-true": "True",
@@ -266,7 +265,6 @@
   "txt-fileNameEmpty": "Please check file name",
   "txt-fileNameInvalid": "File name can only contain letters, numbers, dash and underscore",
   "txt-confirmWhiteList": "Confirm to add to whitelist?",
-
   "txt-dashboard": "Dashboard",
   "txt-host-eng": "Host",
   "txt-threats": "Threats",
@@ -275,27 +273,24 @@
   "txt-endpoint": "Endpoint",
   "txt-configuration": "Configuration",
   "txt-accountConfig": "Account Configuration",
-
   "txt-connections-eng": "Connections",
   "txt-dns": "DNS",
-
   "txt-edgeManage": "Edge Management",
   "txt-topology": "Network Topology",
   "txt-accountManage": "Account Management",
   "txt-syslogManage": "Syslog Management",
   "txt-syslogConfig": "Syslog Config",
   "txt-systemDefinedPattern": "System Defined Pattern",
+  "txt-mlRuleManagement": "ML Rule Management",
   "txt-serviceStatus": "Service Status",
   "txt-networkInventory": "Network Inventory",
   "txt-productInfo": "Product Information",
   "txt-issuesFeedback": "Feedback",
-
   "txt-esManage": "ES Management",
   "txt-importEsIndex": "Import Index",
   "txt-esImportMsg": "Please enter the date of the index to import",
   "txt-auditLog": "Audit Log",
   "txt-exportAuditLog": "$t(txt-export) $t(txt-auditLog)",
-
   "txt-edge": "Edge",
   "txt-threatIntelligence": "Threat Intelligence",
   "txt-addDepartment": "Add Department",
@@ -323,7 +318,6 @@
   "txt-updateTime": "Update Time",
   "txt-timeRangeError": "Please check your time range",
   "txt-verificationCode": "Verification Code",
-
   "txt-listText": "List",
   "txt-uploadPhoto": "Upload Photo",
   "txt-required": "This field is required",
@@ -339,15 +333,12 @@
   "txt-commaSeparated": "separated by comma ,",
   "txt-privilegeError": "The privilege is still used by the account(s)",
   "txt-ownerIsRequired": "Owner field is required",
-
   "txt-statistics": "Statistics",
   "txt-table": "Table",
   "txt-linkAnalysis": "Link Analysis",
   "txt-map": "Map",
-
   "txt-setOrganization": "Organization Setting",
   "txt-defaultUnit": "Default Unit",
-
   "time-interval": {
     "txt-search-manual": "Manual",
     "txt-search-auto": "Auto",
@@ -373,7 +364,6 @@
     "txt-week": "This week",
     "txt-chart-interval": "Chart Interval"
   },
-
   "dashboard": {
     "txt-overview": "Overview",
     "txt-statisticsInfo": "Statistics Info",
@@ -409,7 +399,6 @@
     "txt-max": "Max",
     "txt-hosts": "Hosts"
   },
-
   "host": {
     "txt-hostList": "Host List",
     "txt-cpePage": "CPE",
@@ -450,29 +439,6 @@
       "txt-reference": "Reference",
       "txt-kibd": "KBID"
     },
-    "gcb": {
-      "txt-gcbList": "GCB List",
-      "txt-gcbDetails": "GCB Details",
-      "txt-gcbInfo": "GCB Info",
-      "txt-exposedDevices": "Exposed Devices",
-      "txt-exposedDevicesCount": "Exposed Devices Count",
-      "txt-exposedDeviceCount": "Exposed Devices Count",
-      "txt-notExposedDeviceCount": "Non-Exposed Devices Count",
-      "txt-successCount": "Success",
-      "txt-failCount": "Fail",
-      "txt-originalKey": "Original Key",
-      "txt-dailyFoundGcbs": "Daily GCB Count",
-      "txt-top10GcbEndpointCounts": "Top 10 GCB",
-      "txt-endpoint": "Endware",
-      "txt-hostList": "Host List",
-      "txt-cceId": "CCE-ID",
-      "txt-twGcbId": "TWGCB-ID",
-      "txt-type": "Type",
-      "txt-policyName": "Policy Name",
-      "txt-securityCategory": "Security Category",
-      "txt-srcFile": "Source File",
-      "txt-srcFilePath": "Source File Path"
-    },
     "malware": {
       "txt-malwareList": "Malware",
       "txt-malwareDetails": "Malware Details",
@@ -497,8 +463,32 @@
       "txt-reduceCount": "Removed",
       "txt-top10MalwareEndpointCounts": "Top 10 Malware",
       "txt-malware": "Malware",
-      "txt-endpoint": "Endware",
+      "txt-endpoint": "Endpoint",
       "txt-hostList": "Host List"
+    },
+    "gcb": {
+      "txt-gcbList": "GCB List",
+      "txt-gcbDetails": "GCB Details",
+      "txt-gcbInfo": "GCB Info",
+      "txt-exposedDevices": "Exposed Devices",
+      "txt-exposedDevicesCount": "Exposed Devices Count",
+      "txt-exposedDeviceCount": "Exposed Devices Count",
+      "txt-notExposedDeviceCount": "Non-Exposed Devices Count",
+      "txt-successCount": "Success",
+      "txt-failCount": "Fail",
+      "txt-originalKey": "Original Key",
+      "txt-dailyFoundGcbs": "Daily GCB Count",
+      "txt-top10GcbEndpointCounts": "Top 10 GCB",
+      "txt-endpoint": "Endpoint",
+      "txt-hostList": "Host List",
+      "txt-cceId": "CCE-ID",
+      "txt-twGcbId": "TWGCB-ID",
+      "txt-type": "Type",
+      "txt-policyName": "Policy Name",
+      "txt-securityCategory": "Security Category",
+      "txt-srcFile": "Source File",
+      "txt-srcFilePath": "Source File Path",
+      "txt-compareResult": "Compare Result"
     },
     "inventory": {
       "txt-discoveredVulnerability": "Discovered Vulnerability",
@@ -723,7 +713,6 @@
     "txt-NotSupport": "Not Support",
     "txt-Waiting": "Waiting"
   },
-
   "alert": {
     "txt-encodeDecode": "Encode / Decode",
     "txt-toLocalTime": "Convert to local time",
@@ -798,7 +787,6 @@
     "txt-deleteSelectTrackList": "$t(txt-delete)$t(alert.txt-selectTrackAlertList)",
     "txt-deleteSelectTrackListMsg": "$t(txt-delete-msg)$t(alert.txt-selectTrackAlertList)"
   },
-
   "events": {
     "connections": {
       "txt-enterQueryName": "Enter Query Name",
@@ -815,11 +803,29 @@
       "txt-noOpenQuery": "Query can not be Blank",
       "txt-threasholdCount": "Threashold count must be less than 1,000 and greater than 0",
       "txt-addPatternScript": "Custom Alert Query",
+      "txt-addPatternScriptPattern": "Pattern",
+      "txt-addPatternScriptMl": "ML Rule",
       "txt-addSOCScript": "Custom SOC Incident Template",
       "txt-enableSOCScript": "Enable SOC Incident Template",
       "txt-enableIncidentTemplate": "Enable Incident Template",
       "txt-isEnabled": "Enabled",
       "txt-public": "Public",
+      "txt-ruleType": "Rule Type",
+      "txt-ruleType-abnormal": "Abnormal",
+      "txt-ruleType-unusual": "Unusual",
+      "txt-groupBy": "Group by",
+      "txt-y": "Y",
+      "txt-trainingDataTime": "Training Data Time",
+      "txt-trainingDataTimePrefix": "Last",
+      "txt-trainingDataTimePostfix": "days",
+      "txt-trainingTimeScale": "Training Time Scale",
+      "txt-trainingTimeScale-minute": "Minute",
+      "txt-trainingTimeScale-hour": "Hour",
+      "txt-trainingTimeScale-day": "Day",
+      "txt-thresholdWeight": "Threshold Sensitivity",
+      "txt-thresholdWeightLow": "Low",
+      "txt-thresholdWeightMedium": "Medium",
+      "txt-thresholdWeightHigh": "High",
       "txt-patternQuery1": "In",
       "txt-patternQuery2": "minutes, alert occurs more than or equal to",
       "txt-patternQuery3": "times",
@@ -853,7 +859,6 @@
     "txt-statisticsBarChart": "Bar Chart",
     "txt-statisticsTableChart": "Table Chart"
   },
-
   "soar": {
     "txt-ruleList": "SOAR Rules",
     "txt-soarSettings": "SOAR General Settings",
@@ -975,7 +980,6 @@
     "txt-error-9100": "Parse Input Json Fail",
     "txt-error-9102": "No execute due to som error"
   },
-
   "configuration": {
     "threat": {
       "txt-threatFromDttm": "Threat Datetime(From)",
@@ -987,7 +991,6 @@
       "txt-threatToDttmLTEThreatFromDttm": "Threat Datetime(To) cannot be be less than or equal to Threat Datetime(From)"
     }
   },
-
   "notifications": {
     "txt-sendEmails": "Send Emails",
     "txt-testEmails": "Test Emails",
@@ -1038,7 +1041,6 @@
       "txt-SMS-CHT": "CHT"
     }   
   },
-
   "edge-management": {
     "txt-today": "Today",
     "txt-past7days": "Past 7 Days",
@@ -1107,20 +1109,17 @@
       "txt-acuIndicatorsTrend": "Accumulated Indicators Trend"
     }
   },
-
   "es-management": {
     "txt-exportMsg": "Index will be deleted after the export is done. Are you sure you want to proceed?",
     "txt-turnOffMsg": "Are you sure you want to turn the index off",
     "txt-turnOffMsg-more": "Closing the index will cause the data of next day cannot be access."
   },
-
   "threat-severity-mapping": {
     "txt-severityMapping": "Threat Severity Mapping",
     "txt-typeInfo": "Type Info",
     "txt-lastUpdateTime": "Last Update Time",
     "txt-severityMissing": "Severity type cannot be empty"
   },
-
   "system-defined-pattern": {
     "txt-addPatternScript": "Add Pattern",
     "txt-patternInfo": "Pattern Info",
@@ -1129,7 +1128,15 @@
     "txt-queryScriptMissing": "Query Script cannot be empty",
     "txt-deletePattern": "$t(txt-delete) Pattern"
   },
-
+  "ml-rule-management": {
+    "txt-addMlRuleScript": "Add ML Rule",
+    "txt-mlRuleInfo": "ML Rule Info",
+    "txt-lastUpdateTime": "Last Update Time",
+    "txt-mlRuleMissing": "ML Rule Name cannot be empty",
+    "txt-queryScriptMissing": "Query Script cannot be empty",
+    "txt-deleteMlRule": "$t(txt-delete)ML Rule",
+    "txt-trainingResult": "Training Result"
+  },
   "hmd-scan": {
     "txt-hmdSettings": "HMD Settings",
     "txt-hmdDownload": "HMD $t(txt-download)",
@@ -1311,7 +1318,6 @@
       "_SubjectName": "Subject Name"
     }
   },
-
   "auto-settings": {
     "txt-ipRange": "IP Range",
     "txt-AD": "AD",
@@ -1324,7 +1330,6 @@
     "txt-connectionsFail": "Connections Fail",
     "txt-connectionsSuccess": "Connections Success"
   },
-
   "network-inventory": {
     "txt-hmdSettings": "HMD Settings",
     "txt-hmdDownload": "HMD $t(txt-download)",
@@ -1363,7 +1368,6 @@
     "txt-deleteDevice": "$t(txt-delete) $t(txt-device)",
     "txt-deleteDeviceMsg": "$t(txt-delete-msg) $t(txt-device)"
   },
-
   "network-topology": {
     "txt-assignedDevice": "Assigned $t(txt-device)",
     "txt-noAvailableDevice": "No available devices to assign",
@@ -1383,52 +1387,42 @@
     "txt-seatNameEmpty": "Please enter a seat name",
     "txt-saveSuccess": "Saved",
     "txt-maxCharError": "Maximum characters count is 64",
-
     "txt-addOwner": "$t(txt-add) $t(ipFields.owner)",
     "txt-editOwner": "$t(txt-edit) $t(ipFields.owner)",
     "txt-deleteOwner": "$t(txt-delete) $t(txt-network-owner)",
     "txt-deleteOwnerMsg": "$t(txt-delete-msg) $t(txt-network-owner)",
-
     "txt-addIP": "$t(txt-add) $t(ipFields.ip)",
     "txt-editIP": "$t(txt-edit) $t(ipFields.ip)",
     "txt-deleteIP": "$t(txt-delete) $t(ipFields.ip)",
     "txt-deleteIPMsg": "$t(txt-delete-msg) $t(ipFields.ip)",
-
     "txt-deleteFloorPlan": "$t(txt-delete) $t(txt-floorMap)",
-
     "txt-addFloor": "$t(txt-add) $t(txt-floor)",
     "txt-editFloor": "$t(txt-edit) $t(txt-floor)",
     "txt-saveFloor": "$t(txt-save) $t(txt-floor)",
     "txt-deleteFloor": "$t(txt-delete) $t(txt-floor)",
     "txt-deleteFloorMsg": "$t(txt-delete-msg) $t(txt-floor)",
-
     "txt-editFloorMap": "$t(txt-edit) $t(txt-floorMap)",
     "txt-deleteFloorMap": "$t(txt-delete) $t(txt-floorMap)",
     "txt-deleteFloorMapMsg": "$t(txt-delete-msg) $t(txt-floorMap)",
-
     "txt-addTree": "$t(txt-add) $t(txt-tree)",
     "txt-editTree": "$t(txt-edit) $t(txt-tree)",
     "txt-selectTree": "$t(txt-select) $t(txt-tree)",
     "txt-deselectTree": "$t(txt-deselect) $t(txt-tree)",
     "txt-removeTree": "$t(txt-remove) $t(txt-tree)",
-
     "txt-addSeat": "$t(txt-add) $t(txt-seat)",
     "txt-editSeat": "$t(txt-edit) $t(txt-seat)",
     "txt-deleteSeat": "$t(txt-delete) $t(txt-seat)",
     "txt-deleteSeatMsg": "$t(txt-delete-msg) $t(txt-seat)",
     "txt-removeSeat": "$t(txt-remove) this seat from map",
-
     "txt-addDevice": "$t(txt-add) $t(txt-device)",
     "txt-removeDevice": "$t(txt-remove) this device from seat"
   },
-
   "vansOwner": {
     "ip": "IP",
     "domainAccount": "Domain Account",
     "unitCode": "Unit Code",
     "unitCodeRegex": "Unit Code Regex"
   },
-
   "attacksFields" : {
     "timestamp": "Date",
     "sensor": "Sensor",
