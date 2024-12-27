@@ -51,7 +51,7 @@ const EXPOSED_DEVICES_SEARCH = {
   hostName: '',
   ip: '',
   system: '',
-  fix: '',
+  compareResult: '',
   count: 0
 };
 const EXPOSED_DEVICES_DATA = {
@@ -603,11 +603,11 @@ class HostGcb extends Component {
 
     const apiArr = [
       {
-        url: `${baseUrl}/api/hmd/gcbUpdateToDate/gcbInfo?originalKey=${currentOriginalKey}`,
+        url: `${baseUrl}/api/hmd/gcbUpdateToDate/gcbInfo?originalKey=${encodeURIComponent(currentOriginalKey)}`,
         type: 'GET'
       },
       {
-        url: `${baseUrl}/api/hmd/gcb/devices/count?originalKey=${currentOriginalKey}`,
+        url: `${baseUrl}/api/hmd/gcb/devices/count?originalKey=${encodeURIComponent(currentOriginalKey)}`,
         data: JSON.stringify(requestData),
         type: 'POST',
         contentType: 'text/plain'
@@ -690,8 +690,8 @@ class HostGcb extends Component {
       requestData.system = exposedDevicesSearch.system;
     }
 
-    if (exposedDevicesSearch.fix && exposedDevicesSearch.fix !== 'all') {
-      requestData.fix = (exposedDevicesSearch.fix === 'true');
+    if (exposedDevicesSearch.compareResult && exposedDevicesSearch.compareResult !== 'all') {
+      requestData.compareResult = (exposedDevicesSearch.compareResult === 'true');
     }
 
     if (gcbFilter.departmentSelected.length > 0) {
@@ -737,7 +737,7 @@ class HostGcb extends Component {
                 const value = tempExposedDevicesData.dataContent[dataIndex][val];
 
                 if (val === 'compareResult') {
-                  return <span className={'status-' + (value ? 'success' : 'fail')}></span>
+                  return <span className={'status-' + (value ? 'success' : 'fail')}>{t('txt-' + (value ? 'success' : 'fail'))}</span>
                 } else {
                   return value;
                 }
