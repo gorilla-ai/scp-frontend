@@ -860,14 +860,7 @@ class Pattern extends Component {
                 disabled={activeContent === 'viewPattern'}
               />
             </div>
-            <div
-              className='group severity-level'
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-            >
+            <div className='group severity-level'>
               <i
                 className='fg fg-recode'
                 style={{
@@ -971,19 +964,21 @@ class Pattern extends Component {
                 </span>
               </div>
             </div>
-            <FormControlLabel
-              id='incidentTemplateSwitch'
-              className='switch-control'
-              control={
-                <Switch
-                  checked={enableIncidentTemplate}
-                  onChange={this.handleIncidentStatusChange}
-                  color='primary'
-                />
-              }
-              label={t('events.connections.txt-enableIncidentTemplate')}
-              disabled={activeContent === 'viewPattern'}
-            />
+            <div className='group full'>
+              <FormControlLabel
+                id='incidentTemplateSwitch'
+                className='switch-control'
+                control={
+                  <Switch
+                    checked={enableIncidentTemplate}
+                    onChange={this.handleIncidentStatusChange}
+                    color='primary'
+                  />
+                }
+                label={t('events.connections.txt-enableIncidentTemplate')}
+                disabled={activeContent === 'viewPattern'}
+              />
+            </div>
             {enableIncidentTemplate && (
               <div
                 id='incidentSettingsForm'
