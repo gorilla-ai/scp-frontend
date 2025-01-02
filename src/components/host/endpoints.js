@@ -201,7 +201,9 @@ const MALWARE_DATA = {
   },
   totalCount: 0,
   currentPage: 0,
-  pageSize: 20
+  pageSize: 20,
+  isUploaded: false,
+  hostId: ''
 };
 let ALERT_LEVEL_COLORS = {};
 
@@ -1484,6 +1486,8 @@ class HostEndPoints extends Component {
           tempMalwareData.dataContent = data.rows;
           tempMalwareData.totalCount = data.count;
           tempMalwareData.currentPage = page;
+          tempMalwareData.isUploaded = data.isUploaded;
+          tempMalwareData.hostId = currentHostId;
           tempMalwareData.dataFields = _.map(malwareData.dataFieldsArr, val => {
             return {
               name: val,

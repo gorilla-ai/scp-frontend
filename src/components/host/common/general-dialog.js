@@ -9,6 +9,10 @@ import Button from '@material-ui/core/Button'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormLabel from '@material-ui/core/FormLabel';
+import FormGroup from '@material-ui/core/FormGroup';
+import Checkbox from '@material-ui/core/Checkbox';
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import DataTable from 'react-ui/build/src/components/table'
 import PieChart from 'react-chart/build/src/components/pie'
@@ -243,6 +247,72 @@ class GeneralDialog extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  confirmCompressFile = (data) => {
+    PopupDialog.prompt({
+      id: 'modalWindowSmall',
+      title: t('host.endpoints.txt-compressFile'),
+      confirmText: t('txt-confirm'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='form'>
+          <FormLabel component="div" className="form-title">{t('host.endpoints.txt-chooseFile')}</FormLabel>
+          <FormGroup>
+            {_.map(data.dataContent, (file, i) => {
+              return <FormControlLabel key={i} control={<Checkbox name={file.filePath} defaultChecked />} label={file.filePath}/>
+            })}
+          </FormGroup>
+        </div>
+      ),
+      act: (confirmed, data) => {
+        let filePathList = []
+        _.forEach(data, (checked, filePath) => {
+          if (checked)
+            filePathList.push(filePath)
+        });
+
+        if (confirmed) {
+          this.handleCompressFile(filePathList);
+        }
+      }
+    });
+  }
+  handleCompressFile = (filePathList) => {
+    const {baseUrl} = this.context;
+    const {data} = this.props;
+
+    const requestData = {
+      hostId: data.hostId,
+      cmds: ['getHmdFiles'],
+      paras: {
+        _FilepathVec: filePathList,
+        _FileName: data.hostId
+      }
+    };
+
+    ah.one({
+      url: `${baseUrl}/api/hmd/retrigger`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  handleDownloadFile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {data} = this.props;
+
+    const url = `${baseUrl}${contextRoot}/api/hmd/file/_download?hostId=${data.hostId}`;
+    window.open(url, '_blank');
+    return;
   }
   confirmCompressLogs = () => {
     PopupDialog.prompt({
@@ -941,6 +1011,12 @@ class GeneralDialog extends Component {
           <div className='search-field-right'>
             {searchType === 'safetyScanInfo' &&
             <Button id='hostGeneralClear' variant='outlined' color='primary' className='clear' onClick={this.handleExportSafetyScanInfo.bind(this)} data-cy='hostInfoDialogSoftwareClearBtn'>{t('txt-export')}</Button>
+            }
+            {searchType === 'malware' && data.totalCount > 0 &&
+            <Button variant='outlined' color='primary' className='btn' onClick={this.confirmCompressFile.bind(this, data)}>{data.isUploaded ? t(`host.endpoints.txt-recompressFile`) : t('host.endpoints.txt-compressFile')}</Button>
+            }
+            {searchType === 'malware' && data.totalCount > 0 && data.isUploaded &&
+            <Button variant='outlined' color='primary' className='btn' onClick={this.handleDownloadFile.bind(this)}>{t('host.endpoints.txt-downloadFile')}</Button>
             }
           </div>
         </div>
