@@ -822,7 +822,7 @@
       "txt-trainingTimeScale-minute": "Minute",
       "txt-trainingTimeScale-hour": "Hour",
       "txt-trainingTimeScale-day": "Day",
-      "txt-thresholdWeight": "Threshold Sensitivity",
+      "txt-thresholdWeight": "Threshold",
       "txt-thresholdWeightLow": "Low",
       "txt-thresholdWeightMedium": "Medium",
       "txt-thresholdWeightHigh": "High",
