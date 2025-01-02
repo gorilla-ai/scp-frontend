@@ -844,6 +844,9 @@ class MlRule extends Component {
                   '61-80': '#E2975A',
                   '81-100': '#E25A77'
                 }}
+                yAxis={{
+                  allowDecimals: false
+                }}
                 plotOptions={{
                   series: {
                     pointWidth: 60,
