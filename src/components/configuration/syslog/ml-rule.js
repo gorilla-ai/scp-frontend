@@ -1031,7 +1031,6 @@ class MlRule extends Component {
       validate = false;
     } else {
       if (isNaN(Number(mlRule.info.trainingDataTime)) || Number(mlRule.info.trainingDataTime) < 0) {
-        console.log(t('txt-checkFormat'))
         tempFormValidation.trainingDataTime.valid = false;
         tempFormValidation.trainingDataTime.msg = t('txt-checkFormat');
         validate = false;
@@ -1049,7 +1048,7 @@ class MlRule extends Component {
         validate = false;
       }
     }
-    console.log(tempFormValidation)
+
     this.setState({
       formValidation: tempFormValidation,
     });
