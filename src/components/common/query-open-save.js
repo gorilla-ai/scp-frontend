@@ -190,10 +190,10 @@ class QueryOpenSave extends Component {
    * @method
    */
   setPatternData = () => {
+    let newPattern = {...PATTERN_INIT_DATA, ...this.props.queryData.pattern};
+
     this.setState({
-      pattern: {
-        ...this.props.queryData.pattern
-      }
+      pattern: newPattern
     });
   }
   getQuerySOCValue = (activeQuery) => {
@@ -1921,7 +1921,7 @@ class QueryOpenSave extends Component {
                     disabled={true}>
                     {
                       _.map(_.range(1, 5), el => {
-                        return <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
+                        return <MenuItem key={el} value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
                       })
                     }
                   </TextField>
