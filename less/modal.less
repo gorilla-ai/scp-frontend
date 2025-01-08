@@ -12,6 +12,8 @@ html {
   --subFrameColor: #e8e9ed;
   --contentBackground: #f5f5f5;
   --buttonSelectedColor: #001b34;
+  --checkboxColor: #185e9e;
+  --checkboxDisabledColor: #ccc;
 
   --formBackground: #fff;
   --formInputBorderColor: #d9d9d9;
@@ -37,6 +39,8 @@ html[data-theme='dark'] {
   --subFrameColor: #0f0f0f;
   --contentBackground: #1f1e1e;
   --buttonSelectedColor: #069bda;
+  --checkboxColor: #fff;
+  --checkboxDisabledColor: #666;
 
   --formBackground: #474747;
   --formInputBorderColor: #474747;
@@ -282,6 +286,24 @@ html[data-theme='dark'] {
         color: var(--primaryTextColor);
         text-align: left;
         margin: 10px;
+      }
+      .MuiFormControlLabel-root {
+        .MuiFormControlLabel-label {
+          font-size: 14px;
+          color: var(--primaryTextColor);
+        }
+        .MuiCheckbox-root {
+          .MuiSvgIcon-root {
+            color: var(--checkboxColor);
+            fill: var(--checkboxColor);
+          }
+          &.Mui-disabled {
+            .MuiSvgIcon-root {
+              color: var(--checkboxDisabledColor);
+              fill: var(--checkboxDisabledColor);
+            }
+          }
+        }
       }
     }
     button {

@@ -259,7 +259,7 @@ class GeneralDialog extends Component {
           <FormLabel component="div" className="form-title">{t('host.endpoints.txt-chooseFile')}</FormLabel>
           <FormGroup>
             {_.map(data.dataContent, (file, i) => {
-              return <FormControlLabel key={i} control={<Checkbox name={file.filePath} defaultChecked />} label={file.filePath}/>
+              return <FormControlLabel key={i} control={<Checkbox name={file.filePath} color='default' defaultChecked />} label={file.filePath}/>
             })}
           </FormGroup>
         </div>
