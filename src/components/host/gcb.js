@@ -98,12 +98,16 @@ class HostGcb extends Component {
       gcbSearch: _.cloneDeep(GCB_SEARCH),
       gcbFilter: _.cloneDeep(GCB_FILTER),
       gcbFilterList: _.cloneDeep(GCB_FILTER_LIST),
+      filterDataCount: 0,
       exportContextAnchor: null,
       tableContextAnchor: null,
+      filterContextAnchor: null,
       top10GcbEndpointCounts: null,
       dailyFoundGcbs: null,
       showGcbInfo: false,
       showFilterQuery: false,
+      showFilterType: 'open', // 'open', 'load', 'save'
+      filterQueryList: [],
       activeGcbInfo: 'gcbDetails', //'gcbDetails' or 'exposedDevices'
       gcbData: {
         dataFieldsArr: ['_menu', 'originalKey', 'policyName', 'type', 'successExposedDevices'],
@@ -549,15 +553,15 @@ class HostGcb extends Component {
       requestData.originalKey = gcbSearch.keyword;
     }
 
-    if (gcbFilter.departmentSelected.length > 0) {
+    if (gcbFilter.departmentSelected && gcbFilter.departmentSelected.length > 0) {
       requestData.departmentArray = gcbFilter.departmentSelected;
     }
 
-    if (gcbFilter.type.length > 0) {
+    if (gcbFilter.type && gcbFilter.type.length > 0) {
       requestData.type = gcbFilter.type;
     }
 
-    if (gcbFilter.policyName.length > 0) {
+    if (gcbFilter.policyName && gcbFilter.policyName.length > 0) {
       requestData.policyName = gcbFilter.policyName;
     }
 
@@ -766,7 +770,8 @@ class HostGcb extends Component {
   handleCloseMenu = () => {
     this.setState({
       exportContextAnchor: null,
-      tableContextAnchor: null
+      tableContextAnchor: null,
+      filterContextAnchor: null
     });
   }
   /**
@@ -1061,25 +1066,155 @@ class HostGcb extends Component {
     });
   }
   /**
-   * Toggle show filter query
+   * Show filter query
    * @method
-   * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
-   * @param {object} [filterData] - filter data
-   */
-  toggleFilterQuery = (type, filterData) => {
-    if (type !== 'open') {
+  */
+  showFilterQuery = (type) => {
+    if (type === 'load') {
+      this.fetchFilterQuery()
+    }
+
+    this.setState({
+      showFilterQuery: true,
+      showFilterType: type,
+      filterContextAnchor: null
+    });
+  }
+  handleFilterQuery = (type, filterData) => {
+    if (type !== 'cancel') {
+      let filterDataCount = 0;
+      _.forEach(filterData.filter, (val, key) => {
+        if (typeof val === 'string') {
+          if (val !== '')
+            filterDataCount++;
+
+        } else if (Array.isArray(val)) {
+          if (val.length > 0 && val[0].input !== '')
+            filterDataCount++;
+
+        } else {
+          filterDataCount++;
+        }
+      })
+
       this.setState({
         gcbFilter: filterData.filter,
-        gcbFilterList: filterData.itemFilterList
+        gcbFilterList: filterData.itemFilterList,
+        filterDataCount
       }, () => {
-        if (type === 'confirm') {
-          this.getGcbData();
-        }
+        this.getGcbData();
+        if (type === 'save')
+          this.saveFilterQuery(filterData.queryName);
       });
     }
 
     this.setState({
-      showFilterQuery: !this.state.showFilterQuery
+      showFilterQuery: false,
+      filterContextAnchor: null
+    });
+  }
+  handleDeleteFilterQuery = (id, queryName) => {
+    PopupDialog.prompt({
+      title: t('txt-deleteQuery'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: <div className='content delete'><span>{t('txt-delete-msg')}: {queryName}?</span></div>,
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteFilterQuery(id);
+        }
+      }
+    });
+  }
+  fetchFilterQuery = () => {
+    const {baseUrl} = this.context;
+    const {account, severityType} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?accountId=${account.id}&module=GCB`,
+      type: 'GET',
+      pcontentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let filterQueryList = _.map(data, filter => {
+          let newFilter = {
+            id: filter.id,
+            name: filter.name,
+            content: _.cloneDeep(GCB_FILTER_LIST)
+          };
+
+          if (filter.queryText) {
+            let content = {
+              departmentSelected: filter.queryText.departmentArray ? filter.queryText.departmentArray : [],
+              policyName: filter.queryText.policyName ? filter.queryText.policyName : '',
+              type: filter.queryText.type ? filter.queryText.type : ''
+            }
+            newFilter.content = content;
+          }
+          return newFilter;
+        });
+
+        this.setState({filterQueryList});
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  saveFilterQuery = (queryName) => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    const requestData = {
+      ...this.getGcbFilterRequestData()
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText`,
+      data: JSON.stringify({
+        accountId: account.id,
+        module: 'GCB',
+        name: queryName,
+        queryText: requestData
+      }),
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-querySaved'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  deleteFilterQuery = (id) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?id=${id}`,
+      type: 'DELETE',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.fetchFilterQuery();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  handleFilterOpenMenu = (event) => {
+    this.setState({
+      filterContextAnchor: event.currentTarget
     });
   }
   /**
@@ -1131,13 +1266,17 @@ class HostGcb extends Component {
       gcbSearch,
       gcbFilter,
       gcbFilterList,
+      filterDataCount,
+      filterQueryList,
       dailyFoundGcbs,
       top10GcbEndpointCounts,
       showGcbInfo,
       showFilterQuery,
+      showFilterType,
       gcbData,
       exportContextAnchor,
-      tableContextAnchor
+      tableContextAnchor,
+      filterContextAnchor,
     } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
@@ -1160,6 +1299,7 @@ class HostGcb extends Component {
         {showFilterQuery &&
           <FilterQuery
             page='gcb'
+            showFilterType={showFilterType}
             account={account}
             departmentList={departmentList}
             limitedDepartment={limitedDepartment}
@@ -1172,7 +1312,9 @@ class HostGcb extends Component {
             filter={gcbFilter}
             originalItemFilterList={GCB_FILTER_LIST}
             itemFilterList={gcbFilterList}
-            toggleFilterQuery={this.toggleFilterQuery} />
+            onFilterQuery={this.handleFilterQuery}
+            onDeleteFilterQuery={this.handleDeleteFilterQuery}
+            filterQueryList={filterQueryList} />
         }
 
         <div className='sub-header'>
@@ -1198,14 +1340,17 @@ class HostGcb extends Component {
               options={tableOptions}
               exportAnchor={exportContextAnchor}
               tableAnchor={tableContextAnchor}
+              filterAnchor={filterContextAnchor}
               getData={this.getGcbData}
               getActiveData={this.getActiveGcbInfo}
               handleAddWhitelist={this.confirmAddWhitelist}
               exportList={this.exportGcbList}
-              toggleFilterQuery={this.toggleFilterQuery}
+              onFilterQueryClick={this.showFilterQuery}
+              filterDataCount={filterDataCount}
               handleSearch={this.handleGcbChange}
               handleReset={this.handleResetBtn}
               handleExportMenu={this.handleExportOpenMenu}
+              handleFilterMenu={this.handleFilterOpenMenu}
               handleCloseMenu={this.handleCloseMenu} />
           </div>
         </div>

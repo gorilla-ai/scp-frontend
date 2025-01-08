@@ -15,7 +15,7 @@ import PopoverMaterial from '@material-ui/core/Popover'
 import TextField from '@material-ui/core/TextField'
 import TreeItem from '@material-ui/lab/TreeItem'
 import TreeView from '@material-ui/lab/TreeView'
-import Select from '@material-ui/core/Select'
+import Divider from '@material-ui/core/Divider';
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -26,6 +26,13 @@ import SearchFilter from './search-filter'
 
 let t = null;
 let f = null;
+
+const FORM_VALIDATION = {
+  queryName: {
+    valid: true,
+    msg: ''
+  }
+};
 
 /**
  * Host filter query component
@@ -43,13 +50,16 @@ class FilterQuery extends Component {
     this.state = {
       popOverAnchor: null,
       cpe23uriOperator: 'equal', //'equal' or 'like'
+      queryName: '',
       filterName: '',
       filterType: '',
       searchType: '',
       originalSystemList: [],
       systemList: [],
       filter: {},
-      itemFilterList: {}
+      itemFilterList: {},
+      formValidation: _.cloneDeep(FORM_VALIDATION),
+      filterQuerySelected: 'select'
     };
   }
   componentDidMount() {
@@ -70,12 +80,21 @@ class FilterQuery extends Component {
     })
   }
   componentDidUpdate(prevProps) {
-    const {filter, itemFilterList} = this.props;
+    const {filter, itemFilterList, filterQueryList} = this.props;
 
     if (!prevProps || (prevProps && filter !== prevProps.filter)) {
       this.setState({
         filter,
-        itemFilterList
+        itemFilterList,
+        formValidation: _.cloneDeep(FORM_VALIDATION)
+      });
+    }
+
+    if (prevProps.filterQueryList !== filterQueryList) {
+      this.setState({
+        filterQuerySelected: 'select',
+        queryName: '',
+        filter: {}
       });
     }
   }
@@ -143,11 +162,12 @@ class FilterQuery extends Component {
    */
   getSelectedItems = (checked, type, list, id) => {
     const {filter} = this.state;
+    let items = filter[type] ? filter[type] : [];
 
     if (checked) {
-      return _.concat(filter[type], ...list, id);
+      return _.concat(items, ...list, id);
     } else {
-      return _.without(filter[type], ...list, id);
+      return _.without(items, ...list, id);
     }
   }
   /**
@@ -217,7 +237,8 @@ class FilterQuery extends Component {
    * @param {object} event - event object
    */
   toggleSystemCheckbox = (tree, event) => {
-    const {systemList, itemFilterList} = this.state;
+    const {filter, systemList, itemFilterList} = this.state;
+    let tempFilter = {...filter};
     let tempSystemList = _.cloneDeep(systemList);
     let tempItemFilterList = {...itemFilterList};
 
@@ -271,7 +292,6 @@ class FilterQuery extends Component {
           }
         })
       })
-
       tempItemFilterList.system = systemSelected;
     }
 
@@ -285,8 +305,10 @@ class FilterQuery extends Component {
         tempItemFilterList.system.splice(index, 1);
       }
     }
+    tempFilter.system = _.map(tempItemFilterList.system, s => s === t('host.txt-noSystemDetected') ? 'noSystem' : s);
 
     this.setState({
+      filter: tempFilter,
       systemList: tempSystemList,
       itemFilterList: tempItemFilterList
     });
@@ -298,11 +320,31 @@ class FilterQuery extends Component {
    * @returns HTML DOM
    */
   getSystemTreeLabel = (tree) => {
+    const {systemList} = this.props;
+
+    let checked = false;
+    if (tree.type) {
+      if (tree.type === 'noSystem' && _.includes(this.state.filter.system, tree.type)) {
+        checked = true;
+      } else {
+        let system = _.find(systemList, ['type', tree.type])
+        if (system.children) {
+          _.forEach(system.children, child => {
+            if (_.includes(this.state.filter.system, child.name))
+              checked = true;
+          });
+        }
+      }
+    } else {
+      if (_.includes(this.state.filter.system, tree.name))
+        checked = true;
+    }
+
     return (
       <span>
         <Checkbox
           name={tree.name}
-          checked={tree.checked}
+          checked={tree.checked || checked}
           onChange={this.toggleSystemCheckbox.bind(this, tree)}
           color='primary'
           data-cy='hostSystemTreeCheckbox' />
@@ -358,6 +400,22 @@ class FilterQuery extends Component {
 
     this.setState({
       filter: tempFilter
+    });
+  }
+  handleQueryNameChange = (event) => {
+    this.setState({
+      queryName: event.target.value
+    });
+  }
+  handleFilterQueryChange = (event) => {
+    const {filterQueryList} = this.props;
+
+    let filterQuery = _.find(filterQueryList, ['id', event.target.value]);
+
+    this.setState({
+      filterQuerySelected: event.target.value,
+      queryName: filterQuery.name,
+      filter: filterQuery && filterQuery.content ? filterQuery.content : {}
     });
   }
   /**
@@ -566,7 +624,30 @@ class FilterQuery extends Component {
     if (displayType === 'text_field') {
 
       if (filterType) {
-        const value = itemFilterList[filterName] ? itemFilterList[filterName].join(', ') : '';
+        let value = itemFilterList[filterName] ? itemFilterList[filterName].join(', ') : '';
+
+        if (filterName === 'departmentSelected') {
+          const {departmentNameMapping} = this.props;
+
+          value = _.map(filter.departmentSelected, val => {
+            return departmentNameMapping[val];
+          }).join(', ');
+        }
+        if (filterName === 'system') {
+          value = _.map(filter.system, s => s ===  'noSystem' ? t('host.txt-noSystemDetected') : s).join(', ');
+        }
+        if (searchType === 'condition_input') {
+          value = _.map(filter[filterName], val => {
+            if (!val.input)
+              return null
+            return val.condition + ' ' + val.input;
+          }).join(', ');
+        }
+        if (searchType === 'input') {
+          value = _.map(filter[filterName], val => {
+            return val.input;
+          }).join(', ');
+        }
 
         return (
           <div key={i} className='group'>
@@ -601,7 +682,7 @@ class FilterQuery extends Component {
       }
 
     } else if (displayType === 'select_list') {
-      const value = filter[filterName] ? filter[filterName] : '';
+      const value = filter[filterName] !== undefined ? filter[filterName] : '';
 
       return (
         <div key={i} className='group'>
@@ -621,14 +702,14 @@ class FilterQuery extends Component {
         </div>
       )
     } else if (displayType === 'auto_complete') {
-      if (!filter[filterName]) return;
+      const value = filter[filterName] !== undefined ? filter[filterName] : [];
 
       return (
         <div key={i} className='group'>
           <Autocomplete
             className='combo-box'
             multiple
-            value={filter[filterName]}
+            value={value}
             options={selectOptions}
             getOptionLabel={(option) => option.text}
             disableCloseOnSelect
@@ -663,8 +744,8 @@ class FilterQuery extends Component {
    * @returns HTML DOM
    */
   displayFilterQuery = () => {
-    const {filterList} = this.props;
-    const {popOverAnchor} = this.state;
+    const {filterList, showFilterType, filterQueryList} = this.props;
+    const {queryName, popOverAnchor, formValidation, filterQuerySelected} = this.state;
 
     return (
       <div className='filter-section'>
@@ -685,8 +766,53 @@ class FilterQuery extends Component {
             {this.showFilterPopover()}
           </div>
         </PopoverMaterial>
+        {showFilterType && showFilterType == 'load' &&
+        <React.Fragment>
+          <div className='group'>
+            <TextField
+              label={t('txt-queryName')}
+              select
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={filterQuerySelected}
+              onChange={this.handleFilterQueryChange.bind(this)}>
+              <MenuItem value='select'>{t('txt-plsSelect')}</MenuItem>
+              {_.map(filterQueryList, item => {
+                return <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
+              })}
+            </TextField>
+          </div>
+          <Divider variant="middle" />
+          <div className='subtitle'>{t('txt-filterQuery')}</div>
+        </React.Fragment>
+        }
+        {showFilterType && showFilterType == 'save' &&
+        <React.Fragment>
+          <div className='group'>
+            <TextField
+              name={queryName}
+              label={t('txt-queryName')}
+              variant='outlined'
+              fullWidth
+              required
+              size='small'
+              onChange={this.handleQueryNameChange.bind(this)}
+              error={!formValidation.queryName.valid}
+              helperText={formValidation.queryName.msg}
+              value={queryName} />
+          </div>
+          <Divider variant="middle" />
+          <div className='subtitle'>{t('txt-filterQuery')}</div>
+        </React.Fragment>
+        }
         {filterList.map(this.showFilterDisplay)}
-        <Button id='hostClearFilter' variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter} data-cy='hostFilterQueryClearBtn'>{t('txt-clear')}</Button>
+        <div className='action'>
+          <Button id='hostClearFilter' variant='outlined' color='primary' className='clear-filter' onClick={this.clearFilter} data-cy='hostFilterQueryClearBtn'>{t('txt-clear')}</Button>
+          {showFilterType && showFilterType == 'load' && filterQuerySelected !== 'select' &&
+          <Button id='hostDeleteFilter' variant='outlined' color='primary' className='delete-filter' onClick={this.deleteFilter} data-cy='hostFilterQueryDeleteBtn'>{t('txt-deleteQuery')}</Button>
+          }
+        </div>
       </div>
     )
   }
@@ -711,6 +837,16 @@ class FilterQuery extends Component {
       }
     })
   }
+  deleteFilter = () => {
+    const {onDeleteFilterQuery} = this.props;
+    const {filterQuerySelected, queryName} = this.state;
+
+    onDeleteFilterQuery(filterQuerySelected, queryName);
+
+    this.setState({
+      filterQuerySelected: 'select'
+    });
+  }
   /**
    * Handle query dialog toggle
    * @method
@@ -718,10 +854,28 @@ class FilterQuery extends Component {
    */
   handleFilterToggle = (type) => {
     const {filterList} = this.props;
-    const {cpe23uriOperator, systemList, filter, itemFilterList} = this.state;
+    const {cpe23uriOperator, systemList, filter, itemFilterList, queryName} = this.state;
+
+    let validate = true;
+    if (type === 'save') {
+      let tempFormValidation = _.cloneDeep(FORM_VALIDATION);
+      if (!queryName) {
+        tempFormValidation.queryName.valid = false;
+        tempFormValidation.queryName.msg = t('txt-required');
+        validate = false;
+      }
+      this.setState({
+        formValidation: tempFormValidation,
+      });
+    }
+
+    if (!validate)
+      return;
+
     let filterData = {
       filter,
       itemFilterList,
+      queryName
     };
 
     _.forEach(filterList, val => {
@@ -732,19 +886,24 @@ class FilterQuery extends Component {
       }
     })
 
-    this.props.toggleFilterQuery(type, filterData);
+    this.props.onFilterQuery(type, filterData);
   }
   render() {
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.handleFilterToggle.bind(this, 'cancel')},
-      confirm: {text: t('txt-confirm'), handler: this.handleFilterToggle.bind(this, 'confirm')}
-    };
+    const {showFilterType} = this.props;
 
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.handleFilterToggle.bind(this, 'cancel')}
+    };
+    if (showFilterType === 'open' || showFilterType === 'load')
+      actions['confirm'] = {text: t('txt-search'), handler: this.handleFilterToggle.bind(this, 'confirm')};
+    if (showFilterType === 'save')
+      actions['confirm'] = {text: t('txt-save'), handler: this.handleFilterToggle.bind(this, 'save')};
+    
     return (
       <ModalDialog
         id='showFilterQueryDialog'
         className='modal-dialog'
-        title={t('txt-filterQuery')}
+        title={showFilterType === 'load' ? t('txt-openQuery') : showFilterType === 'save' ? t('txt-saveQuery') : t('txt-filterQuery')}
         draggable={true}
         global={true}
         actions={actions}
@@ -759,6 +918,7 @@ FilterQuery.contextType = BaseDataContext;
 
 FilterQuery.propTypes = {
   page: PropTypes.string.isRequired,
+  showFilterType: PropTypes.string,
   account: PropTypes.object.isRequired,
   departmentList: PropTypes.array.isRequired,
   departmentNameMapping: PropTypes.object.isRequired,
@@ -779,7 +939,9 @@ FilterQuery.propTypes = {
   filter: PropTypes.object.isRequired,
   originalItemFilterList: PropTypes.object.isRequired,
   itemFilterList: PropTypes.object.isRequired,
-  toggleFilterQuery: PropTypes.func.isRequired,
+  onFilterQuery: PropTypes.func.isRequired,
+  onDeleteFilterQuery: PropTypes.func,
+  filterQueryList: PropTypes.array,
   toggleCsvImport: PropTypes.func
 };
 

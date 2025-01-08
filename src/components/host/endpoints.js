@@ -249,12 +249,16 @@ class HostEndPoints extends Component {
       endpointsSearch: _.cloneDeep(ENDPOINTS_SEARCH),
       endpointsFilter: _.cloneDeep(ENDPOINTS_FILTER),
       endpointsFilterList: _.cloneDeep(ENDPOINTS_FILTER_LIST),
+      filterDataCount: 0,
       exportContextAnchor: null,
       tableContextAnchor: null,
       moreContextAnchor: null,
+      filterContextAnchor: null,
       showMemoInfo: false,
       showEndpointInfo: false,
       showFilterQuery: false,
+      showFilterType: 'open', // 'open', 'load', 'save'
+      filterQueryList: [],
       activeEndpointInfo: 'overview', //'overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid' or 'malware'
       departmentStatistics: [],
       departmentStatisticsAdmin: [],
@@ -884,20 +888,20 @@ class HostEndPoints extends Component {
    * @returns requestData object
    */
   getEndpointsFilterRequestData = () => {
-    const {endpointsSearch, endpointsFilter, endpointsFilterList} = this.state;
+    const {endpointsSearch, endpointsFilter} = this.state;
     let requestData = {};
 
     if (endpointsSearch.keyword) {
       requestData.hostNameOrIp = endpointsSearch.keyword;
     }
 
-    if (endpointsFilter.departmentSelected.length > 0) {
+    if (endpointsFilter.departmentSelected && endpointsFilter.departmentSelected.length > 0) {
       requestData.departmentArray = endpointsFilter.departmentSelected;
     }
 
-    if (endpointsFilterList.system.length > 0) {
-      const index = endpointsFilterList.system.indexOf(t('host.txt-noSystemDetected'));
-      let systemArray = _.cloneDeep(endpointsFilterList.system);
+    if (endpointsFilter.system && endpointsFilter.system.length > 0) {
+      const index = endpointsFilter.system.indexOf('noSystem');
+      let systemArray = _.cloneDeep(endpointsFilter.system);
 
       if (index > -1) {
         systemArray[index] = 'noExist';
@@ -906,28 +910,28 @@ class HostEndPoints extends Component {
       requestData.systemArray = systemArray;
     }
 
-    if (endpointsFilter.connectionStatus.length > 0) {
+    if (endpointsFilter.connectionStatus && endpointsFilter.connectionStatus.length > 0) {
       requestData.statusArray = _.map(endpointsFilter.connectionStatus, val => {
         return val.value;
       });
     }
 
-    if (endpointsFilter.version.length > 0) {
+    if (endpointsFilter.version && endpointsFilter.version.length > 0) {
       requestData.versionArray = _.map(endpointsFilter.version, val => {
         return val.value;
       });
     }
 
-    if (endpointsFilterList.riskValue.length > 0) {
-      requestData.riskValueArray = _.map(endpointsFilterList.riskValue, val => {
+    if (endpointsFilter.riskValue && endpointsFilter.riskValue.length > 0 && endpointsFilter.riskValue[0].input.length > 0) {
+      requestData.riskValueArray = _.map(endpointsFilter.riskValue, val => {
         return {
-          mode: CONDITION_MODE[val.substr(0, 1)],
-          riskValue: val.substr(2)
+          mode: CONDITION_MODE[val.condition],
+          riskValue: val.input
         }
       });
     }
 
-    if (endpointsFilter.risk.length > 0) {
+    if (endpointsFilter.risk && endpointsFilter.risk.length > 0) {
       const riskArray = _.map(endpointsFilter.risk, val => {
         return val.value.toUpperCase();
       });
@@ -935,8 +939,8 @@ class HostEndPoints extends Component {
       requestData.riskArray = riskArray;
     }
 
-    if (endpointsFilterList.memos.length > 0) {
-      requestData.memos = endpointsFilterList.memos;
+    if (endpointsFilter.memos && endpointsFilter.memos.length > 0 && endpointsFilter.memos[0].input.length > 0) {
+      requestData.memos = _.map(endpointsFilter.memos, val => val.input);
     }
 
     if (endpointsFilter.fileIntegrity === 'isEnabled' || endpointsFilter.fileIntegrity === 'isDisabled')
@@ -1530,7 +1534,8 @@ class HostEndPoints extends Component {
     this.setState({
       exportContextAnchor: null,
       tableContextAnchor: null,
-      moreContextAnchor: null
+      moreContextAnchor: null,
+      filterContextAnchor: null
     });
   }
   /**
@@ -2199,26 +2204,158 @@ class HostEndPoints extends Component {
     });
   }
   /**
-   * Toggle show filter query
+   * Show filter query
    * @method
-   * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
-   * @param {object} [filterData] - filter data
    */
-  toggleFilterQuery = (type, filterData) => {
-    if (type !== 'open') {
+  showFilterQuery = (type) => {
+    if (type === 'load') {
+      this.fetchFilterQuery()
+    }
+
+    this.setState({
+      showFilterQuery: true,
+      showFilterType: type,
+      filterContextAnchor: null
+    });
+  }
+  handleFilterQuery = (type, filterData) => {
+    if (type !== 'cancel') {
+      let filterDataCount = 0;
+      _.forEach(filterData.filter, (val, key) => {
+        if (typeof val === 'string') {
+          if (val !== '')
+            filterDataCount++;
+
+        } else if (Array.isArray(val)) {
+          if (val.length > 0 && val[0].input !== '')
+            filterDataCount++;
+
+        } else {
+          filterDataCount++;
+        }
+      })
+
       this.setState({
         systemList: filterData.systemList,
         endpointsFilter: filterData.filter,
-        endpointsFilterList: filterData.itemFilterList
+        endpointsFilterList: filterData.itemFilterList,
+        filterDataCount
       }, () => {
-        if (type === 'confirm') {
-          this.getEndpointsData();
-        }
+        this.getEndpointsData();
+        if (type === 'save')
+          this.saveFilterQuery(filterData.queryName);
       });
     }
 
     this.setState({
-      showFilterQuery: !this.state.showFilterQuery
+      showFilterQuery: false,
+      filterContextAnchor: null
+    });
+  }
+  handleDeleteFilterQuery = (id, queryName) => {
+    PopupDialog.prompt({
+      title: t('txt-deleteQuery'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: <div className='content delete'><span>{t('txt-delete-msg')}: {queryName}?</span></div>,
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteFilterQuery(id);
+        }
+      }
+    });
+  }
+  fetchFilterQuery = () => {
+    const {baseUrl} = this.context;
+    const {account, severityType} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?accountId=${account.id}&module=ENDPOINTS`,
+      type: 'GET',
+      pcontentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let filterQueryList = _.map(data, filter => {
+          let newFilter = {
+            id: filter.id,
+            name: filter.name,
+            content: _.cloneDeep(ENDPOINTS_FILTER_LIST)
+          };
+
+          if (filter.queryText) {
+            let conditionMode = _.invert(CONDITION_MODE);
+            let content = {
+              connectionStatus: filter.queryText.statusArray ? _.map(filter.queryText.statusArray, status => ({value: status, text: t('txt-' + status)})) : [],
+              departmentSelected: filter.queryText.departmentArray ? filter.queryText.departmentArray : [],
+              fileIntegrity: filter.queryText.fileIntegrityEnable === true ? 'isEnabled' : filter.queryText.fileIntegrityEnable === false ? 'isDisabled' : '',
+              memos: filter.queryText.memos ? _.map(filter.queryText.memos, memo => ({input: memo})) : [],
+              procMonitor: filter.queryText.processMonitorEnable ? 'isEnabled' : filter.queryText.processMonitorEnable === false ? 'isDisabled' : '',
+              risk: filter.queryText.riskArray ? _.map(filter.queryText.riskArray, risk => (_.find(severityType, ['value', _.lowerCase(risk)]))) : [],
+              riskValue: filter.queryText.riskValueArray ? _.map(filter.queryText.riskValueArray, riskValue => ({condition: conditionMode[riskValue.mode], input: riskValue.riskValue})) : [],
+              version: filter.queryText.versionArray ? _.map(filter.queryText.versionArray, version => ({value: version, text: t('txt-' + version)})) : [],
+              system: filter.queryText.systemArray ? _.map(filter.queryText.systemArray, system => (system === 'noExist' ? 'noSystem' : system)) : [],
+            }
+            newFilter.content = content;
+          }
+          return newFilter;
+        });
+
+        this.setState({filterQueryList});
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  saveFilterQuery = (queryName) => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    const requestData = {
+      ...this.getEndpointsFilterRequestData()
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText`,
+      data: JSON.stringify({
+        accountId: account.id,
+        module: 'ENDPOINTS',
+        name: queryName,
+        queryText: requestData
+      }),
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-querySaved'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  deleteFilterQuery = (id) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?id=${id}`,
+      type: 'DELETE',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.fetchFilterQuery();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     });
   }
   /**
@@ -2319,6 +2456,11 @@ class HostEndPoints extends Component {
   }
   executeMoreAction = (type, hmdObj) => {
     this.openConfirmModal(type, hmdObj)
+  }
+  handleFilterOpenMenu = (event) => {
+    this.setState({
+      filterContextAnchor: event.currentTarget
+    });
   }
   /**
    * Export endpoints list
@@ -2770,6 +2912,8 @@ class HostEndPoints extends Component {
       endpointsSearch,
       endpointsFilter,
       endpointsFilterList,
+      filterDataCount,
+      filterQueryList,
       departmentStatisticsAdmin,
       departmentStatistics,
       showMemoInfo,
@@ -2777,7 +2921,9 @@ class HostEndPoints extends Component {
       exportContextAnchor,
       tableContextAnchor,
       moreContextAnchor,
+      filterContextAnchor,
       showFilterQuery,
+      showFilterType,
       endpointsData,
       currentEndpointData
     } = this.state;
@@ -2820,6 +2966,7 @@ class HostEndPoints extends Component {
         {showFilterQuery &&
           <FilterQuery
             page='endpoints'
+            showFilterType={showFilterType}
             account={account}
             departmentList={departmentList}
             limitedDepartment={limitedDepartment}
@@ -2837,7 +2984,9 @@ class HostEndPoints extends Component {
             originalItemFilterList={ENDPOINTS_FILTER_LIST}
             itemFilterList={endpointsFilterList}
             toggleCsvImport={this.toggleCsvImport}
-            toggleFilterQuery={this.toggleFilterQuery} />
+            onFilterQuery={this.handleFilterQuery}
+            onDeleteFilterQuery={this.handleDeleteFilterQuery}
+            filterQueryList={filterQueryList} />
         }
 
         <div className='sub-header'>
@@ -2864,17 +3013,20 @@ class HostEndPoints extends Component {
               exportAnchor={exportContextAnchor}
               tableAnchor={tableContextAnchor}
               moreAnchor={moreContextAnchor}
+              filterAnchor={filterContextAnchor}
               getData={this.getEndpointsData}
               getActiveData={this.getActiveEndpointInfo}
               toggleShowMemo={this.toggleShowMemo}
               executeMoreAction={this.executeMoreAction}
               exportList={this.exportEndpointsList}
-              toggleFilterQuery={this.toggleFilterQuery}
+              onFilterQueryClick={this.showFilterQuery}
               toggleHmdUploadFile={this.toggleHmdUploadFile}
+              filterDataCount={filterDataCount}
               handleSearch={this.handleCpeChange}
               handleReset={this.handleResetBtn}
               handleExportMenu={this.handleExportOpenMenu}
               handleMoreMenu={this.handleMoreOpenMenu}
+              handleFilterMenu={this.handleFilterOpenMenu}
               handleCloseMenu={this.handleCloseMenu} />
           </div>
         </div>

@@ -4083,6 +4083,17 @@ button.standard:hover:not([disabled]) {
                 padding: .3em 1em;
               }
             }
+            &.MuiButtonGroup-root {
+              padding: 0;
+              height: 35px;
+              .MuiButtonGroup-groupedHorizontal:not(:last-child) {
+                margin-right: 0;
+                border-right: 1px solid var(--primaryBorder);
+              }
+              .MuiButtonGroup-groupedHorizontal:not(:first-child) {
+                margin-left: 0;
+              }
+            }
           }
         }
         .la-content {

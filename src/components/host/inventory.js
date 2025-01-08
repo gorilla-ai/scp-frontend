@@ -8,6 +8,7 @@ import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
@@ -162,10 +163,14 @@ class HostInventory extends Component {
       cpeSearch: _.cloneDeep(CPE_SEARCH),
       cpeFilter: _.cloneDeep(CPE_FILTER),
       cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
+      filterDataCount: 0,
       exportContextAnchor: null,
       tableContextAnchor: null,
+      filterContextAnchor: null,
       showCpeInfo: false,
       showFilterQuery: false,
+      showFilterType: 'open', // 'open', 'load', 'save'
+      filterQueryList: [],
       reportOpen: false,
       uploadCpeFileOpen: false,
       uploadedCPE: false,
@@ -543,20 +548,20 @@ class HostInventory extends Component {
    * @returns requestData object
    */
   getCpeFilterRequestData = () => {
-    const {cpe23uriOperator, cpeSearch, cpeFilter, cpeFilterList} = this.state;
+    const {cpe23uriOperator, cpeSearch, cpeFilter} = this.state;
     let requestData = {};
 
     if (cpeSearch.keyword) {
       requestData.product = cpeSearch.keyword;
     }
 
-    if (cpeFilter.departmentSelected.length > 0) {
+    if (cpeFilter.departmentSelected && cpeFilter.departmentSelected.length > 0) {
       requestData.departmentArray = cpeFilter.departmentSelected;
     }
 
-    if (cpeFilterList.system.length > 0) {
-      const index = cpeFilterList.system.indexOf(t('host.txt-noSystemDetected'));
-      let systemArray = _.cloneDeep(cpeFilterList.system);
+    if (cpeFilter.system && cpeFilter.system.length > 0) {
+      const index = cpeFilter.system.indexOf('noSystem');
+      let systemArray = _.cloneDeep(cpeFilter.system);
 
       if (index > -1) {
         systemArray[index] = 'noExist';
@@ -565,7 +570,7 @@ class HostInventory extends Component {
       requestData.systemArray = systemArray;
     }
 
-    if (cpeFilter.vendor.length > 0) {
+    if (cpeFilter.vendor && cpeFilter.vendor.length > 0) {
       const vendorArray = _.map(cpeFilter.vendor, val => {
         return val.value;
       });
@@ -573,26 +578,26 @@ class HostInventory extends Component {
       requestData.vendorArray = vendorArray;
     }
 
-    if (cpeFilterList.version.length > 0) {
-      requestData.versionArray = _.map(cpeFilterList.version, val => {
+    if (cpeFilter.version && cpeFilter.version.length > 0 && cpeFilter.version[0].input.length > 0) {
+      requestData.versionArray = _.map(cpeFilter.version, val => {
         return {
-          mode: CONDITION_MODE[val.substr(0, 1)],
-          version: val.substr(2)
+          mode: CONDITION_MODE[val.condition],
+          version: val.input
         }
       });
     }
 
-    if (cpeFilterList.vulnerabilityNum.length > 0) {
-      requestData.vulnerabilityNumArray = _.map(cpeFilterList.vulnerabilityNum, val => {
+    if (cpeFilter.vulnerabilityNum && cpeFilter.vulnerabilityNum.length > 0 && cpeFilter.vulnerabilityNum[0].input.length > 0) {
+      requestData.vulnerabilityNumArray = _.map(cpeFilter.vulnerabilityNum, val => {
         return {
-          mode: CONDITION_MODE[val.substr(0, 1)],
-          vulnerabilityNum: Number(val.substr(2))
+          mode: CONDITION_MODE[val.condition],
+          vulnerabilityNum: Number(val.input)
         }
       });
     }
 
-    if (cpeFilterList.cpe23uri && cpeFilterList.cpe23uri.length > 0) {
-      requestData.cpe23uriArray = cpeFilterList.cpe23uri;
+    if (cpeFilter.cpe23uri && cpeFilter.cpe23uri.length > 0) {
+      requestData.cpe23uriArray = cpeFilter.cpe23uri;
       requestData.cpe23uriOperator = cpe23uriOperator;
     }
 
@@ -834,7 +839,8 @@ class HostInventory extends Component {
   handleCloseMenu = () => {
     this.setState({
       exportContextAnchor: null,
-      tableContextAnchor: null
+      tableContextAnchor: null,
+      filterContextAnchor: null
     });
   }
   /**
@@ -1151,27 +1157,157 @@ class HostInventory extends Component {
     });
   }
   /**
-   * Toggle show filter query
+   * Show filter query
    * @method
-   * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
-   * @param {object} [filterData] - filter data
-   */
-  toggleFilterQuery = (type, filterData) => {
-    if (type !== 'open') {
+  */
+  showFilterQuery = (type) => {
+    if (type === 'load') {
+      this.fetchFilterQuery()
+    }
+
+    this.setState({
+      showFilterQuery: true,
+      showFilterType: type,
+      filterContextAnchor: null
+    });
+  }
+  handleFilterQuery = (type, filterData) => {
+    if (type !== 'cancel') {
+      let filterDataCount = 0;
+      _.forEach(filterData.filter, (val, key) => {
+        if (typeof val === 'string') {
+          if (val !== '' && key !== 'cpe23uriOperator')
+            filterDataCount++;
+
+        } else if (Array.isArray(val)) {
+          if (val.length > 0 && val[0].input !== '')
+            filterDataCount++;
+
+        } else {
+          filterDataCount++;
+        }
+      })
+
       this.setState({
         systemList: filterData.systemList,
         cpe23uriOperator: filterData.cpe23uriOperator,
         cpeFilter: filterData.filter,
-        cpeFilterList: filterData.itemFilterList
+        cpeFilterList: filterData.itemFilterList,
+        filterDataCount
       }, () => {
-        if (type === 'confirm') {
-          this.getCpeData();
-        }
+        this.getCpeData();
+        if (type === 'save')
+          this.saveFilterQuery(filterData.queryName);
       });
     }
 
     this.setState({
-      showFilterQuery: !this.state.showFilterQuery
+      showFilterQuery: false,
+      filterContextAnchor: null
+    });
+  }
+  handleDeleteFilterQuery = (id, queryName) => {
+    PopupDialog.prompt({
+      title: t('txt-deleteQuery'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: <div className='content delete'><span>{t('txt-delete-msg')}: {queryName}?</span></div>,
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteFilterQuery(id);
+        }
+      }
+    });
+  }
+  fetchFilterQuery = () => {
+    const {baseUrl} = this.context;
+    const {account, vendorType} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?accountId=${account.id}&module=CPE`,
+      type: 'GET',
+      pcontentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let filterQueryList = _.map(data, filter => {
+          let newFilter = {
+            id: filter.id,
+            name: filter.name,
+            content: _.cloneDeep(CPE_FILTER_LIST)
+          };
+
+          if (filter.queryText) {
+            let conditionMode = _.invert(CONDITION_MODE);
+            let content = {
+              departmentSelected: filter.queryText.departmentArray ? filter.queryText.departmentArray : [],
+              system: filter.queryText.systemArray ? _.map(filter.queryText.systemArray, system => (system === 'noExist' ? 'noSystem' : system)) : [],
+              vendor: filter.queryText.vendorArray ? _.map(filter.queryText.vendorArray, vendor => (_.find(vendorType, ['value', vendor]))) : [],
+              version: filter.queryText.versionArray ? _.map(filter.queryText.versionArray, version => ({condition: conditionMode[version.mode], input: version.version})) : [],
+              vulnerabilityNum: filter.queryText.vulnerabilityNumArray ? _.map(filter.queryText.vulnerabilityNumArray, vulnerabilityNum => ({condition: conditionMode[vulnerabilityNum.mode], input: vulnerabilityNum.vulnerabilityNum})) : [],
+              cpe23uri: filter.queryText.cpe23uriArray ? _.map(filter.queryText.cpe23uriArray, cpe23uri => (cpe23uri)) : [],
+              cpe23uriOperator: filter.queryText.cpe23uriOperator ? filter.queryText.cpe23uriOperator : ''              
+            }
+            newFilter.content = content;
+          }
+          return newFilter;
+        });
+
+        this.setState({filterQueryList});
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  saveFilterQuery = (queryName) => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    const requestData = {
+      ...this.getCpeFilterRequestData()
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText`,
+      data: JSON.stringify({
+        accountId: account.id,
+        module: 'CPE',
+        name: queryName,
+        queryText: requestData
+      }),
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-querySaved'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  deleteFilterQuery = (id) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?id=${id}`,
+      type: 'DELETE',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.fetchFilterQuery();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     });
   }
   /**
@@ -1249,6 +1385,11 @@ class HostInventory extends Component {
     })
 
     this.toggleCsvImport();
+  }
+  handleFilterOpenMenu = (event) => {
+    this.setState({
+      filterContextAnchor: event.currentTarget
+    });
   }
   /**
    * Handle export open menu
@@ -1366,10 +1507,14 @@ class HostInventory extends Component {
       cpeSearch,
       cpeFilter,
       cpeFilterList,
+      filterDataCount,
+      filterQueryList,
       showCpeInfo,
       exportContextAnchor,
       tableContextAnchor,
+      filterContextAnchor,
       showFilterQuery,
+      showFilterType,
       reportOpen,
       uploadCpeFileOpen,
       uploadedCPE,
@@ -1396,6 +1541,7 @@ class HostInventory extends Component {
         {showFilterQuery &&
           <FilterQuery
             page='inventory'
+            showFilterType={showFilterType}
             account={account}
             departmentList={departmentList}
             limitedDepartment={limitedDepartment}
@@ -1409,7 +1555,9 @@ class HostInventory extends Component {
             originalItemFilterList={CPE_FILTER_LIST}
             itemFilterList={cpeFilterList}
             toggleCsvImport={this.toggleCsvImport}
-            toggleFilterQuery={this.toggleFilterQuery} />
+            onFilterQuery={this.handleFilterQuery}
+            onDeleteFilterQuery={this.handleDeleteFilterQuery}
+            filterQueryList={filterQueryList} />
         }
 
         {reportOpen &&
@@ -1452,14 +1600,17 @@ class HostInventory extends Component {
               options={tableOptions}
               exportAnchor={exportContextAnchor}
               tableAnchor={tableContextAnchor}
+              filterAnchor={filterContextAnchor}
               getData={this.getCpeData}
               getActiveData={this.getActiveCpeInfo}
               exportList={this.exportCpeList}
               toggleReport={this.toggleReport}
-              toggleFilterQuery={this.toggleFilterQuery}
+              onFilterQueryClick={this.showFilterQuery}
+              filterDataCount={filterDataCount}
               handleSearch={this.handleCpeChange}
               handleReset={this.handleResetBtn}
               handleExportMenu={this.handleExportOpenMenu}
+              handleFilterMenu={this.handleFilterOpenMenu}
               handleCloseMenu={this.handleCloseMenu} />
           </div>
         </div>

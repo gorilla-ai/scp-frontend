@@ -1,22 +1,12 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
-import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 import Button from '@material-ui/core/Button'
-import Checkbox from '@material-ui/core/Checkbox'
-import ChevronRightIcon from '@material-ui/icons/ChevronRight'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import Menu from '@material-ui/core/Menu'
-import MenuItem from '@material-ui/core/MenuItem'
-import PopoverMaterial from '@material-ui/core/Popover'
-import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
-import TreeItem from '@material-ui/lab/TreeItem'
-import TreeView from '@material-ui/lab/TreeView'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
@@ -25,7 +15,6 @@ import FilterQuery from './common/filter-query'
 import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
 import HostMenu from './common/host-menu'
-import MuiTableContent from '../common/mui-table-content'
 import ReportRecord from './common/report-record'
 import TableList from './common/table-list'
 import UploadFile from './common/upload-file'
@@ -108,9 +97,13 @@ class HostKbid extends Component {
       kbidSearch: _.cloneDeep(KBID_SEARCH),
       kbidFilter: _.cloneDeep(KBID_FILTER),
       kbidFilterList: _.cloneDeep(KBID_FILTER_LIST),
+      filterDataCount: 0,
       tableContextAnchor: null,
       exportContextAnchor: null,
+      filterContextAnchor: null,
       showFilterQuery: false,
+      showFilterType: 'open', // 'open', 'load', 'save'
+      filterQueryList: [],
       reportOpen: false,
       uploadKbidFileOpen: false,
       uploadedKBID: false,
@@ -407,20 +400,20 @@ class HostKbid extends Component {
    * @returns requestData object
    */
   getKbidFilterRequestData = () => {
-    const {kbidSearch, kbidFilter, kbidFilterList} = this.state;
+    const {kbidSearch, kbidFilter} = this.state;
     let requestData = {};
 
     if (kbidSearch.keyword) {
       requestData.kbid = kbidSearch.keyword;
     }
 
-    if (kbidFilter.departmentSelected.length > 0) {
+    if (kbidFilter.departmentSelected && kbidFilter.departmentSelected.length > 0) {
       requestData.departmentArray = kbidFilter.departmentSelected;
     }
 
-    if (kbidFilterList.system.length > 0) {
-      const index = kbidFilterList.system.indexOf(t('host.txt-noSystemDetected'));
-      let systemArray = _.cloneDeep(kbidFilterList.system);
+    if (kbidFilter.system && kbidFilter.system.length > 0) {
+      const index = kbidFilter.system.indexOf('noSystem');
+      let systemArray = _.cloneDeep(kbidFilter.system);
 
       if (index > -1) {
         systemArray[index] = 'noExist';
@@ -543,7 +536,8 @@ class HostKbid extends Component {
   handleCloseMenu = () => {
     this.setState({
       tableContextAnchor: null,
-      exportContextAnchor: null
+      exportContextAnchor: null,
+      filterContextAnchor: null
     });
   }
   /**
@@ -768,26 +762,155 @@ class HostKbid extends Component {
     });
   }
   /**
-   * Toggle show filter query
+   * Show filter query
    * @method
-   * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
-   * @param {object} [filterData] - filter data
-   */
-  toggleFilterQuery = (type, filterData) => {
-    if (type !== 'open') {
+  */
+  showFilterQuery = (type) => {
+    if (type === 'load') {
+      this.fetchFilterQuery()
+    }
+
+    this.setState({
+      showFilterQuery: true,
+      showFilterType: type,
+      filterContextAnchor: null
+    });
+  }
+  handleFilterQuery = (type, filterData) => {
+    if (type !== 'cancel') {
+      let filterDataCount = 0;
+      _.forEach(filterData.filter, (val, key) => {
+        if (typeof val === 'string') {
+          if (val !== '')
+            filterDataCount++;
+
+        } else if (Array.isArray(val)) {
+          if (val.length > 0 && val[0].input !== '')
+            filterDataCount++;
+
+        } else {
+          filterDataCount++;
+        }
+      })
+
       this.setState({
         systemList: filterData.systemList,
         kbidFilter: filterData.filter,
-        kbidFilterList: filterData.itemFilterList
+        kbidFilterList: filterData.itemFilterList,
+        filterDataCount
       }, () => {
-        if (type === 'confirm') {
-          this.getKbidData();
-        }
+        this.getKbidData();
+        if (type === 'save')
+          this.saveFilterQuery(filterData.queryName);
       });
     }
 
     this.setState({
-      showFilterQuery: !this.state.showFilterQuery
+      showFilterQuery: false,
+      filterContextAnchor: null
+    });
+  }
+  handleDeleteFilterQuery = (id, queryName) => {
+    PopupDialog.prompt({
+      title: t('txt-deleteQuery'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: <div className='content delete'><span>{t('txt-delete-msg')}: {queryName}?</span></div>,
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteFilterQuery(id);
+        }
+      }
+    });
+  }
+  fetchFilterQuery = () => {
+    const {baseUrl} = this.context;
+    const {account, severityType} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?accountId=${account.id}&module=KBID`,
+      type: 'GET',
+      pcontentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let filterQueryList = _.map(data, filter => {
+          let newFilter = {
+            id: filter.id,
+            name: filter.name,
+            content: _.cloneDeep(KBID_FILTER_LIST)
+          };
+
+          if (filter.queryText) {
+            let content = {
+              departmentSelected: filter.queryText.departmentArray ? filter.queryText.departmentArray : [],
+              system: filter.queryText.systemArray ? _.map(filter.queryText.systemArray, system => (system === 'noExist' ? 'noSystem' : system)) : []
+            }
+            newFilter.content = content;
+          }
+          return newFilter;
+        });
+
+        this.setState({filterQueryList});
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  saveFilterQuery = (queryName) => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    const requestData = {
+      ...this.getKbidFilterRequestData()
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText`,
+      data: JSON.stringify({
+        accountId: account.id,
+        module: 'KBID',
+        name: queryName,
+        queryText: requestData
+      }),
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-querySaved'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  deleteFilterQuery = (id) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?id=${id}`,
+      type: 'DELETE',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.fetchFilterQuery();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  handleFilterOpenMenu = (event) => {
+    this.setState({
+      filterContextAnchor: event.currentTarget
     });
   }
   /**
@@ -897,9 +1020,13 @@ class HostKbid extends Component {
       kbidSearch,
       kbidFilter,
       kbidFilterList,
+      filterDataCount,
+      filterQueryList,
       tableContextAnchor,
       exportContextAnchor,
+      filterContextAnchor,
       showFilterQuery,
+      showFilterType,
       reportOpen,
       uploadKbidFileOpen,
       uploadedKBID,
@@ -923,6 +1050,7 @@ class HostKbid extends Component {
         {showFilterQuery &&
           <FilterQuery
             page='kbid'
+            showFilterType={showFilterType}
             account={account}
             departmentList={departmentList}
             limitedDepartment={limitedDepartment}
@@ -934,7 +1062,9 @@ class HostKbid extends Component {
             filter={kbidFilter}
             originalItemFilterList={KBID_FILTER_LIST}
             itemFilterList={kbidFilterList}
-            toggleFilterQuery={this.toggleFilterQuery} />
+            onFilterQuery={this.handleFilterQuery}
+            onDeleteFilterQuery={this.handleDeleteFilterQuery}
+            filterQueryList={filterQueryList} />
         }
 
         {reportOpen &&
@@ -974,14 +1104,17 @@ class HostKbid extends Component {
               options={tableOptions}
               tableAnchor={tableContextAnchor}
               exportAnchor={exportContextAnchor}
+              filterAnchor={filterContextAnchor}
               getData={this.getKbidData}
               getActiveData={this.getExposedDevices}
               exportList={this.exportKbidList}
               toggleReport={this.toggleReport}
-              toggleFilterQuery={this.toggleFilterQuery}
+              onFilterQueryClick={this.showFilterQuery}
+              filterDataCount={filterDataCount}
               handleSearch={this.handleKbidChange}
               handleReset={this.handleResetBtn}
               handleExportMenu={this.handleExportOpenMenu}
+              handleFilterMenu={this.handleFilterOpenMenu}
               handleCloseMenu={this.handleCloseMenu} />
           </div>
         </div>

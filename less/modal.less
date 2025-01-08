@@ -3257,20 +3257,37 @@ html[data-theme='dark'] {
 }
 #showFilterQueryDialog-content {
   width: 500px;
-  overflow: hidden;
+  overflow: auto;
   .filter-section {
     input {
-      width: auto;
+      width: 100%;
+      &.MuiAutocomplete-input {
+        width: auto;
+      }
     }
     .group {
       margin: 20px 0;
     }
+    .action {
+      text-align: right;
+    }
     .clear-filter {
-      float: right;
       margin: 5px 0 10px 0;
+    }
+    .delete-filter {
+      margin: 5px 0 10px 5px;
     }
     button:hover:not([disabled]) {
       background: none;
+    }
+    .MuiDivider-root {
+      margin: 0;
+    }
+    .subtitle {
+      margin: 10px 5px 0 5px;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: var(--primaryContentHeader);
     }
   }
 }

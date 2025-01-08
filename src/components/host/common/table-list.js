@@ -14,6 +14,13 @@ import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 import MoreHorizIcon from '@material-ui/icons/MoreHoriz'
 import Divider from '@material-ui/core/Divider'
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Grow from '@material-ui/core/Grow';
+import Paper from '@material-ui/core/Paper';
+import Popper from '@material-ui/core/Popper';
+import MenuList from '@material-ui/core/MenuList';
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
@@ -168,8 +175,8 @@ class TableList extends Component {
       tableAnchor,
       exportAnchor,
       moreAnchor,
-      cveSeverityLevel,
-      monthlySeverityTrend
+      filterAnchor,
+      filterDataCount
     } = this.props;
     const {datePickerOpen} = this.state;
     const {sessionRights} = this.context;
@@ -313,7 +320,28 @@ class TableList extends Component {
                 </NestedMenuItem>
               </Menu>
             }
-            <Button id='hostFilterQuery' variant='outlined' color='primary' className='standard btn' onClick={this.props.toggleFilterQuery.bind(this, 'open')} data-cy='hostFilterQueryBtn'>{t('txt-filterQuery')}</Button>
+            <ButtonGroup className='standard btn' variant="outlined" color="primary" ref={ref => {this.menuItemRef = ref}} aria-label="split button">
+              <Button id='hostFilterQuery' className='standard' onClick={this.props.onFilterQueryClick.bind(this, 'open')} data-cy='hostFilterQueryBtn'>{t('txt-filterQuery')}&nbsp;<span>({filterDataCount})</span></Button>
+              <Button
+                size="small"
+                className='standard'
+                aria-controls={Boolean(filterAnchor) ? 'split-button-menu' : undefined}
+                aria-expanded={Boolean(filterAnchor) ? 'true' : undefined}
+                aria-label="select merge strategy"
+                aria-haspopup="menu"
+                onClick={this.props.handleFilterMenu}
+              >
+                <ArrowDropDownIcon />
+              </Button>
+              <Menu
+                anchorEl={filterAnchor}
+                keepMounted
+                open={Boolean(filterAnchor)}
+                onClose={this.props.handleCloseMenu}>
+                <MenuItem onClick={this.props.onFilterQueryClick.bind(this, 'load')}>{t('txt-openQuery')}</MenuItem>
+                <MenuItem onClick={this.props.onFilterQueryClick.bind(this, 'save')}>{t('txt-saveQuery')}</MenuItem>
+              </Menu>
+            </ButtonGroup>
             {page === 'gcb' &&
               <React.Fragment>
                 <Button id='hostExportMenu' variant='outlined' color='primary' className='standard btn' onClick={this.props.handleExportMenu} data-cy='hostExportBtn'>{t('txt-export')}</Button>
@@ -396,7 +424,8 @@ TableList.propTypes = {
   toggleShowMemo: PropTypes.func,
   executeMoreAction: PropTypes.func,
   exportList: PropTypes.func.isRequired,
-  toggleFilterQuery: PropTypes.func.isRequired,
+  onFilterQueryClick: PropTypes.func.isRequired,
+  filterDataCount: PropTypes.number.isRequired,
   handleSearch: PropTypes.func.isRequired,
   handleReset: PropTypes.func.isRequired,
   handleCloseMenu: PropTypes.func.isRequired,

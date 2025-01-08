@@ -1,29 +1,15 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
-import PropTypes from 'prop-types'
 import _ from 'lodash'
 import moment from 'moment'
 
-import Autocomplete from '@material-ui/lab/Autocomplete'
 import Button from '@material-ui/core/Button'
-import Checkbox from '@material-ui/core/Checkbox'
-import CheckBoxIcon from '@material-ui/icons/CheckBox'
-import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
-import ChevronRightIcon from '@material-ui/icons/ChevronRight'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import Menu from '@material-ui/core/Menu'
-import MenuItem from '@material-ui/core/MenuItem'
-import PopoverMaterial from '@material-ui/core/Popover'
-import TextField from '@material-ui/core/TextField'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
-import TreeItem from '@material-ui/lab/TreeItem'
-import TreeView from '@material-ui/lab/TreeView'
 
 import BarChart from 'react-chart/build/src/components/bar'
-import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import MultiInput from 'react-ui/build/src/components/multi-input'
 import PieChart from 'react-chart/build/src/components/pie'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
@@ -32,7 +18,6 @@ import FilterQuery from './common/filter-query'
 import GeneralDialog from './common/general-dialog'
 import helper from '../common/helper'
 import HostMenu from './common/host-menu'
-import MuiTableContent from '../common/mui-table-content'
 import TableList from './common/table-list'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -147,8 +132,10 @@ class HostVulnerabilities extends Component {
       cveSearch: _.cloneDeep(CVE_SEARCH),
       cveFilter: _.cloneDeep(CVE_FILTER),
       cveFilterList: _.cloneDeep(CVE_FILTER_LIST),
+      filterDataCount: 0,
       exportContextAnchor: null,
       tableContextAnchor: null,
+      filterContextAnchor: null,
       cveSeverityLevel: {
         data: null,
         count: 0
@@ -156,6 +143,8 @@ class HostVulnerabilities extends Component {
       monthlySeverityTrend: null,
       showCveInfo: false,
       showFilterQuery: false,
+      showFilterType: 'open', // 'open', 'load', 'save'
+      filterQueryList: [],
       activeCveInfo: 'vulnerabilityDetails', //'vulnerabilityDetails', 'exposedDevices' or 'relatedSoftware'
       cveData: {
         dataFieldsArr: ['_menu', 'cveId', 'severity', 'cvss', 'relatedSoftware', 'exposedDevices', 'fixedDevices'],
@@ -654,18 +643,18 @@ class HostVulnerabilities extends Component {
    * @returns requestData object
    */
   getCveFilterRequestData = () => {
-    const {cveSearch, cveFilter, cveFilterList} = this.state;
+    const {cveSearch, cveFilter} = this.state;
     let requestData = {};
 
     if (cveSearch.keyword) {
       requestData.cveId = cveSearch.keyword;
     }
 
-    if (cveFilter.departmentSelected.length > 0) {
+    if (cveFilter.departmentSelected && cveFilter.departmentSelected.length > 0) {
       requestData.departmentArray = cveFilter.departmentSelected;
     }
 
-    if (cveFilter.severity.length > 0) {
+    if (cveFilter.severity && cveFilter.severity.length > 0) {
       const severityArray = _.map(cveFilter.severity, val => {
         return val.value.toUpperCase();
       });
@@ -673,11 +662,11 @@ class HostVulnerabilities extends Component {
       requestData.severityArray = severityArray;
     }
 
-    if (cveFilterList.cvss.length > 0) {
-      requestData.cvssArray = _.map(cveFilterList.cvss, val => {
+    if (cveFilter.cvss && cveFilter.cvss.length > 0 && cveFilter.cvss[0].input.length > 0) {
+      requestData.cvssArray = _.map(cveFilter.cvss, val => {
         return {
-          mode: CONDITION_MODE[val.substr(0, 1)],
-          cvss: val.substr(2)
+          mode: CONDITION_MODE[val.condition],
+          cvss: val.input
         }
       });
     }
@@ -943,7 +932,8 @@ class HostVulnerabilities extends Component {
   handleCloseMenu = () => {
     this.setState({
       exportContextAnchor: null,
-      tableContextAnchor: null
+      tableContextAnchor: null,
+      filterContextAnchor: null
     });
   }
   /**
@@ -1253,25 +1243,156 @@ class HostVulnerabilities extends Component {
     });
   }
   /**
-   * Toggle show filter query
+   * Show filter query
    * @method
-   * @param {string} type - dialog type ('open', 'confirm' or 'cancel')
-   * @param {object} [filterData] - filter data
-   */
-  toggleFilterQuery = (type, filterData) => {
-    if (type !== 'open') {
+  */
+  showFilterQuery = (type) => {
+    if (type === 'load') {
+      this.fetchFilterQuery()
+    }
+
+    this.setState({
+      showFilterQuery: true,
+      showFilterType: type,
+      filterContextAnchor: null
+    });
+  }
+  handleFilterQuery = (type, filterData) => {
+    if (type !== 'cancel') {
+      let filterDataCount = 0;
+      _.forEach(filterData.filter, (val, key) => {
+        if (typeof val === 'string') {
+          if (val !== '')
+            filterDataCount++;
+
+        } else if (Array.isArray(val)) {
+          if (val.length > 0 && val[0].input !== '')
+            filterDataCount++;
+
+        } else {
+          filterDataCount++;
+        }
+      })
+
       this.setState({
         cveFilter: filterData.filter,
-        cveFilterList: filterData.itemFilterList
+        cveFilterList: filterData.itemFilterList,
+        filterDataCount
       }, () => {
-        if (type === 'confirm') {
-          this.getCveData();
-        }
+        this.getCveData();
+        if (type === 'save')
+          this.saveFilterQuery(filterData.queryName);
       });
     }
 
     this.setState({
-      showFilterQuery: !this.state.showFilterQuery
+      showFilterQuery: false,
+      filterContextAnchor: null
+    });
+  }
+  handleDeleteFilterQuery = (id, queryName) => {
+    PopupDialog.prompt({
+      title: t('txt-deleteQuery'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: <div className='content delete'><span>{t('txt-delete-msg')}: {queryName}?</span></div>,
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteFilterQuery(id);
+        }
+      }
+    });
+  }
+  fetchFilterQuery = () => {
+    const {baseUrl} = this.context;
+    const {account, severityType} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?accountId=${account.id}&module=CVE`,
+      type: 'GET',
+      pcontentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let filterQueryList = _.map(data, filter => {
+          let newFilter = {
+            id: filter.id,
+            name: filter.name,
+            content: _.cloneDeep(CVE_FILTER_LIST)
+          };
+
+          if (filter.queryText) {
+            let conditionMode = _.invert(CONDITION_MODE);
+            let content = {
+              departmentSelected: filter.queryText.departmentArray ? filter.queryText.departmentArray : [],
+              severity: filter.queryText.severityArray ? _.map(filter.queryText.severityArray, severity => ({value: severity.toLowerCase(), text: t('txt-' + severity.toLowerCase())})) : [],
+              cvss: filter.queryText.cvssArray ? _.map(filter.queryText.cvssArray, cvss => ({condition: conditionMode[cvss.mode], input: cvss.cvss})) : []
+            }
+            newFilter.content = content;
+          }
+          return newFilter;
+        });
+
+        this.setState({filterQueryList});
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  saveFilterQuery = (queryName) => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    const requestData = {
+      ...this.getCveFilterRequestData()
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText`,
+      data: JSON.stringify({
+        accountId: account.id,
+        module: 'CVE',
+        name: queryName,
+        queryText: requestData
+      }),
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-querySaved'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  deleteFilterQuery = (id) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?id=${id}`,
+      type: 'DELETE',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.fetchFilterQuery();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  handleFilterOpenMenu = (event) => {
+    this.setState({
+      filterContextAnchor: event.currentTarget
     });
   }
   /**
@@ -1336,13 +1457,17 @@ class HostVulnerabilities extends Component {
       cveSearch,
       cveFilter,
       cveFilterList,
+      filterDataCount,
+      filterQueryList,
       cveSeverityLevel,
       monthlySeverityTrend,
       showCveInfo,
       showFilterQuery,
+      showFilterType,
       cveData,
       exportContextAnchor,
-      tableContextAnchor
+      tableContextAnchor,
+      filterContextAnchor
     } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
@@ -1365,6 +1490,7 @@ class HostVulnerabilities extends Component {
         {showFilterQuery &&
           <FilterQuery
             page='vulnerabilities'
+            showFilterType={showFilterType}
             account={account}
             departmentList={departmentList}
             limitedDepartment={limitedDepartment}
@@ -1375,7 +1501,9 @@ class HostVulnerabilities extends Component {
             filter={cveFilter}
             originalItemFilterList={CVE_FILTER_LIST}
             itemFilterList={cveFilterList}
-            toggleFilterQuery={this.toggleFilterQuery} />
+            onFilterQuery={this.handleFilterQuery}
+            onDeleteFilterQuery={this.handleDeleteFilterQuery}
+            filterQueryList={filterQueryList} />
         }
 
         <div className='sub-header'>
@@ -1401,13 +1529,16 @@ class HostVulnerabilities extends Component {
               options={tableOptions}
               exportAnchor={exportContextAnchor}
               tableAnchor={tableContextAnchor}
+              filterAnchor={filterContextAnchor}
               getData={this.getCveData}
               getActiveData={this.getActiveCveInfo}
               exportList={this.exportCveList}
-              toggleFilterQuery={this.toggleFilterQuery}
+              onFilterQueryClick={this.showFilterQuery}
+              filterDataCount={filterDataCount}
               handleSearch={this.handleCveChange}
               handleReset={this.handleResetBtn}
               handleExportMenu={this.handleExportOpenMenu}
+              handleFilterMenu={this.handleFilterOpenMenu}
               handleCloseMenu={this.handleCloseMenu} />
           </div>
         </div>
