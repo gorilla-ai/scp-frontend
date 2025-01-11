@@ -1246,7 +1246,7 @@ class HostVulnerabilities extends Component {
    * Show filter query
    * @method
   */
-  showFilterQuery = (type) => {
+  handleShowFilterQuery = (type) => {
     if (type === 'load') {
       this.fetchFilterQuery()
     }
@@ -1533,7 +1533,7 @@ class HostVulnerabilities extends Component {
               getData={this.getCveData}
               getActiveData={this.getActiveCveInfo}
               exportList={this.exportCveList}
-              onFilterQueryClick={this.showFilterQuery}
+              onFilterQueryClick={this.handleShowFilterQuery}
               filterDataCount={filterDataCount}
               handleSearch={this.handleCveChange}
               handleReset={this.handleResetBtn}

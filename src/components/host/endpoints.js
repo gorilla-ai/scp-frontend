@@ -2207,7 +2207,7 @@ class HostEndPoints extends Component {
    * Show filter query
    * @method
    */
-  showFilterQuery = (type) => {
+  handleShowFilterQuery = (type) => {
     if (type === 'load') {
       this.fetchFilterQuery()
     }
@@ -3019,7 +3019,7 @@ class HostEndPoints extends Component {
               toggleShowMemo={this.toggleShowMemo}
               executeMoreAction={this.executeMoreAction}
               exportList={this.exportEndpointsList}
-              onFilterQueryClick={this.showFilterQuery}
+              onFilterQueryClick={this.handleShowFilterQuery}
               toggleHmdUploadFile={this.toggleHmdUploadFile}
               filterDataCount={filterDataCount}
               handleSearch={this.handleCpeChange}

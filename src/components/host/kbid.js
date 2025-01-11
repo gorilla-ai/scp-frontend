@@ -765,7 +765,7 @@ class HostKbid extends Component {
    * Show filter query
    * @method
   */
-  showFilterQuery = (type) => {
+  handleShowFilterQuery = (type) => {
     if (type === 'load') {
       this.fetchFilterQuery()
     }
@@ -1109,7 +1109,7 @@ class HostKbid extends Component {
               getActiveData={this.getExposedDevices}
               exportList={this.exportKbidList}
               toggleReport={this.toggleReport}
-              onFilterQueryClick={this.showFilterQuery}
+              onFilterQueryClick={this.handleShowFilterQuery}
               filterDataCount={filterDataCount}
               handleSearch={this.handleKbidChange}
               handleReset={this.handleResetBtn}

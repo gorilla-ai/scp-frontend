@@ -1069,7 +1069,7 @@ class HostGcb extends Component {
    * Show filter query
    * @method
   */
-  showFilterQuery = (type) => {
+  handleShowFilterQuery = (type) => {
     if (type === 'load') {
       this.fetchFilterQuery()
     }
@@ -1345,7 +1345,7 @@ class HostGcb extends Component {
               getActiveData={this.getActiveGcbInfo}
               handleAddWhitelist={this.confirmAddWhitelist}
               exportList={this.exportGcbList}
-              onFilterQueryClick={this.showFilterQuery}
+              onFilterQueryClick={this.handleShowFilterQuery}
               filterDataCount={filterDataCount}
               handleSearch={this.handleGcbChange}
               handleReset={this.handleResetBtn}

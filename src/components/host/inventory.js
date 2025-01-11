@@ -1160,7 +1160,7 @@ class HostInventory extends Component {
    * Show filter query
    * @method
   */
-  showFilterQuery = (type) => {
+  handleShowFilterQuery = (type) => {
     if (type === 'load') {
       this.fetchFilterQuery()
     }
@@ -1605,7 +1605,7 @@ class HostInventory extends Component {
               getActiveData={this.getActiveCpeInfo}
               exportList={this.exportCpeList}
               toggleReport={this.toggleReport}
-              onFilterQueryClick={this.showFilterQuery}
+              onFilterQueryClick={this.handleShowFilterQuery}
               filterDataCount={filterDataCount}
               handleSearch={this.handleCpeChange}
               handleReset={this.handleResetBtn}
