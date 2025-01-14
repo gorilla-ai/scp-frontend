@@ -960,8 +960,8 @@ class GeneralDialog extends Component {
       } else if (searchType === 'malware') {
         searchFieldText = t('host.endpoints.txt-md5');
         searchCountHeader = t('txt-searchCount');
-      } else if (searchType === 'gcb') {
-        searchFieldText = t('host.endpoints.txt-md5');
+      } else if (searchType === 'fileIntegrity') {
+        searchFieldText = t('host.fileIntegrity.txt-filePath');
         searchCountHeader = t('txt-searchCount');
       }
     }
@@ -976,6 +976,7 @@ class GeneralDialog extends Component {
           </div>
         }
 
+        {!(page === 'endpoints' && searchType === 'fileIntegrity') &&
         <div className='search-field'>
           <div className='search-field-left'>
             <div className='group'>
@@ -1066,6 +1067,7 @@ class GeneralDialog extends Component {
             }
           </div>
         </div>
+        }
         <div className='search-count'>{searchCountHeader + ': ' + helper.numberWithCommas(search.count)}</div>
 
         <MuiTableContent

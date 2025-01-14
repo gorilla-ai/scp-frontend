@@ -224,6 +224,24 @@ const MALWARE_DATA = {
   isUploaded: false,
   hostId: ''
 };
+const FILE_INTEGRITY_SEARCH = {
+  keyword: '',
+  count: 0
+};
+const FILE_INTEGRITY_DATA = {
+  dataFieldsArr: ['filePath', 'category', 'detectedDttm'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20,
+  isUploaded: false,
+  hostId: ''
+};
 let ALERT_LEVEL_COLORS = {};
 
 let t = null;
@@ -308,6 +326,8 @@ class HostEndPoints extends Component {
       kbidData: _.cloneDeep(KBID_DATA),
       malwareSearch: _.cloneDeep(MALWARE_SEARCH),
       malwareData: _.cloneDeep(MALWARE_DATA),
+      fileIntegritySearch: _.cloneDeep(FILE_INTEGRITY_SEARCH),
+      fileIntegrityData: _.cloneDeep(FILE_INTEGRITY_DATA),
       currentHostId: '',
       currentRiskLevel: '',
       currentEndpointData: {},
@@ -1038,7 +1058,7 @@ class HostEndPoints extends Component {
    * Toggle show endpoints button
    * @method
    * @param {object} event - event object
-   * @param {string} type - endpoint button type ('overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware' or 'gcb')
+   * @param {string} type - endpoint button type ('overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb' or 'fileIntegrity')
    */
   toggleEndpointButtons = (event, type) => {
     if (!type) {
@@ -1065,6 +1085,8 @@ class HostEndPoints extends Component {
         this.getKBID();
       } else if (activeEndpointInfo === 'malware') {
         this.getMalware();
+      } else if (activeEndpointInfo === 'fileIntegrity') {
+        this.getFileIntegrity();
       }
     });
   }
@@ -1556,91 +1578,176 @@ class HostEndPoints extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-    /**
+  /**
    * Get malware data
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
    */
-    getMalware = (fromPage) => {
-      const {baseUrl} = this.context;
-      const {malwareSearch, malwareData, currentHostId} = this.state;
-      const sort = malwareData.sort.desc ? 'desc' : 'asc';
-      const page = fromPage === 'currentPage' ? malwareData.currentPage : 0;
-      let url = `${baseUrl}/api/endPoint/malware?page=${page + 1}&pageSize=${malwareData.pageSize}`;
-      let requestData = {
-        hostId: currentHostId
-      };
-  
-      if (malwareData.sort.field) {
-        url += `&orders=${malwareData.sort.field} ${sort}`;
-      }
-  
-      if (malwareSearch.keyword) {
-        requestData.fileMD5 = malwareSearch.keyword;
-      }
-  
-      this.ah.one({
-        url,
-        data: JSON.stringify(requestData),
-        type: 'POST',
-        contentType: 'text/plain'
-      })
-      .then(data => {
-        if (data) {
-          let tempMalwareSearch = {...malwareSearch};
-          let tempMalwareData = {...malwareData};
-  
-          if (!data.rows || data.rows.length === 0) {
-            tempMalwareSearch.count = 0;
-            tempMalwareData.dataContent = [];
-            tempMalwareData.totalCount = 0;
-  
-            this.setState({
-              malwareSearch: tempMalwareSearch,
-              malwareData: tempMalwareData
-            });
-            return null;
-          }       
-  
-          tempMalwareData.dataContent = data.rows;
-          tempMalwareData.totalCount = data.count;
-          tempMalwareData.currentPage = page;
-          tempMalwareData.isUploaded = data.isUploaded;
-          tempMalwareData.hostId = currentHostId;
-          tempMalwareData.dataFields = _.map(malwareData.dataFieldsArr, val => {
-            return {
-              name: val,
-              label: f('hostDashboardFields.' + val),
-              options: {
-                filter: true,
-                sort: true,
-                customBodyRenderLite: (dataIndex) => {
-                  const allValue = tempMalwareData.dataContent[dataIndex];
-                  const value = tempMalwareData.dataContent[dataIndex][val];
-  
-                  if (val === 'detectedDttm' && value) {
-                    return <span>{helper.getFormattedDate(value, 'local')}</span>
-                  }
-  
-                  return value;
-                }
-              }
-            };
-          });
-  
-          tempMalwareSearch.count = helper.numberWithCommas(data.count);
-  
+  getMalware = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {malwareSearch, malwareData, currentHostId} = this.state;
+    const sort = malwareData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? malwareData.currentPage : 0;
+    let url = `${baseUrl}/api/endPoint/malware?page=${page + 1}&pageSize=${malwareData.pageSize}`;
+    let requestData = {
+      hostId: currentHostId
+    };
+
+    if (malwareData.sort.field) {
+      url += `&orders=${malwareData.sort.field} ${sort}`;
+    }
+
+    if (malwareSearch.keyword) {
+      requestData.fileMD5 = malwareSearch.keyword;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempMalwareSearch = {...malwareSearch};
+        let tempMalwareData = {...malwareData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempMalwareSearch.count = 0;
+          tempMalwareData.dataContent = [];
+          tempMalwareData.totalCount = 0;
+
           this.setState({
             malwareSearch: tempMalwareSearch,
             malwareData: tempMalwareData
           });
-        }
-        return null;
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
+          return null;
+        }       
+
+        tempMalwareData.dataContent = data.rows;
+        tempMalwareData.totalCount = data.count;
+        tempMalwareData.currentPage = page;
+        tempMalwareData.isUploaded = data.isUploaded;
+        tempMalwareData.hostId = currentHostId;
+        tempMalwareData.dataFields = _.map(malwareData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: f('hostDashboardFields.' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempMalwareData.dataContent[dataIndex];
+                const value = tempMalwareData.dataContent[dataIndex][val];
+
+                if (val === 'detectedDttm' && value) {
+                  return <span>{helper.getFormattedDate(value, 'local')}</span>
+                }
+
+                return value;
+              }
+            }
+          };
+        });
+
+        tempMalwareSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          malwareSearch: tempMalwareSearch,
+          malwareData: tempMalwareData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get file integrity data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getFileIntegrity = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {fileIntegritySearch, fileIntegrityData, currentHostId} = this.state;
+    const sort = fileIntegrityData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? fileIntegrityData.currentPage : 0;
+    let url = `${baseUrl}/api/endPoint/fileintegrity?page=${page + 1}&pageSize=${fileIntegrityData.pageSize}`;
+    let requestData = {
+      hostId: currentHostId
+    };
+
+    if (fileIntegrityData.sort.field) {
+      url += `&orders=${fileIntegrityData.sort.field} ${sort}`;
     }
+
+    if (fileIntegritySearch.keyword) {
+      //requestData.filePath = fileIntegritySearch.keyword;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempFileIntegritySearch = {...fileIntegritySearch};
+        let tempFileIntegrityData = {...fileIntegrityData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempFileIntegritySearch.count = 0;
+          tempFileIntegrityData.dataContent = [];
+          tempFileIntegrityData.totalCount = 0;
+
+          this.setState({
+            fileIntegritySearch: tempFileIntegritySearch,
+            fileIntegrityData: tempFileIntegrityData
+          });
+          return null;
+        }       
+
+        tempFileIntegrityData.dataContent = data.rows;
+        tempFileIntegrityData.totalCount = data.count;
+        tempFileIntegrityData.currentPage = page;
+        tempFileIntegrityData.isUploaded = data.isUploaded;
+        tempFileIntegrityData.hostId = currentHostId;
+        tempFileIntegrityData.dataFields = _.map(fileIntegrityData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: t('host.fileIntegrity.txt-' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempFileIntegrityData.dataContent[dataIndex];
+                const value = tempFileIntegrityData.dataContent[dataIndex][val];
+
+                if (val === 'detectedDttm' && value) {
+                  return <span>{helper.getFormattedDate(value, 'local')}</span>
+                }
+
+                return value;
+              }
+            }
+          };
+        });
+
+        tempFileIntegritySearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          fileIntegritySearch: tempFileIntegritySearch,
+          fileIntegrityData: tempFileIntegrityData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   /**
    * Handle close menu
    * @method
@@ -1686,7 +1793,9 @@ class HostEndPoints extends Component {
           kbidSearch: _.cloneDeep(KBID_SEARCH),
           kbidData: _.cloneDeep(KBID_DATA),
           malwareSearch: _.cloneDeep(MALWARE_SEARCH),
-          malwareData: _.cloneDeep(MALWARE_DATA)
+          malwareData: _.cloneDeep(MALWARE_DATA),
+          fileIntegritySearch: _.cloneDeep(FILE_INTEGRITY_SEARCH),
+          fileIntegrityData: _.cloneDeep(FILE_INTEGRITY_DATA)
         });
       }
     });
@@ -1748,7 +1857,7 @@ class HostEndPoints extends Component {
    * @method
    * @param {object} event - event object
    */
-  handleKbidSearchChange = () => {
+  handleKbidSearchChange = (event) => {
     let tempKbidSearch = {...this.state.kbidSearch};
     tempKbidSearch[event.target.name] = event.target.value;
 
@@ -1756,26 +1865,39 @@ class HostEndPoints extends Component {
       kbidSearch: tempKbidSearch
     });
   }
-    /**
+  /**
    * Handle malware search change
    * @method
    * @param {object} event - event object
    */
-    handleMalwareSearchChange = () => {
-      let tempMalwareSearch = {...this.state.malwareSearch};
-      tempMalwareSearch[event.target.name] = event.target.value;
-  
-      this.setState({
-        malwareSearch: tempMalwareSearch
-      });
-    }
+  handleMalwareSearchChange = (event) => {
+    let tempMalwareSearch = {...this.state.malwareSearch};
+    tempMalwareSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      malwareSearch: tempMalwareSearch
+    });
+  }
+  /**
+   * Handle file integrity search change
+   * @method
+   * @param {object} event - event object
+   */
+  handleFileIntegritySearchChange = (event) => {
+    let tempFileIntegritySearch = {...this.state.fileIntegritySearch};
+    tempFileIntegritySearch[event.target.name] = event.target.value;
+
+    this.setState({
+      fileIntegritySearch: tempFileIntegritySearch
+    });
+  }
   /**
    * Handle reset button
    * @method
-   * @param {string} type - reset button type ('endpointsSearch', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware' or 'gcb')
+   * @param {string} type - reset button type ('endpointsSearch', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb' or 'fileIntegrity')
    */
   handleResetBtn = (type) => {
-    const {endpointsSearch, safetyScanInfoSearch, softwareInventorySearch, gcbSearch, discoveredVulnerabilitySearch, kbidSearch, malwareSearch} = this.state;
+    const {endpointsSearch, safetyScanInfoSearch, softwareInventorySearch, gcbSearch, discoveredVulnerabilitySearch, kbidSearch, malwareSearch, fileIntegritySearch} = this.state;
 
     if (type === 'endpointsSearch') {
       let tempEndpointsSearch = {...endpointsSearch};
@@ -1829,6 +1951,13 @@ class HostEndPoints extends Component {
 
       this.setState({
         malwareSearch: tempMalwareSearch
+      });
+    } else if (type === 'fileIntegrity') {
+      let tempFileIntegritySearch = {...fileIntegritySearch};
+      tempFileIntegritySearch.keyword = '';
+
+      this.setState({
+        fileIntegritySearch: tempFileIntegritySearch
       });
     }
   }
@@ -2002,6 +2131,8 @@ class HostEndPoints extends Component {
       kbidData,
       malwareSearch,
       malwareData,
+      fileIntegritySearch,
+      fileIntegrityData,
       currentEndpointData,
       severityStatistics
     } = this.state;
@@ -2077,6 +2208,18 @@ class HostEndPoints extends Component {
         this.handleTableSort('malware', changedColumn, direction === 'desc');
       }
     };
+    const tableOptionsFileIntegrity = {
+      tableBodyHeight: 'calc(75vh - 185px)',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('fileIntegrity', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('fileIntegrity', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('fileIntegrity', changedColumn, direction === 'desc');
+      }
+    };
 
     return (
       <div>
@@ -2091,6 +2234,7 @@ class HostEndPoints extends Component {
           <ToggleButton id='hostDialogInventory' value='softwareInventory' data-cy='hostInfoDialogInventoryBtn'>{t('host.endpoints.txt-softwareInventory')}</ToggleButton>
           <ToggleButton id='hostDialogGcb' value='gcb' data-cy='hostInfoDialogGcbBtn'>{t('host.endpoints.txt-gcb')}</ToggleButton>
           <ToggleButton id='hostDialogMalware' value='malware' data-cy='hostInfoDialogMalwareBtn'>{t('host.endpoints.txt-malware')}</ToggleButton>
+          <ToggleButton id='hostDialogFileIntegrity' value='fileIntegrity' data-cy='hostInfoDialogFileIntegrityBtn'>{t('host.endpoints.txt-fileIntegrity')}</ToggleButton>
           <ToggleButton id='hostDialogSafetyScanInfo' value='safetyScanInfo' data-cy='hostInfoDialogSafetyScanBtn'>{t('host.endpoints.txt-safetyScanInfo')}</ToggleButton>
         </ToggleButtonGroup>
 
@@ -2186,6 +2330,18 @@ class HostEndPoints extends Component {
               handleResetBtn={this.handleResetBtn} />
           }
 
+          {activeEndpointInfo === 'fileIntegrity' &&
+            <GeneralDialog
+              page='endpoints'
+              type='general-list'
+              searchType={activeEndpointInfo}
+              search={fileIntegritySearch}
+              data={fileIntegrityData}
+              tableOptions={tableOptionsFileIntegrity}
+              handleSearchChange={this.handleFileIntegritySearchChange}
+              handleSearchSubmit={this.getFileIntegrity}
+              handleResetBtn={this.handleResetBtn} />
+          }
         </div>
       </div>
     )
@@ -2222,12 +2378,12 @@ class HostEndPoints extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware' or 'gcb')
+   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb' or 'fileIntegrity')
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {endpointsData, safetyScanInfoData, softwareInventoryData, gcbData, discoveredVulnerabilityData, kbidData, malwareData} = this.state;
+    const {endpointsData, safetyScanInfoData, softwareInventoryData, gcbData, discoveredVulnerabilityData, kbidData, malwareData, fileIntegrityData} = this.state;
     let tempEndpointsData = {...endpointsData};
     let tempSafetyScanInfoData = {...safetyScanInfoData};
     let tempSoftwareInventoryData = {...softwareInventoryData};
@@ -2235,6 +2391,7 @@ class HostEndPoints extends Component {
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
     let tempKbidData = {...kbidData};
     let tempMalwareData = {...malwareData};
+    let tempFileIntegrityData = {...fileIntegrityData};
     let tableField = field;
 
     if (tableType === 'endpoints') {
@@ -2300,17 +2457,26 @@ class HostEndPoints extends Component {
       }, () => {
         this.getMalware();
       });
+    } else if (tableType === 'fileIntegrity') {
+      tempFileIntegrityData.sort.field = tableField;
+      tempFileIntegrityData.sort.desc = sort;
+
+      this.setState({
+        fileIntegrityData: tempFileIntegrityData
+      }, () => {
+        this.getFileIntegrity();
+      });
     }
   }
   /**
    * Handle table pagination change
    * @method
-   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware' or 'gcb')
+   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb' or 'fileIntegrity')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {endpointsData, safetyScanInfoData, softwareInventoryData, gcbData, discoveredVulnerabilityData, kbidData, malwareData} = this.state;
+    const {endpointsData, safetyScanInfoData, softwareInventoryData, gcbData, discoveredVulnerabilityData, kbidData, malwareData, fileIntegrityData} = this.state;
     let tempEndpointsData = {...endpointsData};
     let tempSafetyScanInfoData = {...safetyScanInfoData};
     let tempSoftwareInventoryData = {...softwareInventoryData};
@@ -2318,6 +2484,7 @@ class HostEndPoints extends Component {
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
     let tempKbidData = {...kbidData};
     let tempMalwareData = {...malwareData};
+    let tempFileIntegrityData = {...fileIntegrityData};
 
     if (tableType === 'endpoints') {
       tempEndpointsData[type] = value;
@@ -2374,6 +2541,14 @@ class HostEndPoints extends Component {
         malwareData: tempMalwareData
       }, () => {
         this.getMalware(type);
+      });
+    } else if (tableType === 'fileIntegrityData') {
+      tempFileIntegrityData[type] = value;
+
+      this.setState({
+        fileIntegrityDataData: tempFileIntegrityData
+      }, () => {
+        this.getFileIntegrityData(type);
       });
     }
   }

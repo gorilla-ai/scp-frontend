@@ -529,6 +529,11 @@
       "txt-kbid": "KBID",
       "txt-detectedDttm": "偵測時間"
     },
+    "fileIntegrity": {
+      "txt-filePath": "檔案路徑",
+      "txt-category": "類別",
+      "txt-detectedDttm": "偵測時間"
+    },
     "endpoints": {
       "txt-hmdStatus": "HMD狀態",
       "txt-hmdVersion": "HMD版本",

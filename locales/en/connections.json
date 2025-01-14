@@ -529,6 +529,11 @@
       "txt-kbid": "KBID",
       "txt-detectedDttm": "Detected Time"
     },
+    "fileIntegrity": {
+      "txt-filePath": "File Path",
+      "txt-category": "Category",
+      "txt-detectedDttm": "Detected Time"
+    },
     "endpoints": {
       "txt-hmdStatus": "HMD Status",
       "txt-hmdVersion": "HMD Version",
