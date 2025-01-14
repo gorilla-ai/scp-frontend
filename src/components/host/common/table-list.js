@@ -16,11 +16,6 @@ import MoreHorizIcon from '@material-ui/icons/MoreHoriz'
 import Divider from '@material-ui/core/Divider'
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import ClickAwayListener from '@material-ui/core/ClickAwayListener';
-import Grow from '@material-ui/core/Grow';
-import Paper from '@material-ui/core/Paper';
-import Popper from '@material-ui/core/Popper';
-import MenuList from '@material-ui/core/MenuList';
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
