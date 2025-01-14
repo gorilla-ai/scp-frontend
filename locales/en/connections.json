@@ -493,7 +493,9 @@
       "txt-securityCategory": "Security Category",
       "txt-srcFile": "Source File",
       "txt-srcFilePath": "Source File Path",
-      "txt-compareResult": "Compare Result"
+      "txt-compareResult": "Compare Result",
+      "txt-gpoValue": "GPO Value",
+      "txt-gcbValue": "GCB Value"
     },
     "inventory": {
       "txt-discoveredVulnerability": "Discovered Vulnerability",
@@ -549,6 +551,7 @@
       "txt-overview": "Overview",
       "txt-safetyScanInfo": "Safety Scan Record",
       "txt-softwareInventory": "Software Inventory",
+      "txt-gcb": "GCB",
       "txt-discoveredVulnerability": "Discovered Vulnerability",
       "txt-kbid": "KBID",
       "txt-malware": "Malware",

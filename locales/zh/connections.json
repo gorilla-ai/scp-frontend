@@ -493,7 +493,9 @@
       "txt-securityCategory": "安全類別",
       "txt-srcFile": "來源檔案",
       "txt-srcFilePath": "來源檔案路徑",
-      "txt-compareResult": "比對結果"
+      "txt-compareResult": "比對結果",
+      "txt-gpoValue": "GPO值",
+      "txt-gcbValue": "GCB值"
     },
     "inventory": {
       "txt-discoveredVulnerability": "軟體漏洞清單",
@@ -549,6 +551,7 @@
       "txt-overview": "主機分析資訊",
       "txt-safetyScanInfo": "安全掃描紀錄",
       "txt-softwareInventory": "軟體清單",
+      "txt-gcb": "GCB",
       "txt-discoveredVulnerability": "軟體漏洞清單",
       "txt-kbid": "KBID",
       "txt-malware": "惡意軟體清單",

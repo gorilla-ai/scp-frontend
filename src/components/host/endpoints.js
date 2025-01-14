@@ -154,6 +154,25 @@ const SOFTWARE_INVENTORY_INFO_DATA = {
   currentPage: 0,
   pageSize: 20
 };
+const GCB_SEARCH = {
+  keyword: '',
+  policyName: '',
+  type: '',
+  compareResult: '',
+  count: 0
+};
+const GCB_INFO_DATA = {
+  dataFieldsArr: ['originalKey', 'policyName', 'type', 'gpoValue', 'gcbValue', 'compareResult', 'exposedDevices'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20
+};
 const DISCOVERED_VULNERABILITY_SEARCH = {
   keyword: '',
   fix: '',
@@ -259,7 +278,7 @@ class HostEndPoints extends Component {
       showFilterQuery: false,
       showFilterType: 'open', // 'open', 'load', 'save'
       filterQueryList: [],
-      activeEndpointInfo: 'overview', //'overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid' or 'malware'
+      activeEndpointInfo: 'overview', //'overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware' or 'gcb'
       departmentStatistics: [],
       departmentStatisticsAdmin: [],
       endpointsData: {
@@ -281,6 +300,8 @@ class HostEndPoints extends Component {
       safetyScanInfoData: _.cloneDeep(SAFETY_SCAN_INFO_DATA),
       softwareInventorySearch: _.cloneDeep(SOFTWARE_INVENTORY_SEARCH),
       softwareInventoryData: _.cloneDeep(SOFTWARE_INVENTORY_INFO_DATA),
+      gcbSearch: _.cloneDeep(GCB_SEARCH),
+      gcbData: _.cloneDeep(GCB_INFO_DATA),
       discoveredVulnerabilitySearch: _.cloneDeep(DISCOVERED_VULNERABILITY_SEARCH),
       discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
       kbidSearch: _.cloneDeep(KBID_SEARCH),
@@ -1017,7 +1038,7 @@ class HostEndPoints extends Component {
    * Toggle show endpoints button
    * @method
    * @param {object} event - event object
-   * @param {string} type - endpoint button type ('overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid' or 'malware')
+   * @param {string} type - endpoint button type ('overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware' or 'gcb')
    */
   toggleEndpointButtons = (event, type) => {
     if (!type) {
@@ -1035,6 +1056,8 @@ class HostEndPoints extends Component {
         this.getSafetyScanInfo();
       } else if (activeEndpointInfo === 'softwareInventory') {
         this.getSoftwareInventory();
+      } else if (activeEndpointInfo === 'gcb') {
+        this.getGcb();
       } else if (activeEndpointInfo === 'discoveredVulnerability') {
         this.getSeverityStatistics();
         this.getDiscoveredVulnerability();
@@ -1205,6 +1228,98 @@ class HostEndPoints extends Component {
         this.setState({
           softwareInventorySearch: tempSoftwareInventorySearch,
           softwareInventoryData: tempSoftwareInventoryData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get GCB data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getGcb = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {gcbSearch, gcbData, currentHostId} = this.state;
+    const sort = gcbData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? gcbData.currentPage : 0;
+    let url = `${baseUrl}/api/endPoint/gcb?page=${page + 1}&pageSize=${gcbData.pageSize}`;
+    let requestData = {
+      hostId: currentHostId
+    };
+
+    if (gcbData.sort.field) {
+      url += `&orders=${gcbData.sort.field} ${sort}`;
+    }
+
+    if (gcbSearch.keyword) {
+      requestData.originalKey = gcbSearch.keyword;
+    }
+    if (gcbSearch.policyName) {
+      requestData.policyName = gcbSearch.policyName;
+    }
+    if (gcbSearch.type) {
+      requestData.type = gcbSearch.type;
+    }
+    if (gcbSearch.compareResult) {
+      requestData.compareResult = gcbSearch.compareResult;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempGcbSearch = {...gcbSearch};
+        let tempGcbData = {...gcbData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempGcbSearch.count = 0;
+          tempGcbData.dataContent = [];
+          tempGcbData.totalCount = 0;
+
+          this.setState({
+            gcbSearch: tempGcbSearch,
+            gcbData: tempGcbData
+          });
+          return null;
+        }       
+
+        tempGcbData.dataContent = data.rows;
+        tempGcbData.totalCount = data.count;
+        tempGcbData.currentPage = page;
+        tempGcbData.dataFields = _.map(gcbData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: t('host.gcb.txt-' + val),
+            options: {
+              filter: true,
+              sort: true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempGcbData.dataContent[dataIndex];
+                const value = tempGcbData.dataContent[dataIndex][val];
+
+                if (val === 'compareResult') {
+                  return <span className={'status-' + (value ? 'success' : 'fail')}>{t('txt-' + (value ? 'success' : 'fail'))}</span>
+                }
+
+                return value;
+              }
+            }
+          };
+        });
+
+        tempGcbSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          gcbSearch: tempGcbSearch,
+          gcbData: tempGcbData
         });
       }
       return null;
@@ -1564,6 +1679,8 @@ class HostEndPoints extends Component {
           safetyScanInfoData: _.cloneDeep(SAFETY_SCAN_INFO_DATA),
           softwareInventorySearch: _.cloneDeep(SOFTWARE_INVENTORY_SEARCH),
           softwareInventoryData: _.cloneDeep(SOFTWARE_INVENTORY_INFO_DATA),
+          gcbSearch: _.cloneDeep(GCB_SEARCH),
+          gcbData: _.cloneDeep(GCB_INFO_DATA),
           discoveredVulnerabilitySearch: _.cloneDeep(DISCOVERED_VULNERABILITY_SEARCH),
           discoveredVulnerabilityData: _.cloneDeep(DISCOVERED_VULNERABILITY_DATA),
           kbidSearch: _.cloneDeep(KBID_SEARCH),
@@ -1598,6 +1715,19 @@ class HostEndPoints extends Component {
 
     this.setState({
       softwareInventorySearch: tempSoftwareInventorySearch
+    });
+  }
+  /**
+   * Handle GCB search change
+   * @method
+   * @param {object} event - event object
+   */
+  handleGcbSearchChange = (event) => {
+    let tempGcbSearch = {...this.state.gcbSearch};
+    tempGcbSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      gcbSearch: tempGcbSearch
     });
   }
   /**
@@ -1642,10 +1772,10 @@ class HostEndPoints extends Component {
   /**
    * Handle reset button
    * @method
-   * @param {string} type - reset button type ('endpointsSearch', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid' or 'malware')
+   * @param {string} type - reset button type ('endpointsSearch', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware' or 'gcb')
    */
   handleResetBtn = (type) => {
-    const {endpointsSearch, safetyScanInfoSearch, softwareInventorySearch, discoveredVulnerabilitySearch, kbidSearch, malwareSearch} = this.state;
+    const {endpointsSearch, safetyScanInfoSearch, softwareInventorySearch, gcbSearch, discoveredVulnerabilitySearch, kbidSearch, malwareSearch} = this.state;
 
     if (type === 'endpointsSearch') {
       let tempEndpointsSearch = {...endpointsSearch};
@@ -1667,6 +1797,16 @@ class HostEndPoints extends Component {
 
       this.setState({
         softwareInventorySearch: tempSoftwareInventorySearch
+      });
+    } else if (type === 'gcb') {
+      let tempGcbSearch = {...gcbSearch};
+      tempGcbSearch.keyword = '';
+      tempGcbSearch.policyName = '';
+      tempGcbSearch.type = '';
+      tempGcbSearch.compareResult = '';
+      
+      this.setState({
+        gcbSearch: tempGcbSearch
       });
     } else if (type === 'discoveredVulnerability') {
       let tempDiscoveredVulnerabilitySearch = {...discoveredVulnerabilitySearch};
@@ -1854,6 +1994,8 @@ class HostEndPoints extends Component {
       safetyScanInfoData,
       softwareInventorySearch,
       softwareInventoryData,
+      gcbSearch,
+      gcbData,
       discoveredVulnerabilitySearch,
       discoveredVulnerabilityData,
       kbidSearch,
@@ -1885,6 +2027,18 @@ class HostEndPoints extends Component {
       },
       onColumnSortChange: (changedColumn, direction) => {
         this.handleTableSort('softwareInventory', changedColumn, direction === 'desc');
+      }
+    };
+    const tableOptionsGcb = {
+      tableBodyHeight: 'calc(75vh - 240px)',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('gcb', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('gcb', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('gcb', changedColumn, direction === 'desc');
       }
     };
     const tableOptionsDiscoveredVulnerability = {
@@ -1932,11 +2086,12 @@ class HostEndPoints extends Component {
           exclusive
           onChange={this.toggleEndpointButtons}>
           <ToggleButton id='hostDialogOverview' value='overview' data-cy='hostInfoDialogOverviewBtn'>{t('host.endpoints.txt-overview')}</ToggleButton>
-          <ToggleButton id='hostDialogSafetyScanInfo' value='safetyScanInfo' data-cy='hostInfoDialogSafetyScanBtn'>{t('host.endpoints.txt-safetyScanInfo')}</ToggleButton>
-          <ToggleButton id='hostDialogInventory' value='softwareInventory' data-cy='hostInfoDialogInventoryBtn'>{t('host.endpoints.txt-softwareInventory')}</ToggleButton>
           <ToggleButton id='hostDialogdiscoveredVulnerability' value='discoveredVulnerability' data-cy='hostInfoDialogVulnerabilityBtn'>{t('host.endpoints.txt-discoveredVulnerability')}</ToggleButton>
           <ToggleButton id='hostDialogKbid' value='kbid' data-cy='hostInfoDialogKbidBtn'>{t('host.endpoints.txt-kbid')}</ToggleButton>
+          <ToggleButton id='hostDialogInventory' value='softwareInventory' data-cy='hostInfoDialogInventoryBtn'>{t('host.endpoints.txt-softwareInventory')}</ToggleButton>
+          <ToggleButton id='hostDialogGcb' value='gcb' data-cy='hostInfoDialogGcbBtn'>{t('host.endpoints.txt-gcb')}</ToggleButton>
           <ToggleButton id='hostDialogMalware' value='malware' data-cy='hostInfoDialogMalwareBtn'>{t('host.endpoints.txt-malware')}</ToggleButton>
+          <ToggleButton id='hostDialogSafetyScanInfo' value='safetyScanInfo' data-cy='hostInfoDialogSafetyScanBtn'>{t('host.endpoints.txt-safetyScanInfo')}</ToggleButton>
         </ToggleButtonGroup>
 
         <div className='main-content'>
@@ -1974,6 +2129,19 @@ class HostEndPoints extends Component {
               tableOptions={tableOptionsSoftwareInventory}
               handleSearchChange={this.handleSoftwareInventorySearchChange }
               handleSearchSubmit={this.getSoftwareInventory}
+              handleResetBtn={this.handleResetBtn} />
+          }
+
+          {activeEndpointInfo === 'gcb' &&
+            <GeneralDialog
+              page='endpoints'
+              type='general-list'
+              searchType={activeEndpointInfo}
+              search={gcbSearch}
+              data={gcbData}
+              tableOptions={tableOptionsGcb}
+              handleSearchChange={this.handleGcbSearchChange }
+              handleSearchSubmit={this.getGcb}
               handleResetBtn={this.handleResetBtn} />
           }
 
@@ -2054,15 +2222,16 @@ class HostEndPoints extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid' or 'malware')
+   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware' or 'gcb')
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {endpointsData, safetyScanInfoData, softwareInventoryData, discoveredVulnerabilityData, kbidData, malwareData} = this.state;
+    const {endpointsData, safetyScanInfoData, softwareInventoryData, gcbData, discoveredVulnerabilityData, kbidData, malwareData} = this.state;
     let tempEndpointsData = {...endpointsData};
     let tempSafetyScanInfoData = {...safetyScanInfoData};
     let tempSoftwareInventoryData = {...softwareInventoryData};
+    let tempGcbData = {...gcbData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
     let tempKbidData = {...kbidData};
     let tempMalwareData = {...malwareData};
@@ -2094,6 +2263,15 @@ class HostEndPoints extends Component {
         softwareInventoryData: tempSoftwareInventoryData
       }, () => {
         this.getSoftwareInventory();
+      });
+    } else if (tableType === 'gcb') {
+      tempGcbData.sort.field = tableField;
+      tempGcbData.sort.desc = sort;
+
+      this.setState({
+        gcbData: tempGcbData
+      }, () => {
+        this.getGcb();
       });
     } else if (tableType === 'discoveredVulnerability') {
       tempDiscoveredVulnerabilityData.sort.field = tableField;
@@ -2127,15 +2305,16 @@ class HostEndPoints extends Component {
   /**
    * Handle table pagination change
    * @method
-   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid' or 'malware')
+   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware' or 'gcb')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {endpointsData, safetyScanInfoData, softwareInventoryData, discoveredVulnerabilityData, kbidData, malwareData} = this.state;
+    const {endpointsData, safetyScanInfoData, softwareInventoryData, gcbData, discoveredVulnerabilityData, kbidData, malwareData} = this.state;
     let tempEndpointsData = {...endpointsData};
     let tempSafetyScanInfoData = {...safetyScanInfoData};
     let tempSoftwareInventoryData = {...softwareInventoryData};
+    let tempGcbData = {...gcbData};
     let tempDiscoveredVulnerabilityData = {...discoveredVulnerabilityData};
     let tempKbidData = {...kbidData};
     let tempMalwareData = {...malwareData};
@@ -2163,6 +2342,14 @@ class HostEndPoints extends Component {
         softwareInventoryData: tempSoftwareInventoryData
       }, () => {
         this.getSoftwareInventory(type);
+      });
+    } else if (tableType === 'gcb') {
+      tempGcbData[type] = value;
+
+      this.setState({
+        gcbData: tempGcbData
+      }, () => {
+        this.getGcb(type);
       });
     } else if (tableType === 'discoveredVulnerability') {
       tempDiscoveredVulnerabilityData[type] = value;

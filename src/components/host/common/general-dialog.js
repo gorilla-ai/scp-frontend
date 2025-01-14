@@ -948,6 +948,9 @@ class GeneralDialog extends Component {
       } else if (searchType === 'softwareInventory') {
         searchFieldText = t('host.inventory.txt-cpe23uri');
         searchCountHeader = t('txt-searchCount');
+      } else if (searchType === 'gcb') {
+        searchFieldText = t('host.gcb.txt-originalKey');
+        searchCountHeader = t('txt-searchCount');
       } else if (searchType === 'discoveredVulnerability') {
         searchFieldText = t('host.vulnerabilities.txt-cveName');
         searchCountHeader = t('host.inventory.txt-discoveredVulnerabilityCount');
@@ -1004,6 +1007,49 @@ class GeneralDialog extends Component {
                   <MenuItem value='false'>{t('txt-notFixed')}</MenuItem>
                 </TextField>
               </div>
+            }
+            {searchType === 'gcb' &&
+            <React.Fragment>
+            <div className='group'>
+              <TextField
+                name='policyName'
+                className='search-text'
+                label={t('host.gcb.txt-policyName')}
+                variant='outlined'
+                size='small'
+                value={search.policyName}
+                onChange={this.props.handleSearchChange}
+                data-cy='hostInfoDialogSearchField' />
+            </div>
+            <div className='group'>
+              <TextField
+                name='type'
+                className='search-text'
+                label={t('host.gcb.txt-type')}
+                variant='outlined'
+                size='small'
+                value={search.type}
+                onChange={this.props.handleSearchChange}
+                data-cy='hostInfoDialogSearchField' />
+            </div>
+            <div className='group'>
+              <TextField
+                name='compareResult'
+                style={{width: '115px'}}
+                select
+                label={t('host.gcb.txt-compareResult')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={search.compareResult}
+                onChange={this.props.handleSearchChange}
+                data-cy='hostInfoDialogCompareResultTextField'>
+                <MenuItem value='all'>{t('txt-all')}</MenuItem>
+                <MenuItem value='true'>{t('txt-success')}</MenuItem>
+                <MenuItem value='false'>{t('txt-fail')}</MenuItem>
+              </TextField>
+            </div>
+            </React.Fragment>
             }
             <Button id='hostGeneralSearch' variant='contained' color='primary' className='search-btn' onClick={this.props.handleSearchSubmit} data-cy='hostInfoDialogSoftwareSubmitBtn'>{t('txt-search')}</Button>
             <Button id='hostGeneralClear' variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, searchType)} data-cy='hostInfoDialogSoftwareClearBtn'>{t('txt-clear')}</Button>
