@@ -315,7 +315,7 @@ class TableList extends Component {
                 </NestedMenuItem>
               </Menu>
             }
-            <ButtonGroup className='standard btn' variant="outlined" color="primary" ref={ref => {this.menuItemRef = ref}} aria-label="split button">
+            <ButtonGroup className='standard btn' variant="outlined" color="primary" aria-label="split button">
               <Button id='hostFilterQuery' className='standard' onClick={this.props.onFilterQueryClick.bind(this, 'open')} data-cy='hostFilterQueryBtn'>{t('txt-filterQuery')}&nbsp;<span>({filterDataCount})</span></Button>
               <Button
                 size="small"
