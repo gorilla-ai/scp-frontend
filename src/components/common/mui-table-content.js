@@ -56,7 +56,7 @@ class MuiTableContent extends Component {
     }
   }
   render() {
-    const {data, tableOptions, showLoading} = this.props;
+    const {data, tableOptions, showLoading, resizableColumns, expandableRows} = this.props;
     const options = {
       tableBodyHeight: tableOptions.tableBodyHeight || '72vh',
       selectableRows: 'none',
@@ -74,7 +74,8 @@ class MuiTableContent extends Component {
       draggableColumns: {
         enabled: true
       },
-      resizableColumns: true,
+      resizableColumns: resizableColumns,
+      expandableRows: expandableRows,
       textLabels: {
         body: {
           noMatch: t('MuiDataTable.body.noMatch'),
@@ -128,11 +129,18 @@ class MuiTableContent extends Component {
   }
 }
 
+MuiTableContent.defaultProps = {
+  resizableColumns: true,
+  expandableRows: false
+};
+
 MuiTableContent.propTypes = {
   data: PropTypes.object.isRequired,
   tableOptions: PropTypes.object.isRequired,
   tableHeight: PropTypes.string,
-  showLoading: PropTypes.bool
+  showLoading: PropTypes.bool,
+  resizableColumns: PropTypes.bool,
+  expandableRows: PropTypes.bool
 };
 
 export default MuiTableContent;
