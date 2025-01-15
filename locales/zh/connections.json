@@ -534,6 +534,20 @@
       "txt-category": "類別",
       "txt-detectedDttm": "偵測時間"
     },
+    "procMonitor": {
+      "txt-filePath": "檔案路徑",
+      "txt-detectedDttm": "偵測時間",
+      "txt-autorunLocation": "自動執行路徑",
+      "txt-commandLine": "執行語法",
+      "txt-companyName": "公司名稱",
+      "txt-fileSize": "檔案大小",
+      "txt-fileMD5": "MD5",
+      "txt-fileSHA1" : "SHA1",
+      "txt-fileSHA256": "SHA256",
+      "txt-isPE": "PE檔",
+      "txt-userSid": "使用者SID",
+      "txt-signatures": "簽章"     
+    },
     "endpoints": {
       "txt-hmdStatus": "HMD狀態",
       "txt-hmdVersion": "HMD版本",

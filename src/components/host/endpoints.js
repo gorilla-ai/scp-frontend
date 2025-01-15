@@ -4,6 +4,12 @@ import _ from 'lodash'
 import Button from '@material-ui/core/Button'
 import ToggleButton from '@material-ui/lab/ToggleButton'
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+import Accordion from '@material-ui/core/Accordion';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import { TableCell, TableRow } from "@material-ui/core";
 
 import BarChart from 'react-chart/build/src/components/bar'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -26,6 +32,7 @@ import FileUpload from '../common/file-upload'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const NOT_AVAILABLE = 'N/A';
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
 const CONNECTION_STATUS = ['online', 'offline', 'inActivate'];
 const VERSION = ['isLatestVersion', 'notUpgraded', 'notInstalled'];
@@ -158,7 +165,7 @@ const GCB_SEARCH = {
   keyword: '',
   policyName: '',
   type: '',
-  compareResult: '',
+  compareResult: 'all',
   count: 0
 };
 const GCB_INFO_DATA = {
@@ -239,7 +246,23 @@ const FILE_INTEGRITY_DATA = {
   totalCount: 0,
   currentPage: 0,
   pageSize: 20,
-  isUploaded: false,
+  hostId: ''
+};
+const PROC_MONITOR_SEARCH = {
+  keyword: '',
+  count: 0
+};
+const PROC_MONITOR_DATA = {
+  dataFieldsArr: ['filePath', 'detectedDttm'],
+  dataFields: [],
+  dataContent: null,
+  sort: {
+    field: '',
+    desc: true
+  },
+  totalCount: 0,
+  currentPage: 0,
+  pageSize: 20,
   hostId: ''
 };
 let ALERT_LEVEL_COLORS = {};
@@ -328,6 +351,8 @@ class HostEndPoints extends Component {
       malwareData: _.cloneDeep(MALWARE_DATA),
       fileIntegritySearch: _.cloneDeep(FILE_INTEGRITY_SEARCH),
       fileIntegrityData: _.cloneDeep(FILE_INTEGRITY_DATA),
+      procMonitorSearch: _.cloneDeep(PROC_MONITOR_SEARCH),
+      procMonitorData: _.cloneDeep(PROC_MONITOR_DATA),
       currentHostId: '',
       currentRiskLevel: '',
       currentEndpointData: {},
@@ -365,8 +390,8 @@ class HostEndPoints extends Component {
         this.getSeverityType();
         this.getVersion();
         this.getConnectionStatus();
-        this.getFileIntegrity();
-        this.getProcMonitor();
+        this.getFileIntegrityList();
+        this.getProcMonitorList();
       });
     }
 
@@ -766,7 +791,7 @@ class HostEndPoints extends Component {
    * Get and set file integrity
    * @method
    */
-  getFileIntegrity = () => {
+  getFileIntegrityList = () => {
     const fileIntegrity = _.map(ENABLED_DISABLED, val => {
       return {
         value: val,
@@ -782,7 +807,7 @@ class HostEndPoints extends Component {
    * Get and set process monitor
    * @method
    */
-  getProcMonitor = () => {
+  getProcMonitorList = () => {
     const procMonitor = _.map(ENABLED_DISABLED, val => {
       return {
         value: val,
@@ -1058,7 +1083,7 @@ class HostEndPoints extends Component {
    * Toggle show endpoints button
    * @method
    * @param {object} event - event object
-   * @param {string} type - endpoint button type ('overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb' or 'fileIntegrity')
+   * @param {string} type - endpoint button type ('overview', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb', 'fileIntegrity' or 'procMonitor')
    */
   toggleEndpointButtons = (event, type) => {
     if (!type) {
@@ -1087,6 +1112,8 @@ class HostEndPoints extends Component {
         this.getMalware();
       } else if (activeEndpointInfo === 'fileIntegrity') {
         this.getFileIntegrity();
+      } else if (activeEndpointInfo === 'procMonitor') {
+        this.getProcMonitor();
       }
     });
   }
@@ -1286,8 +1313,8 @@ class HostEndPoints extends Component {
     if (gcbSearch.type) {
       requestData.type = gcbSearch.type;
     }
-    if (gcbSearch.compareResult) {
-      requestData.compareResult = gcbSearch.compareResult;
+    if (gcbSearch.compareResult && gcbSearch.compareResult !== 'all') {
+      requestData.compareResult = (gcbSearch.compareResult === 'true');
     }
 
     this.ah.one({
@@ -1749,6 +1776,95 @@ class HostEndPoints extends Component {
     })
   }
   /**
+   * Get process monitor data
+   * @method
+   * @param {string} [fromPage] - option for 'currentPage'
+   */
+  getProcMonitor = (fromPage) => {
+    const {baseUrl} = this.context;
+    const {procMonitorSearch, procMonitorData, currentHostId} = this.state;
+    const sort = procMonitorData.sort.desc ? 'desc' : 'asc';
+    const page = fromPage === 'currentPage' ? procMonitorData.currentPage : 0;
+    let url = `${baseUrl}/api/endPoint/processmonitor?page=${page + 1}&pageSize=${procMonitorData.pageSize}`;
+    let requestData = {
+      hostId: currentHostId
+    };
+
+    if (procMonitorData.sort.field) {
+      url += `&orders=${procMonitorData.sort.field} ${sort}`;
+    }
+
+    if (procMonitorSearch.keyword) {
+      //requestData.filePath = procMonitorSearch.keyword;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let tempProcMonitorSearch = {...procMonitorSearch};
+        let tempProcMonitorData = {...procMonitorData};
+
+        if (!data.rows || data.rows.length === 0) {
+          tempProcMonitorSearch.count = 0;
+          tempProcMonitorData.dataContent = [];
+          tempProcMonitorData.totalCount = 0;
+
+          this.setState({
+            procMonitorSearch: tempProcMonitorSearch,
+            procMonitorData: tempProcMonitorData
+          });
+          return null;
+        }       
+
+        tempProcMonitorData.dataContent = data.rows;
+        tempProcMonitorData.totalCount = data.count;
+        tempProcMonitorData.currentPage = page;
+        tempProcMonitorData.isUploaded = data.isUploaded;
+        tempProcMonitorData.hostId = currentHostId;
+        tempProcMonitorData.dataFields = _.map(procMonitorData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: t('host.procMonitor.txt-' + val),
+            options: {
+              filter: true,
+              sort: true,
+              setCellHeaderProps: (columnMeta) => {
+                if (columnMeta.name === 'detectedDttm')
+                  return {style: { width: "180px" }};
+                return;
+              },
+              customBodyRenderLite: (dataIndex) => {
+                const value = tempProcMonitorData.dataContent[dataIndex][val];
+
+                if (val === 'detectedDttm' && value) {
+                  return <span>{helper.getFormattedDate(value, 'local')}</span>
+                }
+
+                return value;
+              }
+            }
+          };
+        });
+
+        tempProcMonitorSearch.count = helper.numberWithCommas(data.count);
+
+        this.setState({
+          procMonitorSearch: tempProcMonitorSearch,
+          procMonitorData: tempProcMonitorData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle close menu
    * @method
    */
@@ -1795,7 +1911,9 @@ class HostEndPoints extends Component {
           malwareSearch: _.cloneDeep(MALWARE_SEARCH),
           malwareData: _.cloneDeep(MALWARE_DATA),
           fileIntegritySearch: _.cloneDeep(FILE_INTEGRITY_SEARCH),
-          fileIntegrityData: _.cloneDeep(FILE_INTEGRITY_DATA)
+          fileIntegrityData: _.cloneDeep(FILE_INTEGRITY_DATA),
+          procMonitorSearch: _.cloneDeep(PROC_MONITOR_SEARCH),
+          procMonitorData: _.cloneDeep(PROC_MONITOR_DATA)
         });
       }
     });
@@ -1892,12 +2010,25 @@ class HostEndPoints extends Component {
     });
   }
   /**
+   * Handle process monitor search change
+   * @method
+   * @param {object} event - event object
+   */
+  handleProcMonitorSearchChange = (event) => {
+    let tempProcMonitorSearch = {...this.state.procMonitorSearch};
+    tempProcMonitorSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      procMonitorSearch: tempProcMonitorSearch
+    });
+  }
+  /**
    * Handle reset button
    * @method
-   * @param {string} type - reset button type ('endpointsSearch', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb' or 'fileIntegrity')
+   * @param {string} type - reset button type ('endpointsSearch', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb', 'fileIntegrity' or 'procMonitor')
    */
   handleResetBtn = (type) => {
-    const {endpointsSearch, safetyScanInfoSearch, softwareInventorySearch, gcbSearch, discoveredVulnerabilitySearch, kbidSearch, malwareSearch, fileIntegritySearch} = this.state;
+    const {endpointsSearch, safetyScanInfoSearch, softwareInventorySearch, gcbSearch, discoveredVulnerabilitySearch, kbidSearch, malwareSearch, fileIntegritySearch, procMonitorSearch} = this.state;
 
     if (type === 'endpointsSearch') {
       let tempEndpointsSearch = {...endpointsSearch};
@@ -1958,6 +2089,13 @@ class HostEndPoints extends Component {
 
       this.setState({
         fileIntegritySearch: tempFileIntegritySearch
+      });
+    } else if (type === 'procMonitorSearch') {
+      let tempProcMonitorSearch = {...procMonitorSearch};
+      tempProcMonitorSearch.keyword = '';
+
+      this.setState({
+        procMonitorSearch: tempProcMonitorSearch
       });
     }
   }
@@ -2133,6 +2271,8 @@ class HostEndPoints extends Component {
       malwareData,
       fileIntegritySearch,
       fileIntegrityData,
+      procMonitorSearch,
+      procMonitorData,
       currentEndpointData,
       severityStatistics
     } = this.state;
@@ -2220,6 +2360,64 @@ class HostEndPoints extends Component {
         this.handleTableSort('fileIntegrity', changedColumn, direction === 'desc');
       }
     };
+    const tableOptionsProcMonitor = {
+      tableBodyHeight: 'calc(75vh - 185px)',
+      renderExpandableRow: (rowData, rowMeta) => {
+        let allValue = procMonitorData.dataContent[rowMeta.dataIndex];
+
+        return (
+          <TableRow>
+            <TableCell />
+            <TableCell colSpan={2} className="proc-monitor-accordion">
+              <Accordion>
+                <AccordionSummary
+                  expandIcon={<ArrowDropDownIcon />}
+                >
+                  DLLs
+                </AccordionSummary>
+                <AccordionDetails>
+                  {_.map(allValue.dlls, (dll, i) => {
+                    return <span key={i}>{dll}</span>
+                  })}
+                  {(!allValue.dlls || allValue.dlls.length === 0) &&
+                    <span>{NOT_AVAILABLE}</span>
+                  }
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary
+                  expandIcon={<ArrowDropDownIcon />}
+                >
+                  {t('txt-executableInfo')}
+                </AccordionSummary>
+                <AccordionDetails>
+                  {_.map(['autorunLocation', 'commandLine', 'companyName', 'filePath', 'fileSize', 'fileMD5', 'fileSHA1', 'fileSHA256', 'isPE', 'userSid', 'signatures'], data => {
+                    let dataValue = NOT_AVAILABLE;
+                    if (data === 'isPE') {
+                      return <span key={data}><span className='proc-monitor-label'>{t('host.procMonitor.txt-' + data)}</span><span className={'true-false-status true-false-status-' + allValue[data]}>{t('txt-' + allValue[data])}</span></span>
+                    } else if (data === 'signatures') {
+                      // currently no value
+                    } else if (allValue[data].length > 0) {
+                      dataValue = allValue[data];
+                    }
+                    return <span key={data}><span className='proc-monitor-label'>{t('host.procMonitor.txt-' + data)}</span>{dataValue}</span>
+                  })}
+                </AccordionDetails>
+              </Accordion>
+            </TableCell>
+          </TableRow>
+        );
+      },
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('procMonitor', 'currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('procMonitor', 'pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort('procMonitor', changedColumn, direction === 'desc');
+      }
+    };
 
     return (
       <div>
@@ -2235,6 +2433,7 @@ class HostEndPoints extends Component {
           <ToggleButton id='hostDialogGcb' value='gcb' data-cy='hostInfoDialogGcbBtn'>{t('host.endpoints.txt-gcb')}</ToggleButton>
           <ToggleButton id='hostDialogMalware' value='malware' data-cy='hostInfoDialogMalwareBtn'>{t('host.endpoints.txt-malware')}</ToggleButton>
           <ToggleButton id='hostDialogFileIntegrity' value='fileIntegrity' data-cy='hostInfoDialogFileIntegrityBtn'>{t('host.endpoints.txt-fileIntegrity')}</ToggleButton>
+          <ToggleButton id='hostDialogProcMonitor' value='procMonitor' data-cy='hostInfoDialogProcMonitorBtn'>{t('host.endpoints.txt-procMonitor')}</ToggleButton>
           <ToggleButton id='hostDialogSafetyScanInfo' value='safetyScanInfo' data-cy='hostInfoDialogSafetyScanBtn'>{t('host.endpoints.txt-safetyScanInfo')}</ToggleButton>
         </ToggleButtonGroup>
 
@@ -2342,6 +2541,21 @@ class HostEndPoints extends Component {
               handleSearchSubmit={this.getFileIntegrity}
               handleResetBtn={this.handleResetBtn} />
           }
+
+          {activeEndpointInfo === 'procMonitor' &&
+            <GeneralDialog
+              page='endpoints'
+              type='general-list'
+              searchType={activeEndpointInfo}
+              search={procMonitorSearch}
+              data={procMonitorData}
+              tableOptions={tableOptionsProcMonitor}
+              resizableColumns={false}
+              expandableRows={true}
+              handleSearchChange={this.handleProcMonitorSearchChange}
+              handleSearchSubmit={this.getProcMonitor}
+              handleResetBtn={this.handleResetBtn} />
+          }
         </div>
       </div>
     )
@@ -2378,12 +2592,12 @@ class HostEndPoints extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb' or 'fileIntegrity')
+   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb', 'fileIntegrity' or 'procMonitor')
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
   handleTableSort = (tableType, field, sort) => {
-    const {endpointsData, safetyScanInfoData, softwareInventoryData, gcbData, discoveredVulnerabilityData, kbidData, malwareData, fileIntegrityData} = this.state;
+    const {endpointsData, safetyScanInfoData, softwareInventoryData, gcbData, discoveredVulnerabilityData, kbidData, malwareData, fileIntegrityData, procMonitorData} = this.state;
     let tempEndpointsData = {...endpointsData};
     let tempSafetyScanInfoData = {...safetyScanInfoData};
     let tempSoftwareInventoryData = {...softwareInventoryData};
@@ -2392,6 +2606,7 @@ class HostEndPoints extends Component {
     let tempKbidData = {...kbidData};
     let tempMalwareData = {...malwareData};
     let tempFileIntegrityData = {...fileIntegrityData};
+    let tempProcMonitorData = {...procMonitorData};
     let tableField = field;
 
     if (tableType === 'endpoints') {
@@ -2466,17 +2681,26 @@ class HostEndPoints extends Component {
       }, () => {
         this.getFileIntegrity();
       });
+    } else if (tableType === 'procMonitor') {
+      tempProcMonitorData.sort.field = tableField;
+      tempProcMonitorData.sort.desc = sort;
+
+      this.setState({
+        procMonitorData: tempProcMonitorData
+      }, () => {
+        this.getProcMonitor();
+      });
     }
   }
   /**
    * Handle table pagination change
    * @method
-   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb' or 'fileIntegrity')
+   * @param {string} tableType - table type ('endpoints', 'safetyScanInfo', 'softwareInventory', 'discoveredVulnerability', 'kbid', 'malware', 'gcb', 'fileIntegrity' or 'procMonitor')
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {number} value - new page number
    */
   handlePaginationChange = (tableType, type, value) => {
-    const {endpointsData, safetyScanInfoData, softwareInventoryData, gcbData, discoveredVulnerabilityData, kbidData, malwareData, fileIntegrityData} = this.state;
+    const {endpointsData, safetyScanInfoData, softwareInventoryData, gcbData, discoveredVulnerabilityData, kbidData, malwareData, fileIntegrityData, procMonitorData} = this.state;
     let tempEndpointsData = {...endpointsData};
     let tempSafetyScanInfoData = {...safetyScanInfoData};
     let tempSoftwareInventoryData = {...softwareInventoryData};
@@ -2485,6 +2709,7 @@ class HostEndPoints extends Component {
     let tempKbidData = {...kbidData};
     let tempMalwareData = {...malwareData};
     let tempFileIntegrityData = {...fileIntegrityData};
+    let tempProcMonitorData = {...procMonitorData};
 
     if (tableType === 'endpoints') {
       tempEndpointsData[type] = value;
@@ -2542,13 +2767,21 @@ class HostEndPoints extends Component {
       }, () => {
         this.getMalware(type);
       });
-    } else if (tableType === 'fileIntegrityData') {
+    } else if (tableType === 'fileIntegrity') {
       tempFileIntegrityData[type] = value;
 
       this.setState({
-        fileIntegrityDataData: tempFileIntegrityData
+        fileIntegrityData: tempFileIntegrityData
       }, () => {
-        this.getFileIntegrityData(type);
+        this.getFileIntegrity(type);
+      });
+    } else if (tableType === 'procMonitor') {
+      tempProcMonitorData[type] = value;
+
+      this.setState({
+        procMonitorData: tempProcMonitorData
+      }, () => {
+        this.getProcMonitor(type);
       });
     }
   }

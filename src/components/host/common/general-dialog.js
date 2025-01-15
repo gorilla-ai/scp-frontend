@@ -927,7 +927,7 @@ class GeneralDialog extends Component {
    * @returns HTML DOM
    */
   showGeneralList = () => {
-    const {page, searchType, search, data, tableOptions, severityStatistics} = this.props;
+    const {page, searchType, search, data, tableOptions, severityStatistics, resizableColumns, expandableRows} = this.props;
     let searchFieldText = '';
     let searchCountHeader = '';
 
@@ -963,6 +963,9 @@ class GeneralDialog extends Component {
       } else if (searchType === 'fileIntegrity') {
         searchFieldText = t('host.fileIntegrity.txt-filePath');
         searchCountHeader = t('txt-searchCount');
+      } else if (searchType === 'procMonitor') {
+        searchFieldText = t('host.procMonitor.txt-filePath');
+        searchCountHeader = t('txt-searchCount');
       }
     }
 
@@ -976,7 +979,7 @@ class GeneralDialog extends Component {
           </div>
         }
 
-        {!(page === 'endpoints' && searchType === 'fileIntegrity') &&
+        {!(page === 'endpoints' && (searchType === 'fileIntegrity' || searchType === 'procMonitor')) &&
         <div className='search-field'>
           <div className='search-field-left'>
             <div className='group'>
@@ -1073,7 +1076,9 @@ class GeneralDialog extends Component {
         <MuiTableContent
           tableHeight='auto'
           data={data}
-          tableOptions={tableOptions} />
+          tableOptions={tableOptions}
+          resizableColumns={resizableColumns}
+          expandableRows={expandableRows} />
       </React.Fragment>
     )
   }
@@ -1100,6 +1105,11 @@ class GeneralDialog extends Component {
 
 GeneralDialog.contextType = BaseDataContext;
 
+GeneralDialog.defaultProps = {
+  resizableColumns: true,
+  expandableRows: false
+};
+
 GeneralDialog.propTypes = {
   page: PropTypes.string.isRequired,
   type: PropTypes.string.isRequired,
@@ -1115,6 +1125,8 @@ GeneralDialog.propTypes = {
   triggerTask: PropTypes.func,
   handleUpdateButton: PropTypes.func,
   handleAddWhitelist: PropTypes.func,
+  resizableColumns: PropTypes.bool,
+  expandableRows: PropTypes.bool
 };
 
 export default GeneralDialog;

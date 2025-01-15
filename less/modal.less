@@ -3373,3 +3373,60 @@ html[data-theme='dark'] {
     margin: 5px 0;
   }
 }
+#showEndpointDialog-content {
+  .MuiTableCell-paddingCheckbox {
+    padding: 16px;
+  }
+  .MuiIconButton-root:hover {
+    background: none;
+  }
+  .proc-monitor-accordion {
+    padding: 6px;
+    min-height: auto;
+    overflow-wrap: anywhere;
+    .proc-monitor-label {
+      color: var(--primaryContentHeader);
+      &:after {
+        content: ":";
+        margin-right: 5px;
+      }
+    }
+    .MuiAccordion-root {
+      box-shadow: none;
+      background-color: transparent;
+      color: var(--primaryTextColor);
+      margin: 0;
+      .MuiAccordionSummary-root {
+        flex-direction: row-reverse;
+        padding: 0;
+        min-height: 30px;
+        border: none;
+        &.Mui-expanded {
+          min-height: 30px;
+        }
+        .MuiAccordionSummary-content {
+          margin: 0;
+          color: var(--primaryContentHeader);
+        }
+        .MuiAccordionSummary-expandIcon {
+          margin: 0 5px 0 -5px;
+          padding: 0;
+          .MuiSvgIcon-root {
+            color: var(--primaryContentHeader);
+          }
+        }
+      }
+      .MuiAccordionDetails-root {
+        padding: 0 20px 8px 24px;
+        display: flex;
+        flex-direction: column;
+      }
+      .Mui-expanded {
+        margin: 0;
+      }
+      &:before {
+        display: none;
+      }
+    }
+  }
+}

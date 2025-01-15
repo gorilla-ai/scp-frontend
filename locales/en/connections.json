@@ -534,6 +534,20 @@
       "txt-category": "Category",
       "txt-detectedDttm": "Detected Time"
     },
+    "procMonitor": {
+      "txt-filePath": "File Path",
+      "txt-detectedDttm": "Detected Time",
+      "txt-autorunLocation": "Autorun Location",
+      "txt-commandLine": "Command Line",
+      "txt-companyName": "Company Name",
+      "txt-fileSize": "File Size",
+      "txt-fileMD5": "MD5",
+      "txt-fileSHA1" : "SHA1",
+      "txt-fileSHA256": "SHA256",
+      "txt-isPE": "PE File",
+      "txt-userSid": "User SID",
+      "txt-signatures": "Signature"     
+    },
     "endpoints": {
       "txt-hmdStatus": "HMD Status",
       "txt-hmdVersion": "HMD Version",
@@ -578,6 +592,10 @@
       "txt-settings": "Settings",
       "txt-updateDttm": "Update Time",
       "txt-remoteControl": "Remote Control",
+      "txt-compressFile": "Compress File",
+      "txt-reCompressFile": "Recompress File",
+      "txt-chooseFile": "Choose File",
+      "txt-downloadFile": "Download File",
       "txt-compressLogs": "Compress Logs",
       "txt-recompressLogs": "Recompress Logs",
       "txt-downloadLogs": "Download Logs",
