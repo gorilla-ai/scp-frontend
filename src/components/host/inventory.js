@@ -596,7 +596,7 @@ class HostInventory extends Component {
       });
     }
 
-    if (cpeFilter.cpe23uri && cpeFilter.cpe23uri.length > 0) {
+    if (cpeFilter.cpe23uri && cpeFilter.cpe23uri.length > 0 && _.filter(cpeFilter.cpe23uri, (url) => (url.input !== '')).length > 0) {
       requestData.cpe23uriArray = cpeFilter.cpe23uri;
       requestData.cpe23uriOperator = cpe23uriOperator;
     }
@@ -1180,7 +1180,7 @@ class HostInventory extends Component {
             filterDataCount++;
 
         } else if (Array.isArray(val)) {
-          if (val.length > 0 && val[0].input !== '')
+          if (val.length > 0 && _.filter(val, (o) => (o.input !== '')).length > 0)
             filterDataCount++;
 
         } else {
@@ -1509,6 +1509,7 @@ class HostInventory extends Component {
       cpeFilterList,
       filterDataCount,
       filterQueryList,
+      cpe23uriOperator,
       showCpeInfo,
       exportContextAnchor,
       tableContextAnchor,
@@ -1557,7 +1558,8 @@ class HostInventory extends Component {
             toggleCsvImport={this.toggleCsvImport}
             onFilterQuery={this.handleFilterQuery}
             onDeleteFilterQuery={this.handleDeleteFilterQuery}
-            filterQueryList={filterQueryList} />
+            filterQueryList={filterQueryList}
+            cpe23uriOperator={cpe23uriOperator} />
         }
 
         {reportOpen &&

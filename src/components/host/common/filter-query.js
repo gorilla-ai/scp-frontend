@@ -63,9 +63,10 @@ class FilterQuery extends Component {
     };
   }
   componentDidMount() {
-    const {originalSystemList, systemList, filterList, filter, itemFilterList} = this.props;
+    const {originalSystemList, systemList, filterList, filter, itemFilterList, cpe23uriOperator} = this.props;
 
     this.setState({
+      cpe23uriOperator,
       filter,
       itemFilterList
     });
@@ -80,10 +81,11 @@ class FilterQuery extends Component {
     })
   }
   componentDidUpdate(prevProps) {
-    const {filter, itemFilterList, filterQueryList} = this.props;
+    const {filter, itemFilterList, filterQueryList, cpe23uriOperator} = this.props;
 
     if (!prevProps || (prevProps && filter !== prevProps.filter)) {
       this.setState({
+        cpe23uriOperator,
         filter,
         itemFilterList,
         formValidation: _.cloneDeep(FORM_VALIDATION)
