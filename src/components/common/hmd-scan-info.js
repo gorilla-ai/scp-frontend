@@ -1530,14 +1530,16 @@ class HMDscanInfo extends Component {
   getTriggerBtnInfo = (type) => {
     const {ipType} = this.props;
     const {activeTab, hmdInfo} = this.state;
-    const btnText = activeTab === 'ir' ? t('hmd-scan.txt-reCompress') : t('hmd-scan.txt-reCheck');
+    let btnText = activeTab === 'ir' ? t('hmd-scan.txt-reCompress') : t('hmd-scan.txt-reCheck');
     let currentTab = activeTab;
 
     if (type) { //Exceptions for Settings tab
       if (type === 'fileIntegrity') {
         currentTab = 'snapshot';
+        btnText = t('hmd-scan.txt-buildSnapshot');
       } else if (type === 'procMonitor') {
         currentTab = 'procWhiteList';
+        btnText = t('hmd-scan.txt-allowList');
       }
     }
 
