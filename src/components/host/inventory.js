@@ -158,7 +158,7 @@ class HostInventory extends Component {
       originalSystemList: [],
       systemList: [],
       vendorType: [],
-      cpe23uriOperator: '',
+      cpe23uriOperator: 'equal',
       importDialogOpen: false,
       cpeSearch: _.cloneDeep(CPE_SEARCH),
       cpeFilter: _.cloneDeep(CPE_FILTER),
@@ -597,7 +597,7 @@ class HostInventory extends Component {
     }
 
     if (cpeFilter.cpe23uri && cpeFilter.cpe23uri.length > 0 && _.filter(cpeFilter.cpe23uri, (url) => (url.input !== '')).length > 0) {
-      requestData.cpe23uriArray = cpeFilter.cpe23uri;
+      requestData.cpe23uriArray = _.map(cpeFilter.cpe23uri, url => url.input);
       requestData.cpe23uriOperator = cpe23uriOperator;
     }
 
