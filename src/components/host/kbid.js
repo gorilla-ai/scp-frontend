@@ -448,8 +448,8 @@ class HostKbid extends Component {
     const page = fromPage === 'currentPage' ? exposedDevicesData.currentPage : 0;
     let url = `${baseUrl}/api/hmd/kbid/devices?page=${page + 1}&pageSize=${exposedDevicesData.pageSize}`;
     let requestData = {
-      kbid: currentKbid,
-      ...this.getKbidFilterRequestData()
+      ...this.getKbidFilterRequestData(),
+      kbid: currentKbid
     };
 
     if (exposedDevicesData.sort.field) {
@@ -672,6 +672,7 @@ class HostKbid extends Component {
       title +=  ' > ' + this.state.currentKbid;
     }
 
+console.log(this.state.currentKbid)
     return (
       <ModalDialog
         id='showKbidDialog'
