@@ -309,7 +309,7 @@ class TableList extends Component {
                   { adminPrivilege &&
                   <React.Fragment>
                     <Divider />
-                    <MenuItem><Link to={{pathname: '/SCP/host', state: {activeContent: 'hmdSettings'}}}>{t('host.endpoints.txt-settings')}</Link></MenuItem>
+                      <MenuItem onClick={this.props.toggleHmdSettings.bind(this)}>{t('host.endpoints.txt-settings')}</MenuItem>
                   </React.Fragment>
                   }
                 </NestedMenuItem>

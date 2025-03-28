@@ -7,18 +7,17 @@ import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
 import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import { TableCell, TableRow } from "@material-ui/core";
 
-import BarChart from 'react-chart/build/src/components/bar'
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PieChart from 'react-chart/build/src/components/pie'
 import Popover from 'react-ui/build/src/components/popover'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-
-import {downloadWithForm} from 'react-ui/build/src/utils/download'
+import BarChart from 'react-chart/build/src/components/bar'
 
 import {BaseDataContext} from '../common/context'
 import FilterQuery from './common/filter-query'
@@ -29,8 +28,7 @@ import HostMenu from './common/host-menu'
 import MemoInput from './common/memo-input'
 import TableList from './common/table-list'
 import FileUpload from '../common/file-upload'
-
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import HMDsettings from './hmd-settings'
 
 const NOT_AVAILABLE = 'N/A';
 const SEVERITY_TYPE = ['critical', 'high', 'medium', 'low'];
@@ -306,6 +304,7 @@ class HostEndPoints extends Component {
       modalViewMoreOpen: false,
       requestSentOpen: false,
       uploadHmdFileOpen: false,
+      hmdSettingsOpen: false,
       endpointsSearch: _.cloneDeep(ENDPOINTS_SEARCH),
       endpointsFilter: _.cloneDeep(ENDPOINTS_FILTER),
       endpointsFilterList: _.cloneDeep(ENDPOINTS_FILTER_LIST),
@@ -3487,6 +3486,13 @@ class HostEndPoints extends Component {
 
     this.handleCloseMenu();
   }
+  toggleHmdSettings = () => {
+    this.setState({
+      hmdSettingsOpen: !this.state.hmdSettingsOpen
+    });
+
+    this.handleCloseMenu();
+  }
   render() {
     const {
       account,
@@ -3504,6 +3510,7 @@ class HostEndPoints extends Component {
       modalViewMoreOpen,
       requestSentOpen,
       uploadHmdFileOpen,
+      hmdSettingsOpen,
       endpointsSearch,
       endpointsFilter,
       endpointsFilterList,
@@ -3556,6 +3563,10 @@ class HostEndPoints extends Component {
 
         {uploadHmdFileOpen &&
           this.uploadHmdFileDialog()
+        }
+
+        {hmdSettingsOpen &&
+          <HMDsettings mode={'modal'} onClose={this.toggleHmdSettings} />
         }
 
         {showFilterQuery &&
@@ -3616,6 +3627,7 @@ class HostEndPoints extends Component {
               exportList={this.exportEndpointsList}
               onFilterQueryClick={this.handleShowFilterQuery}
               toggleHmdUploadFile={this.toggleHmdUploadFile}
+              toggleHmdSettings={this.toggleHmdSettings}
               filterDataCount={filterDataCount}
               handleSearch={this.handleCpeChange}
               handleReset={this.handleResetBtn}

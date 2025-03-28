@@ -18,6 +18,7 @@ import TextField from '@material-ui/core/TextField'
 
 import {downloadLink} from 'react-ui/build/src/utils/download'
 import MultiInput from 'react-ui/build/src/components/multi-input'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../common/context'
 import CpeHeader from './cpe-header'
@@ -1274,8 +1275,9 @@ class HMDsettings extends Component {
       formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
-  render() {
+  renderContent = () => {
     const {locale} = this.context;
+    const {mode} = this.props;
     const {
       activeContent,
       datetimeExport,
@@ -1322,7 +1324,425 @@ class HMDsettings extends Component {
     }
 
     return (
-      <div className='parent-content'>
+      <div className='hmd-settings' style={{height: mode === 'normal' ? activeContent === 'viewMode' ? '78vh' : '70vh' : 'auto'}}>
+        <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.server})}>
+          <header>{t('hmd-scan.txt-serverOs')}</header>
+          <div className='header-btn-group'>
+            {activeContent === 'viewMode' &&
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'server')}>{t('txt-edit')}</Button>
+            }
+          </div>
+          {!fieldEnable.server &&
+            <div className='group'>
+              {serverOs.length > 0 &&
+                <div className='flex-item'>{serverOs.map(this.showOsList)}</div>
+              }
+              {serverOs.length === 0 &&
+                <div>{NOT_AVAILABLE}</div>
+              }
+            </div>
+          }
+          {fieldEnable.server &&
+            <MultiInput
+              base={InputPath}
+              inline={true}
+              defaultItemValue={{
+                path: ''
+              }}
+              value={serverOs}
+              onChange={this.setOSlist.bind(this, 'serverOs')} />
+          }
+        </div>
+
+        <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.pc})}>
+          <header>{t('hmd-scan.txt-pcOs')}</header>
+          <div className='header-btn-group'>
+            {activeContent === 'viewMode' &&
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'pc')}>{t('txt-edit')}</Button>
+            }
+          </div>
+          {!fieldEnable.pc &&
+            <div className='group'>
+              {pcOs.length > 0 &&
+                <div className='flex-item'>{pcOs.map(this.showOsList)}</div>
+              }
+              {pcOs.length === 0 &&
+                <div>{NOT_AVAILABLE}</div>
+              }
+            </div>
+          }
+          {fieldEnable.pc &&
+            <MultiInput
+              base={InputPath}
+              inline={true}
+              defaultItemValue={{
+                path: ''
+              }}
+              value={pcOs}
+              onChange={this.setOSlist.bind(this, 'pcOs')} />
+          }
+        </div>
+
+        <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.scanFiles})}>
+          <header>{t('hmd-scan.scan-list.txt-scanFile')}</header>
+          <div className='header-btn-group'>
+            {activeContent === 'editMode' && fieldEnable.scanFiles &&
+              <Button variant='contained' color='primary' onClick={this.getDefaultScanFile.bind(this, 'scanFiles')}>{t('hmd-scan.txt-restoreDefault')}</Button>
+            }
+            {activeContent === 'viewMode' &&
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'scanFiles')}>{t('txt-edit')}</Button>
+            }
+          </div>
+          {MALWARE_DETECTION.map(this.showMalwarePath)}
+        </div>
+
+        <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.scanFilesLinux})}>
+          <header>{t('hmd-scan.scan-list.txt-scanFileLinux')}</header>
+          <div className='header-btn-group'>
+            {activeContent === 'editMode' && fieldEnable.scanFilesLinux &&
+              <Button variant='contained' color='primary' onClick={this.getDefaultScanFile.bind(this, 'scanFilesLinux')}>{t('hmd-scan.txt-restoreDefault')}</Button>
+            }
+            {activeContent === 'viewMode' &&
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'scanFilesLinux')}>{t('txt-edit')}</Button>
+            }
+          </div>
+          {MALWARE_DETECTION.map(this.showMalwarePathLinux)}
+        </div>
+
+        <div className='form-group normal long'>
+          <header>{t('hmd-scan.txt-scanFileWhitelist')}</header>
+          <div className='header-btn-group'>
+          </div>
+          {malwareWhiteCount !== -1 &&
+          <div className='sub-section'>
+            <span>{t('hmd-scan.txt-whitelistSize')}: {malwareWhiteCount}</span>
+          </div>
+          }
+          <div className='sub-section'>
+            <div className='import-header'>{t('txt-import')}</div>
+            <FileUpload
+              id='importMalwareWhiteList'
+              fileType='csv'
+              btnText={t('txt-selectFile')}
+              handleFileChange={(val) => this.handleFileChange('malwareWhiteListFile', val)} />
+            <Button variant='contained' color='primary' className='import-btn' onClick={(val) => this.handleFileImport('malwareWhiteListFile')}>{t('txt-import')}</Button>
+          </div>
+        </div>
+        
+        <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.gcb})}>
+          <header>{t('hmd-scan.scan-list.txt-gcb')}</header>
+          <div className='header-btn-group'>
+            {activeContent === 'viewMode' &&
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'gcb')}>{t('txt-edit')}</Button>
+            }
+          </div>
+          <div className='group'>
+            <label>{t('hmd-scan.txt-gcbVersion')}</label>
+            <RadioGroup
+              className='radio-group'
+              value={gcbVersion}
+              onChange={this.handleGcbVersionChange}>
+              <FormControlLabel
+                value='TW'
+                control={
+                  <Radio
+                    className='radio-ui'
+                    color='primary' />
+                }
+                label='TW'
+                disabled={!fieldEnable.gcb} />
+              <FormControlLabel
+                className='radio-ui'
+                value='US'
+                control={
+                  <Radio
+                    className='radio-ui'
+                    color='primary' />
+                }
+                label='US'
+                disabled={!fieldEnable.gcb} />
+            </RadioGroup>
+          </div>
+        </div>
+
+        <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.processMonitor})}>
+          <header>{t('hmd-scan.scan-list.txt-procMonitor')}</header>
+          <div className='header-btn-group'>
+            {activeContent === 'viewMode' &&
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'processMonitor')}>{t('txt-edit')}</Button>
+            }
+          </div>
+          <div className='group'>
+            <label>{t('hmd-scan.txt-learningInterval')}</label>
+            <TextField
+              id='hmdSettingsPmInterval'
+              name='pmInterval'
+              type='number'
+              variant='outlined'
+              size='small'
+              InputProps={{inputProps: { min: 0 }}}
+              value={pmInterval}
+              onChange={this.handleDataChange}
+              disabled={!fieldEnable.processMonitor} />
+          </div>
+        </div>
+
+        <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.scannerSchedule})}>
+          <header>{t('hmd-scan.txt-scannerSchedule')}</header>
+          <div className='header-btn-group'>
+            {activeContent === 'viewMode' &&
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'scannerSchedule')}>{t('txt-edit')}</Button>
+            }
+          </div>
+          <div className='sub-section'>
+            <div className='time-picker'>
+              <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                <KeyboardTimePicker
+                  id='hmdSettingsTimePicker'
+                  inputVariant='outlined'
+                  variant='inline'
+                  invalidDateMessage={t('txt-invalidDateMessage')}
+                  ampm={false}
+                  value={scannerSchedule}
+                  onChange={this.handleScannerTimeChange}
+                  disabled={!fieldEnable.scannerSchedule} />
+              </MuiPickersUtilsProvider>
+            </div>
+          </div>
+        </div>
+
+        <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.ftpUpload})}>
+          <header>{t('hmd-scan.scan-list.txt-ftpUpload')}</header>
+          <div className='header-btn-group'>
+            {activeContent === 'viewMode' &&
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'ftpUpload')}>{t('txt-edit')}</Button>
+            }
+          </div>
+          <div className='group'>
+            {!fieldEnable.ftpUpload &&
+              <label>IP</label>
+            }
+            {fieldEnable.ftpUpload &&
+              <label>IP *</label>
+            }
+            {!fieldEnable.ftpUpload &&
+              <div className='flex-item'><span>{ftpIp || NOT_AVAILABLE}</span></div>
+            }
+            {fieldEnable.ftpUpload &&
+              <TextField
+                id='hmdSettingsFtpIp'
+                name='ftpIp'
+                variant='outlined'
+                size='small'
+                required
+                error={!formValidation.ip.valid}
+                helperText={formValidation.ip.msg}
+                value={ftpIp}
+                onChange={this.handleDataChange} />
+            }
+          </div>
+          <div className='group'>
+            {!fieldEnable.ftpUpload &&
+              <label>URL</label>
+            }
+            {fieldEnable.ftpUpload &&
+              <label>URL *</label>
+            }
+            {!fieldEnable.ftpUpload &&
+              <div className='flex-item'><span>{ftpUrl || NOT_AVAILABLE}</span></div>
+            }
+            {fieldEnable.ftpUpload &&
+              <TextField
+                id='hmdSettingsFtpUrl'
+                name='ftpUrl'
+                className='full-field'
+                variant='outlined'
+                size='small'
+                required
+                error={!formValidation.url.valid}
+                helperText={formValidation.url.valid ? '' : t('txt-required')}
+                value={ftpUrl}
+                onChange={this.handleDataChange} />
+            }
+          </div>
+          <div className='group'>
+            {!fieldEnable.ftpUpload &&
+              <label>{t('txt-account')}</label>
+            }
+            {fieldEnable.ftpUpload &&
+              <label>{t('txt-account')} *</label>
+            }
+            {!fieldEnable.ftpUpload &&
+              <div className='flex-item'><span>{ftpAccount || NOT_AVAILABLE}</span></div>
+            }
+            {fieldEnable.ftpUpload &&
+              <TextField
+                id='hmdSettingsFtpAccount'
+                name='ftpAccount'
+                variant='outlined'
+                size='small'
+                required
+                error={!formValidation.account.valid}
+                helperText={formValidation.account.valid ? '' : t('txt-required')}
+                value={ftpAccount}
+                onChange={this.handleDataChange} />
+            }
+          </div>
+
+          {fieldEnable.ftpUpload &&
+            <div className='group'>
+              <label>{t('txt-password')}</label>
+              <TextField
+                id='hmdSettingsFtpPassword'
+                name='ftpPassword'
+                type='password'
+                variant='outlined'
+                size='small'
+                required
+                error={!formValidation.password.valid}
+                helperText={formValidation.password.valid ? '' : t('txt-required')}
+                value={ftpPassword}
+                onChange={this.handleDataChange} />
+              <Button id='hmdSettingsConnectionsCheck' variant='contained' color='primary' className='connections-check' onClick={this.checkConnectionsStatus}>{t('hmd-scan.txt-checkConnections')}</Button>
+              {msg &&
+                <span style={{color}}>{msg}</span>
+              }
+            </div>
+          }
+        </div>
+
+        <div className={cx('form-group normal', {'disabled-status': activeContent === 'editMode' && !fieldEnable.frMotp})}>
+          <header>FR-MOTP</header>
+          <div className='header-btn-group'>
+            {(activeContent === 'viewMode' || (activeContent === 'editMode' && fieldEnable.frMotp)) &&
+              <Button variant='contained' color='primary' className='header-btn' onClick={this.handleConnectionsTest}>{t('soar.txt-testConnections')}</Button>
+            }
+            {activeContent === 'viewMode' &&
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'frMotp')}>{t('txt-edit')}</Button>
+            }
+          </div>
+          <div className='group full'>
+            <FormControlLabel
+              label={t('network-inventory.txt-frMotpTest')}
+              control={
+                <Checkbox
+                  className='checkbox-ui'
+                  name='enable'
+                  checked={frMotp.enable}
+                  onChange={this.handleFrMotpChange}
+                  color='primary' />
+              }
+              disabled={!fieldEnable.frMotp} />
+          </div>
+          <div className='group'>
+            <TextField
+              name='ip'
+              label='IP'
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={frMotp.ip}
+              onChange={this.handleFrMotpChange}
+              disabled={!fieldEnable.frMotp} />
+          </div>
+          <div className='group'>
+            <TextField
+              name='apiKey'
+              label='API Key'
+              variant='outlined'
+              fullWidth
+              size='small'
+              value={frMotp.apiKey}
+              onChange={this.handleFrMotpChange}
+              disabled={!fieldEnable.frMotp} />
+          </div>
+        </div>
+
+        <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.security})}>
+          <header>{t('network-inventory.txt-cpeSoftwareList')}</header>
+          <div className='header-btn-group'>
+            {activeContent === 'viewMode' &&
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'security')}>{t('txt-edit')}</Button>
+            }
+          </div>
+          <MultiInput
+            className='cpe-group'
+            base={CpeHeader}
+            props={cpeProps}
+            defaultItemValue={{
+              header: '',
+              validate: true,
+              msg: '',
+              list: [{
+                cpe: '',
+                validate: true,
+                msg: ''
+              }],
+              index: cpeData.length
+            }}
+            value={cpeData}
+            onChange={this.setCpeData.bind(this, 'header')}
+            disabled={!fieldEnable.security} />
+        </div>
+
+        <div className='form-group normal long'>
+          <header>{t('hmd-scan.txt-hmdImportExport')}</header>
+          <div className='header-btn-group'>
+          </div>
+          <div className='sub-section space'>
+            <div className='import-header'>{t('txt-export')}</div>
+            <div className='date-picker'>
+              <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                <KeyboardDateTimePicker
+                  id='hmdSettingsDateTimePickerFrom'
+                  className='date-time-picker'
+                  inputVariant='outlined'
+                  variant='inline'
+                  format='YYYY-MM-DD HH:mm'
+                  invalidDateMessage={t('txt-invalidDateMessage')}
+                  maxDateMessage={t('txt-maxDateMessage')}
+                  minDateMessage={t('txt-minDateMessage')}
+                  ampm={false}
+                  value={datetimeExport.from}
+                  onChange={this.handleDateChange.bind(this, 'from')} />
+                <div className='between'>~</div>
+                <KeyboardDateTimePicker
+                  id='hmdSettingsDateTimePickerTo'
+                  className='date-time-picker'
+                  inputVariant='outlined'
+                  variant='inline'
+                  format='YYYY-MM-DD HH:mm'
+                  invalidDateMessage={t('txt-invalidDateMessage')}
+                  maxDateMessage={t('txt-maxDateMessage')}
+                  minDateMessage={t('txt-minDateMessage')}
+                  ampm={false}
+                  value={datetimeExport.to}
+                  onChange={this.handleDateChange.bind(this, 'to')} />
+              </MuiPickersUtilsProvider>
+            </div>
+            <Button variant='contained' color='primary' className='export-btn' onClick={this.handleFileExport}>{t('txt-export')}</Button>
+          </div>
+
+          <div className='sub-section'>
+            <div className='import-header'>{t('txt-import')}</div>
+            <FileUpload
+              id='importHmd'
+              fileType='zip'
+              btnText={t('txt-selectFile')}
+              handleFileChange={(val) => this.handleFileChange('hmdFile', val)} />
+            <Button variant='contained' color='primary' className='import-btn' onClick={(val) => this.handleFileImport('hmdFile')}>{t('txt-import')}</Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  render() {
+    const {mode, onClose} = this.props;
+    const {activeContent} = this.state;
+
+    if (mode === 'normal') {
+      return <div className='parent-content'>
         <div className='main-content basic-form'>
           <header className='main-header'>{t('hmd-scan.txt-hmdSettings')}</header>
 
@@ -1334,416 +1754,7 @@ class HMDsettings extends Component {
             </div>
           }
 
-          <div className='hmd-settings' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
-            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.server})}>
-              <header>{t('hmd-scan.txt-serverOs')}</header>
-              <div className='header-btn-group'>
-                {activeContent === 'viewMode' &&
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'server')}>{t('txt-edit')}</Button>
-                }
-              </div>
-              {!fieldEnable.server &&
-                <div className='group'>
-                  {serverOs.length > 0 &&
-                    <div className='flex-item'>{serverOs.map(this.showOsList)}</div>
-                  }
-                  {serverOs.length === 0 &&
-                    <div>{NOT_AVAILABLE}</div>
-                  }
-                </div>
-              }
-              {fieldEnable.server &&
-                <MultiInput
-                  base={InputPath}
-                  inline={true}
-                  defaultItemValue={{
-                    path: ''
-                  }}
-                  value={serverOs}
-                  onChange={this.setOSlist.bind(this, 'serverOs')} />
-              }
-            </div>
-
-            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.pc})}>
-              <header>{t('hmd-scan.txt-pcOs')}</header>
-              <div className='header-btn-group'>
-                {activeContent === 'viewMode' &&
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'pc')}>{t('txt-edit')}</Button>
-                }
-              </div>
-              {!fieldEnable.pc &&
-                <div className='group'>
-                  {pcOs.length > 0 &&
-                    <div className='flex-item'>{pcOs.map(this.showOsList)}</div>
-                  }
-                  {pcOs.length === 0 &&
-                    <div>{NOT_AVAILABLE}</div>
-                  }
-                </div>
-              }
-              {fieldEnable.pc &&
-                <MultiInput
-                  base={InputPath}
-                  inline={true}
-                  defaultItemValue={{
-                    path: ''
-                  }}
-                  value={pcOs}
-                  onChange={this.setOSlist.bind(this, 'pcOs')} />
-              }
-            </div>
-
-            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.scanFiles})}>
-              <header>{t('hmd-scan.scan-list.txt-scanFile')}</header>
-              <div className='header-btn-group'>
-                {activeContent === 'editMode' && fieldEnable.scanFiles &&
-                  <Button variant='contained' color='primary' onClick={this.getDefaultScanFile.bind(this, 'scanFiles')}>{t('hmd-scan.txt-restoreDefault')}</Button>
-                }
-                {activeContent === 'viewMode' &&
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'scanFiles')}>{t('txt-edit')}</Button>
-                }
-              </div>
-              {MALWARE_DETECTION.map(this.showMalwarePath)}
-            </div>
-
-            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.scanFilesLinux})}>
-              <header>{t('hmd-scan.scan-list.txt-scanFileLinux')}</header>
-              <div className='header-btn-group'>
-                {activeContent === 'editMode' && fieldEnable.scanFilesLinux &&
-                  <Button variant='contained' color='primary' onClick={this.getDefaultScanFile.bind(this, 'scanFilesLinux')}>{t('hmd-scan.txt-restoreDefault')}</Button>
-                }
-                {activeContent === 'viewMode' &&
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'scanFilesLinux')}>{t('txt-edit')}</Button>
-                }
-              </div>
-              {MALWARE_DETECTION.map(this.showMalwarePathLinux)}
-            </div>
-
-            <div className='form-group normal long'>
-              <header>{t('hmd-scan.txt-scanFileWhitelist')}</header>
-              <div className='header-btn-group'>
-              </div>
-              {malwareWhiteCount !== -1 &&
-              <div className='sub-section'>
-                <span>{t('hmd-scan.txt-whitelistSize')}: {malwareWhiteCount}</span>
-              </div>
-              }
-              <div className='sub-section'>
-                <div className='import-header'>{t('txt-import')}</div>
-                <FileUpload
-                  id='importMalwareWhiteList'
-                  fileType='csv'
-                  btnText={t('txt-selectFile')}
-                  handleFileChange={(val) => this.handleFileChange('malwareWhiteListFile', val)} />
-                <Button variant='contained' color='primary' className='import-btn' onClick={(val) => this.handleFileImport('malwareWhiteListFile')}>{t('txt-import')}</Button>
-              </div>
-            </div>
-            
-            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.gcb})}>
-              <header>{t('hmd-scan.scan-list.txt-gcb')}</header>
-              <div className='header-btn-group'>
-                {activeContent === 'viewMode' &&
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'gcb')}>{t('txt-edit')}</Button>
-                }
-              </div>
-              <div className='group'>
-                <label>{t('hmd-scan.txt-gcbVersion')}</label>
-                <RadioGroup
-                  className='radio-group'
-                  value={gcbVersion}
-                  onChange={this.handleGcbVersionChange}>
-                  <FormControlLabel
-                    value='TW'
-                    control={
-                      <Radio
-                        className='radio-ui'
-                        color='primary' />
-                    }
-                    label='TW'
-                    disabled={!fieldEnable.gcb} />
-                  <FormControlLabel
-                    className='radio-ui'
-                    value='US'
-                    control={
-                      <Radio
-                        className='radio-ui'
-                        color='primary' />
-                    }
-                    label='US'
-                    disabled={!fieldEnable.gcb} />
-                </RadioGroup>
-              </div>
-            </div>
-
-            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.processMonitor})}>
-              <header>{t('hmd-scan.scan-list.txt-procMonitor')}</header>
-              <div className='header-btn-group'>
-                {activeContent === 'viewMode' &&
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'processMonitor')}>{t('txt-edit')}</Button>
-                }
-              </div>
-              <div className='group'>
-                <label>{t('hmd-scan.txt-learningInterval')}</label>
-                <TextField
-                  id='hmdSettingsPmInterval'
-                  name='pmInterval'
-                  type='number'
-                  variant='outlined'
-                  size='small'
-                  InputProps={{inputProps: { min: 0 }}}
-                  value={pmInterval}
-                  onChange={this.handleDataChange}
-                  disabled={!fieldEnable.processMonitor} />
-              </div>
-            </div>
-
-            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.scannerSchedule})}>
-              <header>{t('hmd-scan.txt-scannerSchedule')}</header>
-              <div className='header-btn-group'>
-                {activeContent === 'viewMode' &&
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'scannerSchedule')}>{t('txt-edit')}</Button>
-                }
-              </div>
-              <div className='sub-section'>
-                <div className='time-picker'>
-                  <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-                    <KeyboardTimePicker
-                      id='hmdSettingsTimePicker'
-                      inputVariant='outlined'
-                      variant='inline'
-                      invalidDateMessage={t('txt-invalidDateMessage')}
-                      ampm={false}
-                      value={scannerSchedule}
-                      onChange={this.handleScannerTimeChange}
-                      disabled={!fieldEnable.scannerSchedule} />
-                  </MuiPickersUtilsProvider>
-                </div>
-              </div>
-            </div>
-
-            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.ftpUpload})}>
-              <header>{t('hmd-scan.scan-list.txt-ftpUpload')}</header>
-              <div className='header-btn-group'>
-                {activeContent === 'viewMode' &&
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'ftpUpload')}>{t('txt-edit')}</Button>
-                }
-              </div>
-              <div className='group'>
-                {!fieldEnable.ftpUpload &&
-                  <label>IP</label>
-                }
-                {fieldEnable.ftpUpload &&
-                  <label>IP *</label>
-                }
-                {!fieldEnable.ftpUpload &&
-                  <div className='flex-item'><span>{ftpIp || NOT_AVAILABLE}</span></div>
-                }
-                {fieldEnable.ftpUpload &&
-                  <TextField
-                    id='hmdSettingsFtpIp'
-                    name='ftpIp'
-                    variant='outlined'
-                    size='small'
-                    required
-                    error={!formValidation.ip.valid}
-                    helperText={formValidation.ip.msg}
-                    value={ftpIp}
-                    onChange={this.handleDataChange} />
-                }
-              </div>
-              <div className='group'>
-                {!fieldEnable.ftpUpload &&
-                  <label>URL</label>
-                }
-                {fieldEnable.ftpUpload &&
-                  <label>URL *</label>
-                }
-                {!fieldEnable.ftpUpload &&
-                  <div className='flex-item'><span>{ftpUrl || NOT_AVAILABLE}</span></div>
-                }
-                {fieldEnable.ftpUpload &&
-                  <TextField
-                    id='hmdSettingsFtpUrl'
-                    name='ftpUrl'
-                    className='full-field'
-                    variant='outlined'
-                    size='small'
-                    required
-                    error={!formValidation.url.valid}
-                    helperText={formValidation.url.valid ? '' : t('txt-required')}
-                    value={ftpUrl}
-                    onChange={this.handleDataChange} />
-                }
-              </div>
-              <div className='group'>
-                {!fieldEnable.ftpUpload &&
-                  <label>{t('txt-account')}</label>
-                }
-                {fieldEnable.ftpUpload &&
-                  <label>{t('txt-account')} *</label>
-                }
-                {!fieldEnable.ftpUpload &&
-                  <div className='flex-item'><span>{ftpAccount || NOT_AVAILABLE}</span></div>
-                }
-                {fieldEnable.ftpUpload &&
-                  <TextField
-                    id='hmdSettingsFtpAccount'
-                    name='ftpAccount'
-                    variant='outlined'
-                    size='small'
-                    required
-                    error={!formValidation.account.valid}
-                    helperText={formValidation.account.valid ? '' : t('txt-required')}
-                    value={ftpAccount}
-                    onChange={this.handleDataChange} />
-                }
-              </div>
-
-              {fieldEnable.ftpUpload &&
-                <div className='group'>
-                  <label>{t('txt-password')}</label>
-                  <TextField
-                    id='hmdSettingsFtpPassword'
-                    name='ftpPassword'
-                    type='password'
-                    variant='outlined'
-                    size='small'
-                    required
-                    error={!formValidation.password.valid}
-                    helperText={formValidation.password.valid ? '' : t('txt-required')}
-                    value={ftpPassword}
-                    onChange={this.handleDataChange} />
-                  <Button id='hmdSettingsConnectionsCheck' variant='contained' color='primary' className='connections-check' onClick={this.checkConnectionsStatus}>{t('hmd-scan.txt-checkConnections')}</Button>
-                  {msg &&
-                    <span style={{color}}>{msg}</span>
-                  }
-                </div>
-              }
-            </div>
-
-            <div className={cx('form-group normal', {'disabled-status': activeContent === 'editMode' && !fieldEnable.frMotp})}>
-              <header>FR-MOTP</header>
-              <div className='header-btn-group'>
-                {(activeContent === 'viewMode' || (activeContent === 'editMode' && fieldEnable.frMotp)) &&
-                  <Button variant='contained' color='primary' className='header-btn' onClick={this.handleConnectionsTest}>{t('soar.txt-testConnections')}</Button>
-                }
-                {activeContent === 'viewMode' &&
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'frMotp')}>{t('txt-edit')}</Button>
-                }
-              </div>
-              <div className='group full'>
-                <FormControlLabel
-                  label={t('network-inventory.txt-frMotpTest')}
-                  control={
-                    <Checkbox
-                      className='checkbox-ui'
-                      name='enable'
-                      checked={frMotp.enable}
-                      onChange={this.handleFrMotpChange}
-                      color='primary' />
-                  }
-                  disabled={!fieldEnable.frMotp} />
-              </div>
-              <div className='group'>
-                <TextField
-                  name='ip'
-                  label='IP'
-                  variant='outlined'
-                  fullWidth
-                  size='small'
-                  value={frMotp.ip}
-                  onChange={this.handleFrMotpChange}
-                  disabled={!fieldEnable.frMotp} />
-              </div>
-              <div className='group'>
-                <TextField
-                  name='apiKey'
-                  label='API Key'
-                  variant='outlined'
-                  fullWidth
-                  size='small'
-                  value={frMotp.apiKey}
-                  onChange={this.handleFrMotpChange}
-                  disabled={!fieldEnable.frMotp} />
-              </div>
-            </div>
-
-            <div className={cx('form-group normal long', {'disabled-status': activeContent === 'editMode' && !fieldEnable.security})}>
-              <header>{t('network-inventory.txt-cpeSoftwareList')}</header>
-              <div className='header-btn-group'>
-                {activeContent === 'viewMode' &&
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode', 'security')}>{t('txt-edit')}</Button>
-                }
-              </div>
-              <MultiInput
-                className='cpe-group'
-                base={CpeHeader}
-                props={cpeProps}
-                defaultItemValue={{
-                  header: '',
-                  validate: true,
-                  msg: '',
-                  list: [{
-                    cpe: '',
-                    validate: true,
-                    msg: ''
-                  }],
-                  index: cpeData.length
-                }}
-                value={cpeData}
-                onChange={this.setCpeData.bind(this, 'header')}
-                disabled={!fieldEnable.security} />
-            </div>
-
-            <div className='form-group normal long'>
-              <header>{t('hmd-scan.txt-hmdImportExport')}</header>
-              <div className='header-btn-group'>
-              </div>
-              <div className='sub-section space'>
-                <div className='import-header'>{t('txt-export')}</div>
-                <div className='date-picker'>
-                  <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
-                    <KeyboardDateTimePicker
-                      id='hmdSettingsDateTimePickerFrom'
-                      className='date-time-picker'
-                      inputVariant='outlined'
-                      variant='inline'
-                      format='YYYY-MM-DD HH:mm'
-                      invalidDateMessage={t('txt-invalidDateMessage')}
-                      maxDateMessage={t('txt-maxDateMessage')}
-                      minDateMessage={t('txt-minDateMessage')}
-                      ampm={false}
-                      value={datetimeExport.from}
-                      onChange={this.handleDateChange.bind(this, 'from')} />
-                    <div className='between'>~</div>
-                    <KeyboardDateTimePicker
-                      id='hmdSettingsDateTimePickerTo'
-                      className='date-time-picker'
-                      inputVariant='outlined'
-                      variant='inline'
-                      format='YYYY-MM-DD HH:mm'
-                      invalidDateMessage={t('txt-invalidDateMessage')}
-                      maxDateMessage={t('txt-maxDateMessage')}
-                      minDateMessage={t('txt-minDateMessage')}
-                      ampm={false}
-                      value={datetimeExport.to}
-                      onChange={this.handleDateChange.bind(this, 'to')} />
-                  </MuiPickersUtilsProvider>
-                </div>
-                <Button variant='contained' color='primary' className='export-btn' onClick={this.handleFileExport}>{t('txt-export')}</Button>
-              </div>
-
-              <div className='sub-section'>
-                <div className='import-header'>{t('txt-import')}</div>
-                <FileUpload
-                  id='importHmd'
-                  fileType='zip'
-                  btnText={t('txt-selectFile')}
-                  handleFileChange={(val) => this.handleFileChange('hmdFile', val)} />
-                <Button variant='contained' color='primary' className='import-btn' onClick={(val) => this.handleFileImport('hmdFile')}>{t('txt-import')}</Button>
-              </div>
-            </div>
-          </div>
+          {this.renderContent()}
 
           {activeContent === 'editMode' &&
             <footer>
@@ -1753,7 +1764,38 @@ class HMDsettings extends Component {
           }
         </div>
       </div>
-    )
+    } else if (mode === 'modal') {
+      let actions = {}
+      if (activeContent === 'viewMode') {
+        actions = {
+          cancel: {text: t('txt-close'), handler: onClose}
+        };
+      } else {
+        actions = {
+          cancel: {text: t('txt-cancel'), handler: this.toggleContent.bind(this, 'cancel')},
+          save: {text: t('txt-save'), handler: this.toggleContent.bind(this, 'save')}
+        };
+      }
+
+      return (
+        <ModalDialog
+          id='hmdSettingsDialog'
+          className='modal-dialog'
+          title={t('hmd-scan.txt-hmdSettings')}
+          draggable={true}
+          global={true}
+          actions={actions}
+          closeAction='cancel'>
+          <div className='data-content'>
+            <div className='parent-content'>
+              <div className='main-content basic-form'>
+                {this.renderContent()}
+              </div>
+            </div>
+          </div>
+        </ModalDialog>
+      )
+    }
   }
 }
 

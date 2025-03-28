@@ -6431,7 +6431,7 @@ class HostController extends Component {
           }
 
           {activeContent === 'hmdSettings' &&
-            <HMDsettings />
+            <HMDsettings mode={'normal'} />
           }
         </div>
       </div>
