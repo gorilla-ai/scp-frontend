@@ -1,0 +1,1060 @@
+{
+  "cfg": {
+    "fields": {
+      "suspects.[].Telphone": {
+        "title": "連絡電話",
+        "order": "2"
+      },
+      "suspects.[].ID": {
+        "title": "犯嫌身分證",
+        "order": "10"
+      },
+      "CaseType": {
+        "title": "類型",
+        "order": "3"
+      },
+      "OccurDateTime": {
+        "title": "發生日期",
+        "order": "4"
+      },
+      "suspects.[].Name": {
+        "title": "犯嫌名字",
+        "order": "1"
+      },
+      "KeyInStaffName": {
+        "title": "輸入員警",
+        "order": "8"
+      },
+      "BreakAddress": {
+        "title": "破獲地址",
+        "order": "7"
+      },
+      "OccurAddress": {
+        "title": "發生地址",
+        "order": "5"
+      },
+      "BreakUnitName": {
+        "title": "破獲轄區",
+        "order": "6"
+      }
+    },
+    "dt": {
+      "fields": {
+        "DiscoverLocateLevel": {
+          "type": "long"
+        },
+        "OccurBranchCode": {
+          "type": "keyword"
+        },
+        "ReportDateTime": {
+          "type": "date",
+          "display_name": "報案日期時間"
+        },
+        "BreakLongitude": {
+          "type": "float"
+        },
+        "TransactionDateTime": {
+          "type": "date"
+        },
+        "OccurNo": {
+          "type": "keyword"
+        },
+        "DiscoverUnitName": {
+          "type": "text(keyword)",
+          "display_name": "發現管轄"
+        },
+        "ReportTriFormNo": {
+          "type": "keyword",
+          "display_name": "報案三連單編號"
+        },
+        "OccurUnitName": {
+          "type": "keyword",
+          "display_name": "發生管轄"
+        },
+        "BreakTime": {
+          "type": "keyword"
+        },
+        "CrimeLevel": {
+          "type": "keyword",
+          "display_name": "刑案級別"
+        },
+        "OccurCity": {
+          "type": "keyword",
+          "display_name": " 發生城市"
+        },
+        "DiscoverLongitude": {
+          "type": "float"
+        },
+        "BreakHeadCode": {
+          "type": "keyword"
+        },
+        "OccurHeadCode": {
+          "type": "keyword"
+        },
+        "OccurCityName": {
+          "type": "keyword"
+        },
+        "OccurKeyInDate": {
+          "type": "keyword"
+        },
+        "OccurProcessedFlag": {
+          "type": "keyword"
+        },
+        "BreakCityName": {
+          "type": "keyword"
+        },
+        "DiscoverAddress": {
+          "type": "keyword",
+          "display_name": "發現地點"
+        },
+        "OccurRoad": {
+          "type": "keyword"
+        },
+        "OccurGisStatus": {
+          "type": "long"
+        },
+        "LostObjectCount": {
+          "type": "long"
+        },
+        "CrimeHabit": {
+          "type": "keyword"
+        },
+        "ModifyDate": {
+          "type": "date"
+        },
+        "OccurGisAddress": {
+          "type": "keyword"
+        },
+        "PrimaryPlaceName": {
+          "type": "keyword"
+        },
+        "TransactionDate": {
+          "type": "keyword"
+        },
+        "DiscoverLatitude": {
+          "type": "float"
+        },
+        "BreakDate": {
+          "type": "keyword"
+        },
+        "BreakAddress": {
+          "type": "keyword",
+          "display_name": "破獲地點"
+        },
+        "CrimeHabitName": {
+          "type": "keyword"
+        },
+        "BreakClue": {
+          "type": "keyword"
+        },
+        "TransactionTime": {
+          "type": "keyword"
+        },
+        "ReportAcceptUnitCode": {
+          "type": "keyword"
+        },
+        "BreakGisAddress": {
+          "type": "keyword"
+        },
+        "BreakUnitCount": {
+          "type": "long"
+        },
+        "BreakUnitCode": {
+          "type": "keyword"
+        },
+        "DiscoverGisAddress": {
+          "type": "keyword"
+        },
+        "DiscoverWay": {
+          "type": "keyword",
+          "display_name": "發現經過"
+        },
+        "OccurUnitCode": {
+          "type": "keyword"
+        },
+        "KeyInStaffName": {
+          "type": "keyword"
+        },
+        "TransactionStaffName": {
+          "type": "keyword"
+        },
+        "DiscoverTime": {
+          "type": "text(keyword)",
+          "display_name": "發現時間"
+        },
+        "OccurAddress": {
+          "type": "keyword",
+          "display_name": "發生地點"
+        },
+        "SuspectCaughtCount": {
+          "type": "long"
+        },
+        "UnknownSuspectCount": {
+          "type": "long"
+        },
+        "things": {
+          "properties": {
+            "TransactionDateTime": {
+              "type": "date"
+            },
+            "WeightUnit": {
+              "type": "keyword"
+            },
+            "KeyInStaffName": {
+              "type": "keyword"
+            },
+            "Cost": {
+              "type": "long"
+            },
+            "CreateDate": {
+              "type": "date"
+            },
+            "CarID": {
+              "type": "keyword",
+              "display_name": "車牌號碼"
+            },
+            "ModifyDate": {
+              "type": "date"
+            },
+            "ProcessedFlag": {
+              "type": "keyword"
+            },
+            "FormSn": {
+              "type": "long"
+            },
+            "GunNo": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "物(車、槍、表、機)身號碼"
+            },
+            "KeyInDateTime": {
+              "type": "date"
+            },
+            "EngineNo": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "品錶型(引擎)號碼"
+            },
+            "DisposalStolenMethod": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "銷贓方式"
+            },
+            "Color": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "顏色"
+            },
+            "LostType": {
+              "type": "keyword",
+              "display_name": "類別"
+            },
+            "Material": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "質料"
+            },
+            "SourceRegion": {
+              "type": "keyword",
+              "display_name": "國內外來源地區"
+            },
+            "GetUnitCode": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "起獲單位"
+            },
+            "Weight": {
+              "type": "long",
+              "display_name": "數、重量"
+            },
+            "Brand": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "廠牌"
+            },
+            "GetDate": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "起獲日期"
+            },
+            "Year": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "年份"
+            },
+            "ProcessedYearMonth": {
+              "type": "keyword"
+            },
+            "CrimeType": {
+              "type": "keyword"
+            },
+            "Value": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "價值"
+            },
+            "Sn": {
+              "type": "long"
+            },
+            "KindCode": {
+              "type": "keyword",
+              "display_name": "種類品名"
+            },
+            "BaseNo": {
+              "type": "keyword"
+            }
+          },
+          "display_name": "失、贓、證物"
+        },
+        "ReportWay": {
+          "type": "keyword",
+          "display_name": "報案方式"
+        },
+        "OccurHEADName": {
+          "type": "keyword"
+        },
+        "CommonPersonCount": {
+          "type": "long"
+        },
+        "ReportAcceptUnitCodeName": {
+          "type": "keyword",
+          "display_name": "報案管轄"
+        },
+        "CrimePreparationName": {
+          "type": "keyword"
+        },
+        "BreakNo": {
+          "type": "keyword"
+        },
+        "CrimeMethod1Name": {
+          "type": "keyword"
+        },
+        "CrimeMethod1": {
+          "type": "keyword"
+        },
+        "BreakCity": {
+          "type": "keyword"
+        },
+        "CrimeTool1": {
+          "type": "keyword"
+        },
+        "OccurSection": {
+          "type": "keyword"
+        },
+        "suspects": {
+          "properties": {
+            "CaughtKeyInDate": {
+              "type": "keyword"
+            },
+            "RelationshipWithVictim": {
+              "type": "keyword"
+            },
+            "Address": {
+              "type": "keyword",
+              "display_name": "住址"
+            },
+            "IsForeignNationality": {
+              "type": "keyword"
+            },
+            "IsEscape": {
+              "type": "keyword",
+              "display_name": "在逃"
+            },
+            "TransactionDateTime": {
+              "type": "date"
+            },
+            "Birthday": {
+              "type": "keyword",
+              "display_name": "出生"
+            },
+            "CasualtyType": {
+              "type": "keyword",
+              "display_name": "受傷程度"
+            },
+            "KeyInStaffName": {
+              "type": "keyword"
+            },
+            "Latitude": {
+              "type": "float"
+            },
+            "Gender": {
+              "type": "keyword",
+              "display_name": "性別"
+            },
+            "ParentOccupation": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "家長職業"
+            },
+            "CreateDate": {
+              "type": "date"
+            },
+            "Feature": {
+              "type": "keyword",
+              "display_name": "特徵"
+            },
+            "Telphone": {
+              "type": "keyword",
+              "display_name": "聯絡電話"
+            },
+            "Name": {
+              "type": "keyword",
+              "display_name": "姓名"
+            },
+            "ForeignLaborerType": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "外勞類別"
+            },
+            "Education": {
+              "type": "keyword",
+              "display_name": "教育"
+            },
+            "Relationshipwithvictim": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "與主被害人關係"
+            },
+            "ProcessedFlag": {
+              "type": "keyword"
+            },
+            "Hobby": {
+              "type": "keyword",
+              "display_name": "不良嗜好"
+            },
+            "FormSn": {
+              "type": "long"
+            },
+            "ID": {
+              "type": "keyword",
+              "display_name": "身分證"
+            },
+            "CrimeMethod1": {
+              "type": "keyword",
+              "display_name": "犯罪方式"
+            },
+            "IsPreviousCriminal": {
+              "type": "keyword",
+              "display_name": "前科犯"
+            },
+            "CrimeTool1": {
+              "type": "keyword",
+              "display_name": "犯罪工具"
+            },
+            "ArrestBranchCode": {
+              "type": "keyword"
+            },
+            "IsParolee": {
+              "type": "keyword",
+              "display_name": "假釋中"
+            },
+            "City": {
+              "type": "keyword"
+            },
+            "CrimePreparation1": {
+              "type": "keyword",
+              "display_name": "犯罪措施"
+            },
+            "Longitude": {
+              "type": "float"
+            },
+            "CrimeReason1": {
+              "type": "keyword",
+              "display_name": "犯罪原因"
+            },
+            "IsWantedCriminal": {
+              "type": "keyword",
+              "display_name": "通緝犯"
+            },
+            "SuspectProcessed": {
+              "type": "keyword"
+            },
+            "IsBeforeRepulicEra": {
+              "type": "keyword"
+            },
+            "FamilyType": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "家庭型態"
+            },
+            "IsChronicCriminal": {
+              "type": "keyword",
+              "display_name": "慣(常)犯"
+            },
+            "ArrestUnitCode": {
+              "type": "keyword",
+              "display_name": "緝獲單位"
+            },
+            "IsSecondaryCriminal": {
+              "type": "keyword",
+              "display_name": "從嫌"
+            },
+            "CaughtTime": {
+              "type": "keyword"
+            },
+            "BaseNo": {
+              "type": "keyword"
+            },
+            "CaughtProcessedYearMonth": {
+              "type": "keyword"
+            },
+            "CrimeType1": {
+              "type": "keyword"
+            },
+            "LawSuitCount": {
+              "type": "long"
+            },
+            "CaughtDate": {
+              "type": "keyword",
+              "display_name": "到案日期"
+            },
+            "EconomyCondition": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "經濟狀況"
+            },
+            "ParentName": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "家長姓名"
+            },
+            "ParentEducation": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "家長教育"
+            },
+            "CrimeHabit": {
+              "type": "keyword",
+              "display_name": "犯罪習癖"
+            },
+            "ModifyDate": {
+              "type": "date"
+            },
+            "Height": {
+              "type": "long",
+              "display_name": "身高"
+            },
+            "KeyInDateTime": {
+              "type": "date"
+            },
+            "BBCall": {
+              "type": "keyword",
+              "display_name": "聯絡呼叫器"
+            },
+            "No": {
+              "type": "keyword"
+            },
+            "ArrestHeadCode": {
+              "type": "keyword"
+            },
+            "Road": {
+              "type": "keyword"
+            },
+            "IsActiveCriminal": {
+              "type": "keyword",
+              "display_name": "現行犯"
+            },
+            "Section": {
+              "type": "keyword"
+            },
+            "Nationality": {
+              "type": "keyword",
+              "display_name": "國籍"
+            },
+            "IsPrimaryCriminal": {
+              "type": "keyword",
+              "display_name": "主嫌"
+            },
+            "Occupation": {
+              "type": "keyword",
+              "display_name": "職業"
+            },
+            "ProcessedYearMonth": {
+              "type": "keyword"
+            },
+            "Alias": {
+              "type": "keyword",
+              "display_name": "綽號別名"
+            },
+            "Sn": {
+              "type": "long"
+            }
+          },
+          "display_name": "嫌疑人"
+        },
+        "BreakProcessedYearMonth": {
+          "type": "keyword"
+        },
+        "BreakBranchCode": {
+          "type": "keyword"
+        },
+        "ReportTime": {
+          "type": "keyword",
+          "display_name": "報案時間"
+        },
+        "BreakLocateLevel": {
+          "type": "long"
+        },
+        "CaseType": {
+          "type": "keyword",
+          "display_name": "案類"
+        },
+        "CrimeReason": {
+          "type": "keyword"
+        },
+        "CrimeTool1Name": {
+          "type": "keyword"
+        },
+        "SuspectCount": {
+          "type": "long"
+        },
+        "BaseNo": {
+          "type": "keyword",
+          "display_name": "案號"
+        },
+        "ConsignedReportCount": {
+          "type": "long"
+        },
+        "OccurProcessedYearMonth": {
+          "type": "keyword"
+        },
+        "DiscoverGisStatus": {
+          "type": "long"
+        },
+        "ReportDate": {
+          "type": "keyword",
+          "display_name": "報案日期"
+        },
+        "CrimeReasonName": {
+          "type": "keyword"
+        },
+        "KeyInTime": {
+          "type": "keyword"
+        },
+        "BreakRoad": {
+          "type": "keyword"
+        },
+        "PrimaryPlace": {
+          "type": "keyword",
+          "display_name": "發生主要場所"
+        },
+        "OccurBRANCHName": {
+          "type": "keyword"
+        },
+        "OccurDate": {
+          "type": "keyword"
+        },
+        "OccurWeather": {
+          "type": "keyword",
+          "display_name": "發生氣候"
+        },
+        "OccurDateTime": {
+          "type": "date",
+          "display_name": "發生時間"
+        },
+        "BreakHEADName": {
+          "type": "keyword"
+        },
+        "OccurLocateLevel": {
+          "type": "long"
+        },
+        "BreakDateTime": {
+          "type": "date",
+          "display_name": "破獲時間"
+        },
+        "CrimePreparation": {
+          "type": "keyword"
+        },
+        "commonPersons": {
+          "properties": {
+            "Address": {
+              "type": "keyword",
+              "display_name": "住址"
+            },
+            "IsForeignNationality": {
+              "type": "keyword",
+              "display_name": "外勞類別"
+            },
+            "IsDiscoverMan": {
+              "type": "keyword"
+            },
+            "TransactionDateTime": {
+              "type": "date"
+            },
+            "Birthday": {
+              "type": "keyword",
+              "display_name": "出生"
+            },
+            "CasualtyType": {
+              "type": "keyword",
+              "display_name": "受傷程度"
+            },
+            "KeyInStaffName": {
+              "type": "keyword"
+            },
+            "Latitude": {
+              "type": "float"
+            },
+            "Gender": {
+              "type": "keyword",
+              "display_name": "性別"
+            },
+            "IsReportMan": {
+              "type": "keyword"
+            },
+            "CreateDate": {
+              "type": "date"
+            },
+            "Feature": {
+              "type": "keyword",
+              "display_name": "特徵"
+            },
+            "Telphone": {
+              "type": "keyword",
+              "display_name": "聯絡電話"
+            },
+            "Name": {
+              "type": "keyword",
+              "display_name": "姓名"
+            },
+            "ForeignLaborerType": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              }
+            },
+            "Education": {
+              "type": "keyword",
+              "display_name": "教育"
+            },
+            "ModifyDate": {
+              "type": "date"
+            },
+            "Height": {
+              "type": "long",
+              "display_name": "身高"
+            },
+            "ID": {
+              "type": "keyword",
+              "display_name": "身分證"
+            },
+            "KeyInDateTime": {
+              "type": "date"
+            },
+            "BBCall": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "ignore_above": 256,
+                  "type": "keyword"
+                }
+              },
+              "display_name": "聯絡呼叫器"
+            },
+            "Floor": {
+              "type": "keyword"
+            },
+            "No": {
+              "type": "keyword"
+            },
+            "IsWitness": {
+              "type": "keyword"
+            },
+            "Road": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "keyword"
+            },
+            "IsVictim": {
+              "type": "keyword"
+            },
+            "Longitude": {
+              "type": "float"
+            },
+            "Section": {
+              "type": "keyword"
+            },
+            "Nationality": {
+              "type": "keyword",
+              "display_name": "國籍"
+            },
+            "Occupation": {
+              "type": "keyword",
+              "display_name": "職業"
+            },
+            "IsBeforeRepulicEra": {
+              "type": "keyword"
+            },
+            "CaseType": {
+              "type": "keyword"
+            },
+            "ProcessedYearMonth": {
+              "type": "keyword"
+            },
+            "Alias": {
+              "type": "keyword",
+              "display_name": "綽號別名"
+            },
+            "CrimeType": {
+              "type": "keyword"
+            },
+            "InjuredReason": {
+              "type": "keyword",
+              "display_name": "被害原因"
+            },
+            "Sn": {
+              "type": "long"
+            },
+            "BaseNo": {
+              "type": "keyword"
+            }
+          },
+          "display_name": "共同人"
+        },
+        "BreakUnitName": {
+          "type": "keyword",
+          "display_name": "破獲管轄"
+        },
+        "KeyInDateTime": {
+          "type": "date"
+        },
+        "uploadFiles": {
+          "properties": {
+            "FilePath": {
+              "type": "keyword"
+            },
+            "UploadDate": {
+              "type": "date"
+            },
+            "IsCover": {
+              "type": "keyword"
+            },
+            "FileName": {
+              "type": "keyword"
+            },
+            "IsImage": {
+              "type": "keyword"
+            },
+            "FileFormat": {
+              "type": "keyword"
+            },
+            "PictureThumbnailPath": {
+              "type": "keyword"
+            },
+            "UploadFileSn": {
+              "type": "long"
+            },
+            "Height": {
+              "type": "long"
+            },
+            "EmpSn": {
+              "type": "long"
+            },
+            "Width": {
+              "type": "long"
+            },
+            "BaseNo": {
+              "type": "keyword"
+            },
+            "FileSize": {
+              "type": "long"
+            },
+            "IsValid": {
+              "type": "keyword"
+            }
+          }
+        },
+        "BreakBRANCHName": {
+          "type": "keyword"
+        },
+        "KeyInDate": {
+          "type": "keyword"
+        },
+        "BreakGisStatus": {
+          "type": "long"
+        },
+        "OccurLongitude": {
+          "type": "float"
+        },
+        "OccurTime": {
+          "type": "keyword"
+        },
+        "BreakProcessedFlag": {
+          "type": "keyword"
+        },
+        "CrimeStep": {
+          "type": "keyword",
+          "display_name": "犯罪實施階段"
+        },
+        "BreakLatitude": {
+          "type": "float"
+        },
+        "OccurLatitude": {
+          "type": "float"
+        },
+        "CaseTypeName": {
+          "type": "keyword"
+        },
+        "BreakKeyInDate": {
+          "type": "keyword"
+        }
+      },
+      "display_name": "刑案紀錄",
+      "data_mappings": {
+        "DiscoverWay": {
+          "json": "{\"1\":\"被害人報案\",\"2\":\"親友報案\",\"3\":\"他人檢舉\",\"4\":\"勤務中發現\",\"5\":\"自首投案\",\"6\":\"其他\"}",
+          "type": "json"
+        },
+        "suspects.Gender": {
+          "json": "{\"1\":\"男\",\"2\":\"女\",\"3\":\"不詳\"}",
+          "type": "json"
+        },
+        "CrimeStep": {
+          "json": "{\"1\":\"既遂\",\"2\":\"未遂\",\"3\":\"預備或陰謀\"}",
+          "type": "json"
+        },
+        "commonPersons.Gender": {
+          "json": "{\"1\":\"男\",\"2\":\"女\",\"3\":\"不詳\"}",
+          "type": "json"
+        },
+        "suspects.CasualtyType": {
+          "json": "{\"1\":\"輕傷\",\"2\":\"重傷\",\"3\":\"亡\"}",
+          "type": "json"
+        },
+        "suspects.ForeignLaborerType": {
+          "json": "{\"1\":\"合法\",\"2\":\"非法\",\"3\":\"逃逸\",\"4\":\"其他\"}",
+          "type": "json"
+        },
+        "suspects.FamilyType": {
+          "json": "{\"1\":\"單親\",\"2\":\"雙親\",\"3\":\"失親\"}",
+          "type": "json"
+        },
+        "suspects.EconomyCondition": {
+          "json": "{\"1\":\"貧寒\",\"2\":\"免持\",\"3\":\"小康\",\"4\":\"中產\",\"5\":\"富裕\"}",
+          "type": "json"
+        },
+        "suspects.Relationshipwithvictim": {
+          "json": "{\"1\":\"夫妻\",\"2\":\"親戚\",\"3\":\"同居\",\"4\":\"僚屬\",\"5\":\"鄰居\",\"6\":\"同學\",\"7\":\"同事\",\"8\":\"朋友\",\"9\":\"認識\",\"A\":\"陌生\"}",
+          "type": "json"
+        },
+        "OccurWeather": {
+          "json": "{\"1\":\"晴\",\"2\":\"陰\",\"3\":\"雨\",\"4\":\"霧\",\"5\":\"微風\",\"6\":\"大風\",\"7\":\"颱風\",\"8\":\"其他\"}",
+          "type": "json"
+        },
+        "CaseType": {
+          "options": {
+            "valueField": "code",
+            "textField": "name"
+          },
+          "type": "url",
+          "url": "/api/project/type/list"
+        },
+        "ReportWay": {
+          "json": "{\"1\":\"親自\",\"2\":\"書面投函\",\"3\":\"電話\",\"4\":\"傳真\",\"5\":\"網路\",\"6\":\"上級交轉\",\"7\":\"其他\"}",
+          "type": "json"
+        },
+        "commonPersons.CasualtyType": {
+          "json": "{\"1\":\"輕傷\",\"2\":\"重傷\",\"3\":\"亡\"}",
+          "type": "json"
+        },
+        "things.LostType": {
+          "json": "{\"1\":\"損失\",\"2\":\"起獲\",\"3\":\"證物\"}",
+          "type": "json"
+        },
+        "CrimeLevel": {
+          "json": "{\"1\":\"普通\",\"2\":\"重大\",\"3\":\"特殊\"}",
+          "type": "json"
+        }
+      }
+    }
+  }
+}

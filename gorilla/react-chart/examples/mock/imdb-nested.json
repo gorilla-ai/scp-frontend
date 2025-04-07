@@ -1,0 +1,180 @@
+{
+  "data": [
+    {
+      "director": "martin",
+      "actor": {
+        "imdb.id": "tom",
+        "tomato.id": "1"
+      },
+      "movies": 1,
+      "tvs": 0,
+      "produced": {
+        "year": 1990
+      }
+    },
+    {
+      "director": "martin",
+      "actor": {
+        "imdb.id": "tom",
+        "tomato.id": "1"
+      },
+      "movies": 2,
+      "tvs": 4,
+      "produced": {
+        "year": 1990
+      }
+    },
+    {
+      "director": "francis",
+      "actor": {
+        "imdb.id": "tom",
+        "tomato.id": "1"
+      },
+      "movies": 3,
+      "produced": {
+        "year": 1991
+      }
+    },
+    {
+      "director": "francis",
+      "actor": {
+        "imdb.id": "tom",
+        "tomato.id": "1"
+      },
+      "movies": 2,
+      "produced": {
+        "year": 1992
+      }
+    },
+    {
+      "director": "francis",
+      "actor": {
+        "imdb.id": "tom",
+        "tomato.id": "1"
+      },
+      "movies": 10,
+      "produced": {
+        "year": 1996
+      }
+    },
+    {
+      "director": "francis",
+      "actor": {
+        "imdb.id": "tom",
+        "tomato.id": "1"
+      },
+      "movies": 2,
+      "produced": {
+        "year": 1997
+      }
+    },
+    {
+      "director": "francis",
+      "actor": {
+        "imdb.id": "tom",
+        "tomato.id": "1"
+      },
+      "movies": 5,
+      "produced": {
+        "year": 2000
+      }
+    },
+    {
+      "director": "martin",
+      "actor": {
+        "imdb.id": "nicole",
+        "tomato.id": "2"
+      },
+      "movies": 5,
+      "produced": {
+        "year": 1990
+      }
+    },
+    {
+      "director": "martin",
+      "actor": {
+        "imdb.id": "nicole",
+        "tomato.id": "2"
+      },
+      "movies": 4,
+      "produced": {
+        "year": 1991
+      }
+    },
+    {
+      "director": "martin",
+      "actor": {
+        "imdb.id": "nicole",
+        "tomato.id": "2"
+      },
+      "movies": 3,
+      "produced": {
+        "year": 1992
+      }
+    },
+    {
+      "director": "francis",
+      "actor": {
+        "imdb.id": "nicole",
+        "tomato.id": "2"
+      },
+      "movies": 6,
+      "produced": {
+        "year": 1993
+      }
+    },
+    {
+      "director": "francis",
+      "actor": {
+        "imdb.id": "nicole",
+        "tomato.id": "2"
+      },
+      "movies": 1,
+      "produced": {
+        "year": 1994
+      }
+    },
+    {
+      "director": "francis",
+      "actor": {
+        "imdb.id": "nicole",
+        "tomato.id": "2"
+      },
+      "movies": 0,
+      "produced": {
+        "year": 1997
+      }
+    },
+    {
+      "director": "francis",
+      "actor": {
+        "imdb.id": "nicole",
+        "tomato.id": "2"
+      },
+      "movies": 1,
+      "produced": {
+        "year": 2000
+      }
+    }
+  ],
+  "keyLabels": {
+    "director": "Director",
+    "actor": {
+      "imdb.id": "Actor"
+    },
+    "movies": "# movies",
+    "produced.year": "Year"
+  },
+  "valueLabels": {
+    "director": {
+      "martin": "Martin Scorsese",
+      "francis": "Francis Copola"
+    },
+    "actor": {
+      "imdb.id": {
+        "tom": "Tom Cruise",
+        "nicole": "Nicole Kidman"
+      }
+    }
+  }
+}

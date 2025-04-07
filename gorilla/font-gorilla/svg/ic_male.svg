@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_male</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M12,19.41405 C9.7945,19.41405 8,17.61955 8,15.41405 C8,13.20855 9.7945,11.41405 12,11.41405 C14.2055,11.41405 16,13.20855 16,15.41405 C16,17.61955 14.2055,19.41405 12,19.41405 M12.5,9.43955 L12.5,6.32805 L14.493,8.32105 C14.6885,8.51655 14.9445,8.61405 15.2,8.61405 C15.456,8.61405 15.712,8.51655 15.907,8.32105 C16.298,7.93055 16.298,7.29805 15.907,6.90705 L12,3.00005 L8.093,6.90705 C7.702,7.29805 7.702,7.93055 8.093,8.32105 C8.4835,8.71205 9.116,8.71205 9.507,8.32105 L11.5,6.32805 L11.5,9.43955 C8.425,9.69505 6,12.27455 6,15.41405 C6,18.72255 8.6915,21.41405 12,21.41405 C15.3085,21.41405 18,18.72255 18,15.41405 C18,12.27455 15.575,9.69505 12.5,9.43955" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_male">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Page-1" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

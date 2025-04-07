@@ -1,0 +1,196 @@
+@import "../node_modules/react-ui/less/react-ui-theme-dark.less";
+@import "../node_modules/react-la/less/react-la-core.less";
+@import "../node_modules/react-gis/less/react-gis-core.less";
+@import "../node_modules/react-timebar/less/react-timebar.less";
+
+ @import (reference) '../node_modules/react-ui/less/form.less';
+
+.c-vbda-analysis .c-timebar {
+	height: 100px;
+}
+.c-vbda-analysis .labels, .c-vbda-source .labels, .c-vbda-source .source {
+	> header {
+		.actions {
+			color: @g-standard-font-color;
+		}
+		button, select {
+			height: 31px;
+		}
+		select {
+			border-width: 0;
+		}
+		button.fg {
+			padding: 0 0.2em;
+		}
+	}
+}
+
+.c-vbda-analysis, .c-vbda-source {
+	> .labels {
+		width:320px;
+		footer {
+			button.standard {
+				margin-left: 0;
+			}
+			button {
+				flex-grow: 1;
+			}
+			
+		}
+
+	}
+}
+
+.c-vbda-events {
+	.event {
+		margin-right: 10px;
+		margin-bottom: 10px;
+		overflow: auto;
+		&.full {
+			max-width: 98%;	
+		}
+		&:not(.full) {
+			width: 48%;
+			height: 300px;
+		}
+		.c-box {
+			border: none;
+		}
+	}
+}
+/* 
+.c-vbda-analysis .timebar {
+	height: 100px;
+} */
+
+.c-vbda-labels {
+	.header, .search {
+		padding-top: 8px;
+		padding-bottom: 8px;
+		
+	}
+
+	.search {
+		.c-custom-input(25px);
+		
+	    button {
+	        margin-left: 5px;
+	    }
+	}
+	.header {
+		border-top: 1px solid @g-border-color;
+		border-bottom: 1px solid @g-border-color;
+		cursor: pointer;
+		.icon {
+			height: 20px;
+		}
+		> *:not(:last-child) {
+			margin-right: 5px;
+		}
+	}
+	.group.selected {
+		min-height: 400px;
+		.header > .title {
+			color: @g-secondary-color;
+		}
+		.list {
+			background-color: @g-tertiary-color;
+			overflow-y: auto;
+			align-content: start;
+		}
+		
+	}
+	.c-checkbox {
+		margin-right: 5px;
+	}
+	.c-bullet {
+		background-color: @g-secondary-color;
+		color: @g-secondary-font-color;
+		width: 100px;
+		&.small {
+			width: 50px;
+		}
+	}
+}
+.c-vbda-label {
+	position: relative;
+	padding: 5px;
+	margin: 5px;
+	border-radius: 3px;
+	border: 1px solid @g-border-color;
+	background-color: @g-standard-color;
+	width: 300px;
+	overflow: auto;
+	display: flex;
+	cursor: pointer;
+
+	img {
+		max-height: 150px;
+		max-width: 100%;
+	}
+
+	.info > div {
+		word-break: break-all;
+	}
+
+	&.hilite {
+		border-color: @g-secondary-color;
+		background-color: @g-standard-hover-color;
+	}
+
+	.c-bullet {
+		position: absolute;
+		right: 5px;
+		top: 5px;
+		background-color: #d0021b;
+		width: auto;
+		padding: 0 7px;
+	}
+}
+
+.c-vbda-node {
+	img {
+		max-height: 200px;
+	}
+}
+
+#g-selected-intel-dialog {
+	.dialog > .content {
+		margin: 0;
+
+		width: 1000px;
+		height: 800px;
+    	max-height: unset;
+    	.c-vbda-labels {
+    		position: absolute;
+    		top: 0;
+    		bottom: 0;
+    		left: 0;
+    		right: 0;
+    	}
+	}
+}
+
+#g-vbda-gis-source-container, #g-vbda-la-source-container {
+	> .c-modal > .dialog > .content {
+		min-width: 700px;
+		min-height: 700px;
+	}
+}
+
+.c-vbda-analysis-gis {
+	.c-list #g-vbda-gis-source-btn {
+	  	width: 25px;
+		padding: 0;
+		height: 25px;
+	}
+}
+.c-vbda-analysis {
+	.c-vbda-analysis-la, .c-vbda-analysis-gis {
+		min-width: 300px;
+		flex: 1;
+		&.hide {
+			display: none;
+		}
+	}
+}

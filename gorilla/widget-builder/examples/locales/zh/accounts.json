@@ -1,0 +1,39 @@
+{
+	"dlg-edit":"編輯帳號",
+	"dlg-add":"新增帳號",
+	"dlg-delete":"刪除帳號",
+	"txt-delete":"確認刪除所選帳號？",
+	"name":"名稱",
+	"username":"帳號",
+	"id-no":"身份證號碼",
+	"sex":"性別",
+	"phone":"電話",
+	"email":"Email",
+	"unit":"單位",
+	"rank":"職稱",
+	"group":"群組",
+	"locked":"已鎖定",
+	"roles":"角色",
+	"rights":"權限",
+	"status":"帳號狀態",
+	"sex-types": {
+		"unknown": "未知",
+		"male": "男",
+		"female": "女"
+	},
+	"fields":{
+		"name":"$t(name)",
+		"username":"$t(username)",
+		"idNo":"$t(id-no)",
+		"group":"$t(group)",
+		"roles":"$t(roles)",
+		"rights":"$t(rights)",
+		"locked":"$t(locked)"
+	},
+	"lbl-locked":"$t(locked)",
+	"lbl-role":"$t(roles)",
+	"ph-all-roles":"全部",
+	"ph-name":"輸入$t(name)",
+	"ph-username":"輸入$t(username)",
+	"ph-id-no":"輸入$t(id-no)"
+}

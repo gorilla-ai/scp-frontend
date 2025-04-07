@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/input.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/input.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import cx from 'classnames'
+import _ from 'lodash'
+import _str from 'underscore.string'
+
+
+import { SIMPLE_VALUE_PROP } from '../consts/prop-types'
+import Popover from './popover'
+import ih from '../utils/input-helper'
+import {wireValue} from '../hoc/prop-wire'
+
+let log = require('loglevel').getLogger('react-ui/components/input')
+
+/**
+ * A React (text) Input. Note this is wrapper around react builtin input element, major differences are:
+ *
+ * * Provides validation tooltip (optional)
+ * * Only fire onChange event when the field has lost focus
+ *
+ * @constructor
+ * @param {string} [id] - Input element #id
+ * @param {string} [name] - Input element name
+ * @param {'text'|'number'|'integer'} [type='text'] - Input type, default to 'text', if type='number' or 'integer' will trigger validation
+ * @param {function} [formatter] - Input value display formatter
+ * @param {string} formatter.value - currently entered input
+ * @param {object} [validate] - Validation config
+ * @param {number} validate.min - minimum value when type='number' or 'integer'
+ * @param {number} validate.max - maximum value when type='number' or 'integer'
+ * @param {RegExp|string} validate.pattern - RegExp string to test against when type='text'
+ * @param {string} validate.patternReadable - Readable pattern string
+ * @param {fuction} [validate.t] - Transform/translate error into readable message.&lt;br>
+ * If not specified, error message will be `${value} ${code}`&lt;br>
+ * For example see [i18next]{@link http://i18next.com/translate/} translator for generating error message.&lt;br>
+ * @param {'missing'|'no-match'|'not-int'|'not-num'|'out-of-bound'} validate.t.code - Error code
+ * @param {object} validate.t.params - Parameters relevant to the error code
+ * @param {string} validate.t.params.field - offending field name/id
+ * @param {string} validate.t.params.value - offending field value
+ * @param {RegExp|string} [validate.t.params.pattern] - pattern the value was supposed to follow
+ * @param {number} [validate.t.params.min] - configured minimum value
+ * @param {number} [validate.t.params.max] - configured maximum value
+ * @param {string} [className] - Classname for the input
+ * @param {string|number} [defaultValue] - Default value
+ * @param {string|number} [value] - Current value
+ * @param {object} [valueLink] - Link to update value. Used in conjuction with [linked-state-mixins]{@link module:linked-state-mixins}
+ * @param {*} valueLink.value - value to update
+ * @param {function} valueLink.requestChange - function to request value change
+ * @param {boolean} [required=false] - Is this field mandatory? If true will trigger validation.
+ * @param {boolean} [disabled=false] - Is this field disabled?
+ * @param {boolean} [readOnly=false] - Is this field readonly?
+ * @param {string} [maxLength] - Maximum input length
+ * @param {string} [placeholder] - Placeholder for input
+ * @param {function} [onChange] - Callback function when value is changed. &lt;br> Required when value prop is supplied
+ * @param {string|number} onChange.value - updated value
+ * @param {object} onChange.eventInfo - event related info
+ * @param {string|number} onChange.eventInfo.before - previous value
+ * @param {boolean} onChange.eventInfo.isComplete - was it triggered by pressing enter key?
+ *
+ * @example
+// controlled
+
+import {Input} from 'react-ui'
+React.createClass({
+    getInitialState() {
+        return {
+            name:'',
+            age:'',
+            email:''
+        }
+    },
+    handleChange(field,value) {
+        this.setState({[field]:value})
+    },
+    render() {
+        let {name, age, email} = this.state;
+        return &lt;div className='c-form'>
+            &lt;div>
+                &lt;label htmlFor='name'>Name&lt;/label>
+                &lt;Input id='name'
+                    onChange={this.handleChange.bind(this,'name')}
+                    value={name}
+                    required={true}
+                    placeholder='Your name'/>
+            &lt;/div>
+            &lt;div>
+                &lt;label htmlFor='age'>Age&lt;/label>
+                &lt;Input id='age'
+                    type='number'
+                    validate={{
+                        max:100,
+                        t:(code, {value})=>`Age ${value} is invalid`
+                    }}
+                    className='my-age'
+                    onChange={this.handleChange.bind(this,'age')}
+                    value={age}
+                    placeholder='Your age'/>
+            &lt;/div>
+            &lt;div>
+                &lt;label htmlFor='email'>Email&lt;/label>
+                &lt;Input id='email'
+                    validate={{
+                        pattern:/^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                        patternReadable:'xxx@xxx.xxx',
+                        t:(code, {value,pattern})=>{
+                            if (code==='missing') {
+                                return 'You didn\'t enter an email address'
+                            }
+                            else { // assume pattern issue
+                                return `You didn't provide a valid email, the correct format should be ${pattern}`
+                            }
+                        }
+                    }}
+                    onChange={this.handleChange.bind(this,'email')}
+                    value={email}/>
+            &lt;/div>
+        &lt;/div>
+    }
+})
+ */
+const Input = React.createClass({
+    propTypes: {
+        id: React.PropTypes.string,
+        name: React.PropTypes.string,
+        type: React.PropTypes.oneOf(['text', 'number', 'integer', 'password']),
+        formatter: React.PropTypes.func,
+        validate: React.PropTypes.shape({
+            min: React.PropTypes.number,
+            max: React.PropTypes.number,
+            pattern: React.PropTypes.oneOfType([React.PropTypes.instanceOf(RegExp), React.PropTypes.string]),
+            patternReadable: React.PropTypes.string,
+            t: React.PropTypes.func
+        }),
+        className: React.PropTypes.string,
+        value: SIMPLE_VALUE_PROP,
+        required: React.PropTypes.bool,
+        disabled: React.PropTypes.bool,
+        readOnly: React.PropTypes.bool,
+        maxLength: React.PropTypes.number,
+        placeholder: SIMPLE_VALUE_PROP,
+        onChange: React.PropTypes.func
+    },
+    getDefaultProps() {
+        return {
+            type: 'text',
+            validate: {},
+            required: false,
+            disabled: false,
+            readOnly: false
+        }
+    },
+    getInitialState() {
+        let {value} = this.props
+        return {
+            value,
+            error: this.validateInput(value)
+        }
+    },
+    componentWillReceiveProps(nextProps) {
+        let {value} = nextProps
+        this.setState({
+            value,
+            error: this.validateInput(value, nextProps)
+        })
+    },
+    componentWillUnmount() {
+        Popover.close()
+    },
+    changeHandler(evt) {
+        let newVal = evt.target.value
+        let error = this.validateInput(newVal)
+        this.nextTime = false
+
+        if (error) {
+            evt.stopPropagation()
+            evt.preventDefault()
+            Popover.open(evt, error)
+            this.setState({error, value:newVal})
+        }
+        else {
+            Popover.close()
+            this.setState({value:newVal, error:false})
+        }
+    },
+    keyHandler(evt) {
+        if (evt.keyCode === 13) {
+            this.blurHandler(evt, {isComplete:true})
+        }
+    },
+    blurHandler(evt, info={}) {
+        let {value:oldVal} = this.props
+        let {error, value:newVal} = this.state
+
+        if (error) {
+            if (!this.nextTime) {
+                this.nextTime = true
+                this.setState({value:oldVal})
+                this.input.focus()
+            }
+            else {
+                this.nextTime = false
+                Popover.close()
+                this.setState({error:this.validateInput(evt.target.value)!==null})
+            }
+        }
+        else {
+            if (oldVal !== newVal) {
+                let {formatter, onChange} = this.props
+
+                if (newVal!=null &amp;&amp; !_str.isBlank(newVal) &amp;&amp; formatter &amp;&amp; _.isFunction(formatter)) {
+                    newVal = formatter(newVal)
+                }
+
+                onChange(newVal, info)
+            }
+        }
+    },
+    validateInput(value, props) {
+        let {name, id, type, required, validate:{t, ...params}} = props || this.props
+
+        let msg = ih.validateField(value, {name:name || id, type, required, ...params}, t?{et:t}:true)
+
+        if (msg) {
+            return &lt;span>{msg}&lt;/span>
+        }
+        return null
+    },
+    render() {
+        let {className, id, name, type, disabled, readOnly, placeholder, maxLength} = this.props
+        let {value, error} = this.state
+
+        let changeHandler = this.changeHandler
+
+        switch (type) {
+            default:
+                return &lt;input
+                    id={id}
+                    name={name}
+                    ref={ref=>{ this.input=ref }}
+                    type={(type === 'password') ? 'password' : 'text'}/* {type}*/
+                    /* min={min}
+                    max={max}
+                    step={step}
+                    pattern={pattern}
+                    required={required}*/
+                    readOnly={readOnly}
+                    disabled={disabled}
+                    maxLength={maxLength}
+                    onChange={changeHandler}
+                    onBlur={this.blurHandler}
+                    onKeyUp={this.keyHandler}
+                    placeholder={placeholder}
+                    className={cx(className, {invalid:error})}
+                    value={value} />
+        }
+    }
+})
+
+export default wireValue(Input)</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ajax-helper.html">ajax-helper</a></li><li><a href="module-contextmenu.html">contextmenu</a></li><li><a href="module-date.html">date</a></li><li><a href="module-download.html">download</a></li><li><a href="module-error-helper.html">error-helper</a></li><li><a href="module-grid-event.html">grid-event</a></li><li><a href="module-input-helper.html">input-helper</a></li><li><a href="module-linked-state-mixins.html">linked-state-mixins</a></li><li><a href="module-outside-event.html">outside-event</a></li><li><a href="module-popover.html">popover</a></li><li><a href="module-popup-dialog.html">popup-dialog</a></li><li><a href="module-progress.html">progress</a></li><li><a href="module-prop-types.html">prop-types</a></li></ul><h3>Classes</h3><ul><li><a href="ButtonGroup.html">ButtonGroup</a></li><li><a href="Checkbox.html">Checkbox</a></li><li><a href="CheckboxGroup.html">CheckboxGroup</a></li><li><a href="Combobox.html">Combobox</a></li><li><a href="DatePicker.html">DatePicker</a></li><li><a href="DateRange.html">DateRange</a></li><li><a href="Dropdown.html">Dropdown</a></li><li><a href="FileInput.html">FileInput</a></li><li><a href="Form.html">Form</a></li><li><a href="Grid.html">Grid</a></li><li><a href="Hierarchy.html">Hierarchy</a></li><li><a href="Image.html">Image</a></li><li><a href="ImageGallery.html">ImageGallery</a></li><li><a href="Input.html">Input</a></li><li><a href="List.html">List</a></li><li><a href="ModalDialog.html">ModalDialog</a></li><li><a href="module-Tiles.html">Tiles</a></li><li><a href="MultiInput.html">MultiInput</a></li><li><a href="PageNav.html">PageNav</a></li><li><a href="RadioGroup.html">RadioGroup</a></li><li><a href="RangeCalendar.html">RangeCalendar</a></li><li><a href="Search.html">Search</a></li><li><a href="Slider.html">Slider</a></li><li><a href="Table.html">Table</a></li><li><a href="Tabs.html">Tabs</a></li><li><a href="Textarea.html">Textarea</a></li><li><a href="Timeline.html">Timeline</a></li><li><a href="ToggleButton.html">ToggleButton</a></li><li><a href="Tree.html">Tree</a></li></ul><h3>Mixins</h3><ul><li><a href="module-linked-state-mixins.LinkedDeepStateMixin.html">LinkedDeepStateMixin</a></li><li><a href="module-linked-state-mixins.LinkedStateMixin.html">LinkedStateMixin</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Dec 04 2018 10:28:46 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

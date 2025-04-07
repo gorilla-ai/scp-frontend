@@ -1,0 +1,7 @@
+{
+  "type": "react-chart/Pie",
+  "description": "data and configSource",
+  "configSource": {
+    "query": {"url": "/api/demo/config"}
+  }
+}

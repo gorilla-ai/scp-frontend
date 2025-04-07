@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_telephone</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M16.51536,15.53072 C16.21456,15.03392 15.61216,14.85632 15.01056,15.17552 C13.87696,15.84992 12.53136,16.52112 11.76976,16.06032 C11.23856,15.77712 10.33536,14.43152 9.50256,13.12272 C8.82976,11.84592 8.29856,10.71472 8.29856,9.89872 C8.15696,9.04992 9.50256,8.23392 10.70736,7.55952 C11.23856,7.17152 11.39776,6.64192 11.16736,6.10832 L7.85616,0.54912 C7.62576,0.01552 6.95296,-0.15808 6.42176,0.15712 C4.22576,1.43392 3.32256,3.55872 3.02176,4.97712 C2.86256,6.35552 3.55296,10.50032 6.26256,15.17552 C8.98896,19.78112 11.92896,22.39952 13.27456,23.00192 C14.63856,23.53472 16.90496,23.85392 19.31296,22.39952 C19.77376,22.18912 20.07456,21.51472 19.61456,20.98512 L16.51536,15.53072 Z" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_telephone">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

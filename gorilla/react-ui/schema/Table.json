@@ -1,0 +1,419 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Table",
+  "type": "object",
+  "required": [
+    "rowIdField",
+    "fields"
+  ],
+  "properties": {
+    "id": {
+      "title": "Table ID",
+      "description": "table container DOM id",
+      "type": "string",
+      "examples": ["my-table-id"]
+    },
+    "caption": {
+      "title": "Caption",
+      "description": "table caption",
+      "examples": [
+        "My Table"
+      ],
+      "$ref": "#/definitions/node"
+    },
+    "footer": {
+      "title": "Footer",
+      "description": "table footer",
+      "$ref": "#/definitions/node"
+    },
+    "className": {
+      "title": "Class Name",
+      "description": "table classe names, space delimited text of bland, nohover, fixed-header, column, border-inner-vertical, border-inner-horizontal, border-inner, border-outer, border-all",
+      "type": "string"
+    },
+    "rowIdField": {
+      "title": "Row ID Field",
+      "description": "which field denotes the row id? This is most useful for passing back in events (eg. onSelectionChange). If provided must match with key in fields property",
+      "type": "string",
+      "$enumRef": "#/properties/fields/@key"
+    },
+    "rowClassName": {
+      "title": "Row Class Names",
+      "description": "class names given to each row",
+      "oneOf": [
+        {
+          "description": "fixed row class names",
+          "type": "string"
+        },
+        {
+          "description": "a template string which will substitute row {data} and returns substituted text as class names. eg. ${data.dangerous?'hilite':''}",
+          "type": "string",
+          "format": "template"
+        }
+      ]
+    },
+    "fields": {
+      "title": "Fields Definition",
+      "description": "define individual fields",
+      "type": "object",
+      "examples": [
+        {
+          "name": {},
+          "nickname": {
+            "label": "Nickname",
+            "formatter": "_${data.nickname}_"
+          },
+          "phone": {}
+        }
+      ],
+      "additionalProperties": {
+        "type": "object",
+        "description": "field (table column) settings",
+        "properties": {
+          "label": {
+            "description": "column header label",
+            "$ref": "#/definitions/node"
+          },
+          "keyPath": {
+            "description": "where does the data for this field come from?",
+            "$ref": "#/definitions/path"
+          },
+          "sortable": {
+            "type": "boolean"
+          },
+          "sortKeyPath": {
+            "description": "sort this field according to which piece of data?",
+            "$ref": "#/definitions/path"
+          },
+          "hide": {
+            "description": "whether to hide this field",
+            "type": "boolean"
+          },
+          "className": {
+            "description": "class names for this column field",
+            "type": "string"
+          },
+          "formatter": {
+            "description": "how to format data for this field?",
+            "anyOf": [
+              {
+                "desription": "plain text",
+                "type": "string"
+              },
+              {
+                "desription": "template string with {value, data} params",
+                "type": "string",
+                "format": "template"
+              },
+              {
+                "description": "html string",
+                "type": "string",
+                "format": "html"
+              },
+              {
+                "description": "format date",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "date"
+                    ]
+                  },
+                  "inputFormat": {
+                    "description": "date input format. eg. YYYY-MM-DD",
+                    "type": "string"
+                  },
+                  "format": {
+                    "description": "date output format. eg. YYYY-MM-DD",
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "description": "format date time",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "datetime"
+                    ]
+                  },
+                  "inputFormat": {
+                    "description": "date input format. eg. YYYY-MM-DD HH:mm:ss",
+                    "type": "string"
+                  },
+                  "format": {
+                    "description": "date output format. eg. YYYY-MM-DD HH:mm:ss",
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "description": "format data according to mapping",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "mapping"
+                    ]
+                  },
+                  "list": {
+                    "description": "mapping list",
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object"
+                        }
+                      }
+                    ]
+                  },
+                  "listTransform": {
+                    "description": "if specified, this will transform list into standard {value, text} pairs",
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "string"
+                      },
+                      "text": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "formatArrayItem": {
+            "description": "whether formatter is targeted towards array items",
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "data": {
+      "description": "data",
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "rows": {
+      "description": "only display these rows (by index)",
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end": {
+          "type": "integer"
+        }
+      }
+    },
+    "selectable": {
+      "description": "whether the rows can be selected (ie checkboxes)",
+      "oneOf": [
+        {
+          "description": "are individual rows selectable?",
+          "type": "boolean",
+          "enum": [
+            true
+          ]
+        },
+        {
+          "description": "are individual rows not selectable?",
+          "type": "boolean",
+          "enum": [
+            false
+          ]
+        },
+        {
+          "description": "allow select all?",
+          "type": "object",
+          "properties": {
+            "toggleAll": {
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "defaultSelected": {
+      "description": "which rows are selected by default?",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "onSelectionChange": {
+      "type": "array",
+      "isEvent": true,
+      "items": [
+        {
+          "description": "selected row ids",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "description": "other event info",
+          "type": "object",
+          "properties": {
+            "id": {
+              "description": "",
+              "type": "string"
+            },
+            "selected": {
+              "type": "boolean"
+            },
+            "before": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "defaultSort": {
+      "description": "default sort properties",
+      "type": "object",
+      "properties": {
+        "field": {
+          "description": "default sort field id",
+          "type": "string"
+        },
+        "desc": {
+          "description": "default sort by descending order?",
+          "type": "boolean"
+        }
+      }
+    },
+    "onSort": {
+      "type": "array",
+      "isEvent": true,
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "field": {
+              "type": "string"
+            },
+            "desc": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "before": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "desc": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "onRowClick": {
+      "type": "array",
+      "isEvent": true,
+      "items": [
+        {
+          "title": "Clicked Row ID",
+          "type": "string"
+        },
+        {
+          "title": "Clicked Row Data",
+          "type": "object"
+        },
+        {
+          "title": "Clicked Row Event",
+          "type": "object"
+        }
+      ]
+    },
+    "onRowDoubleClick": {
+      "type": "array",
+      "isEvent": true,
+      "items": [
+        {
+          "title": "Clicked Row ID",
+          "type": "string"
+        },
+        {
+          "title": "Clicked Row Data",
+          "type": "object"
+        },
+        {
+          "title": "Clicked Row Event",
+          "type": "object"
+        }
+      ]
+    },
+    "onRowContextMenu": {
+      "type": "array",
+      "isEvent": true,
+      "items": [
+        {
+          "title": "Clicked Row ID",
+          "type": "string"
+        },
+        {
+          "title": "Clicked Row Data",
+          "type": "object"
+        },
+        {
+          "title": "Clicked Row Event",
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "node": {
+      "anyOf": [
+        {
+          "description": "plain text",
+          "type": "string"
+        },
+        {
+          "description": "html text",
+          "type": "string",
+          "format": "html"
+        }
+      ]
+    },
+    "path": {
+      "oneOf": [
+        {
+          "title": ". seperated string",
+          "description": "dddd",
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    }
+  }
+}

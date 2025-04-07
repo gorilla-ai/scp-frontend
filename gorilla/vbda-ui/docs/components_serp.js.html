@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/serp.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/serp.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import _ from 'lodash'
+import cx from 'classnames'
+import $ from 'jquery'
+
+
+import TabView from 'react-ui/build/src/components/tabs'
+import ButtonGroup from 'react-ui/build/src/components/button-group'
+import Table from './visualization/table'
+import Chart from './visualization/chart'
+
+import ah from '../utils/ajax-helper'
+
+let log = require('loglevel').getLogger('vbda/components/serp')
+
+/**
+ * Serp - Search Engine Result Pages container
+ * @constructor
+ * @param {string} [id] - Serp dom element #id
+ * @param {string} [className] - Classname for the serp
+ * @param {string} url - 
+ * @param {string} lng -
+ * @param {array.&lt;string>} dts - 
+ * @param {object} query - 
+ * @param {object} cfg - 
+ * @param {object} cfg.data_sources - 
+ * @param {object} cfg.data_types - 
+ * @param {object} cfg.renders -
+ * @param {function} onSelect - Function to call when hit is selected
+ * @param {function} onMouseOver - Function to call when hit is hovered
+ * @param {function} onClick - Function to call when hit is clicked
+ *
+ * @example
+
+import _ from 'lodash'
+import Serp from 'vbda/components/serp'
+import CustomList from './vbda/plugins/list'
+
+React.createClass({
+    showInfo(hit) {
+        // hit == { _index:'friends-yyyy-mm-dd', type:'logs', _id:'xxxxx', _source:{} }
+    },
+    render() {
+        return &lt;Serp
+            url='/vbda/search'
+            lng='en_us'
+            dts={['friends']}
+            query={{'line':'line id', phone:'0922'}}
+            cfg={{
+                data_sources:{
+                    osint:{
+                        name: 'osint',
+                        data_types:['friends']
+                    }
+                }, 
+                data_types:{
+                    friends:{
+                        renderSerp:['t1','t2']
+                    }
+                },
+                renders:{
+                    t1:{   
+                        type:'table'
+                    },
+                    t2:{
+                        type: 'custom',
+                        vis: CustomList
+                    }
+                }
+            }}
+            onSelect={this.showInfo}
+            onMouseOver={this.showInfo}
+            onClick={this.showInfo} />
+    }
+})
+ */
+const Serp = React.createClass({
+    propTypes:{
+        id: React.PropTypes.string,
+        className: React.PropTypes.string,
+        url: React.PropTypes.string.isRequired,
+        lng: React.PropTypes.string,
+        dts: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+        query: React.PropTypes.object,
+        cfg: React.PropTypes.shape({
+            data_sources: React.PropTypes.objectOf(React.PropTypes.shape({
+                name: React.PropTypes.string,
+                data_types: React.PropTypes.arrayOf(React.PropTypes.string)
+            })).isRequired,
+            data_types: React.PropTypes.objectOf(React.PropTypes.shape({
+                name: React.PropTypes.string,
+                renderSerp: React.PropTypes.arrayOf(React.PropTypes.string)
+            })).isRequired,
+            renders: React.PropTypes.objectOf(React.PropTypes.shape({
+                type: React.PropTypes.string,//React.PropTypes.oneOf(['table','custom']),
+                vis: React.PropTypes.string
+            })).isRequired
+        }).isRequired,
+        onSelect: React.PropTypes.func,
+        onMouseOver: React.PropTypes.func,
+        onClick: React.PropTypes.func
+    },
+    getDefaultProps() {
+        return {
+            dts: [],
+            query: {}
+        }
+    },
+    getInitialState() {
+        const defaultDt = _.first(this.props.dts)
+        return {
+            selectedDt: defaultDt,
+            selectedVis: _.first(this.getAllVis(defaultDt)),
+            data: [],
+            total: 0
+        }
+    },
+    componentDidMount() {
+        const {selectedDt} = this.state
+        if (selectedDt) {
+            this.loadData()
+        }
+    },
+    componentWillReceiveProps(nextProps) {
+        const {dts} = nextProps
+        const {selectedDt} = this.state
+        if (!selectedDt || dts.indexOf(selectedDt) &lt; 0) {
+            this.handleDtChange(_.first(dts))
+        }
+    },
+    getAllVis(dt) {
+        const {cfg:{data_types}} = this.props
+        return data_types[dt] ? data_types[dt].renderSerp : []
+    },
+    handleDtChange(selectedDt) {
+        this.setState({selectedDt, selectedVis:_.first(this.getAllVis(selectedDt))}, ()=>{
+            this.loadData()
+        })
+    },
+    handleVisChange(selectedVis) {
+        this.setState({selectedVis})
+    },
+    loadData(params) {
+        const {url, query} = this.props
+        const {selectedDt} = this.state
+        ah.one($.get(`${url}`, {dt:selectedDt, query, ...params}))
+            .then(data => {
+                this.setState({data: data.hits.hits, total: data.hits.total})
+            })
+            .catch(err => {
+                log.error(err)
+            }) 
+    },
+    renderInner() {
+        const {lng, onSelect, cfg:{renders}, onClick, onMouseOver} = this.props
+        const {selectedDt, selectedVis, data, total} = this.state
+
+        const visCfg = renders[selectedVis]
+        let Vis
+
+        if (!visCfg) {
+            return &lt;div className='c-error'>{selectedVis} does not exist in renders cfg&lt;/div>
+        }
+
+        switch(visCfg.type) {
+            case 'custom':
+                Vis = visCfg.vis; break;
+            case 'table':
+                Vis = Table; break;
+            case 'chart':
+                Vis = Chart; break;
+            default:
+                return &lt;div className='c-error'>{visCfg.type} Vis Not Supported&lt;/div>
+        }
+        return &lt;Vis id={`${selectedDt}-${selectedVis}`}
+            lng={lng}
+            cfg={visCfg}
+            data={data}
+            total={total}
+            onSelect={onSelect}
+            onClick={onClick}
+            onMouseOver={onMouseOver}
+            onReq={this.loadData} />
+    },
+    render() {
+        const {id, className, dts, cfg:{data_sources, data_types}} = this.props
+        const {selectedDt, selectedVis} = this.state
+
+        if (dts.length &lt;= 0) {
+            return &lt;div>No Results to show&lt;/div>
+        }
+
+        const availableVisTypes = data_types[selectedDt].renderSerp
+
+        return &lt;TabView id={id} 
+            className={cx('c-vbda-serp', className)}
+            menu={ _.reduce(dts, (acc, dt)=>{acc[dt]=data_types[selectedDt].name || dt; return acc}, {}) }
+            current={selectedDt}
+            onChange={this.handleDtChange}>
+            &lt;div>
+                {availableVisTypes.length>1 &amp;&amp; &lt;ButtonGroup 
+                    value={selectedVis}
+                    list={availableVisTypes.map(v=>({value:v, text:v}))} 
+                    onChange={this.handleVisChange}/>}
+                {this.renderInner()}
+            &lt;/div>
+        &lt;/TabView>
+    }
+})
+
+export default Serp</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-es-agg.html">es-agg</a></li><li><a href="module-es-hits.html">es-hits</a></li></ul><h3>Classes</h3><ul><li><a href="Chart.html">Chart</a></li><li><a href="Dashboard.html">Dashboard</a></li><li><a href="Detail.html">Detail</a></li><li><a href="Form.html">Form</a></li><li><a href="Gis.html">Gis</a></li><li><a href="Info.html">Info</a></li><li><a href="La.html">La</a></li><li><a href="Search.html">Search</a></li><li><a href="Serp.html">Serp</a></li><li><a href="Table.html">Table</a></li><li><a href="Vbda.html">Vbda</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.1</a> on Wed Apr 12 2017 10:35:34 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

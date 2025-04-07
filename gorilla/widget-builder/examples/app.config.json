@@ -1,0 +1,17 @@
+{
+    "port":3006,
+    "version":"11.22.33.44",
+    "lng":"zh",
+    "log":{
+        "level":{
+            "production": {"server":"info", "client":"warn"},
+            "development": "info"
+        },
+        "persist":{
+            "client":false,
+            "server":true
+        },
+        "max":2
+    },
+    "config_service": "http://192.168.10.216:4009"
+}

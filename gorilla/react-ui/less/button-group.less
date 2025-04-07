@@ -1,0 +1,72 @@
+@import (reference) 'base.less';
+
+// c-button-group theme-color config
+@c-button-group-thumb-bgcolor: @g-standard-color;
+@c-button-group-thumb-font-color: @g-standard-font-color;
+@c-button-group-thumb-hover-bgcolor: @g-standard-hover-color;
+@c-button-group-thumb-active-bgcolor: @g-standard-active-color;
+@c-button-group-thumb-selected-font-color: @g-primary-font-color;
+@c-button-group-thumb-selected-bgcolor: @g-primary-color;
+@c-button-group-thumb-selected-hover-bgcolor: @g-primary-hover-color;
+@c-button-group-thumb-selected-active-bgcolor: @g-primary-active-color;
+
+.c-button-group-behaviors(@btn-bgcolor, @font-color, @border-tb-color, @border-lr-color,
+                          @hover-color, @active-color){
+    background-color: @btn-bgcolor;
+    color: @font-color;
+    > .fg {
+        color: @font-color;
+    }
+    border-top-color:@border-tb-color;
+    border-bottom-color:@border-tb-color;
+    border-left-color:@border-lr-color;
+    border-right-color:@border-lr-color;
+    &:not(:disabled):hover {
+        background-color: @hover-color;
+        border-top-color: @hover-color;
+        border-bottom-color: @hover-color;
+        outline: none;
+    }
+    &:active {
+        background-color: @active-color;
+        border-top-color: @active-color;
+        border-bottom-color: @active-color;
+        outline: none;
+    }
+    &.disabled{
+        opacity: .5;
+    }
+}
+.c-button-group {
+    .c-flex;
+	.thumb {
+		display: inline-block;
+		text-align: center;
+		margin:0;
+		padding: 0.3em 0.5em;			
+		border-style:solid;			
+		border-radius: 0;
+		border-width:1px 0px 1px 1px;
+        outline: none;
+
+        &:first-child {
+            border-radius: 3px 0 0 3px;
+        }
+        &:last-child {
+            border-right-width: 1px;    
+            border-radius: 0 3px 3px 0;
+        }
+        
+        &:not(.selected) {
+            .c-button-group-behaviors(@c-button-group-thumb-bgcolor, @c-button-group-thumb-font-color, 
+                                      @g-border-color, @g-border-color,
+                                      @c-button-group-thumb-hover-bgcolor, @c-button-group-thumb-active-bgcolor);
+        }
+        &.selected {
+            .c-button-group-behaviors(@c-button-group-thumb-selected-bgcolor, @c-button-group-thumb-selected-font-color, 
+                                      @c-button-group-thumb-selected-bgcolor, @g-border-color, 
+                                      @c-button-group-thumb-selected-hover-bgcolor, @c-button-group-thumb-selected-active-bgcolor);
+        }
+    }
+}
+

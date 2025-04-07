@@ -1,0 +1,568 @@
+{
+  "inputIDPlz": {
+    "type": "default/Dashboard",
+    "description": "",
+    "config": {
+      "widgets": {
+        "input": {
+          "widgetConfig": {
+            "type": "react-ui/Input",
+            "description": "demo用",
+            "config": {
+              "placeholder":"id or dashboard/id",
+              "className":"w-100"
+            }
+          },
+          "eventListeners": {
+            "onChange": {
+              "target": {
+                "0": [
+                  "demoTarget.$id"
+                ]
+              }
+            }
+          },
+          "layout":{
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 1
+          }
+        },
+        "demoTarget": {
+          "widgetConfig": {
+            "$id":""
+          },
+          "layout":{
+            "x": 0,
+            "y": 1,
+            "w": 12,
+            "h": 8
+          }
+        }
+      },
+      "layoutCfg": {
+        "cols": 18,
+        "isResizable": false,
+        "isDraggable": false
+      }
+    }
+  },
+  "sourceURLPlz": {
+    "type": "default/Dashboard",
+    "description": "",
+    "config": {
+      "widgets": {
+        "input": {
+          "widgetConfig": {
+            "type": "react-ui/Input",
+            "description": "demo用",
+            "config": {
+              "placeholder":"id or dashboard/id",
+              "className":"w-100"
+            }
+          },
+          "eventListeners": {
+            "onChange": {
+              "target": {
+                "0": [
+                  "demoTarget.$source"
+                ]
+              }
+            }
+          },
+          "layout":{
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 1
+          }
+        },
+        "demoTarget": {
+          "widgetConfig": {
+            "$id":""
+          },
+          "layout":{
+            "x": 0,
+            "y": 1,
+            "w": 12,
+            "h": 8
+          }
+        }
+      },
+      "layoutCfg": {
+        "cols": 18,
+        "isResizable": false,
+        "isDraggable": false
+      }
+    }
+  },
+  "$SourceTest": {
+    "$source": "http://localhost:3006/api/source/test"
+  },
+  "$IdTest": {
+    "$id": "dashboard-test"
+  },
+  "StoreTest2": {
+    "type": "default/Dashboard",
+    "description": "StoreTest",
+    "config": {
+      "widgets": {
+        "store-pie": {
+          "widgetConfig": {
+            "type": "react-chart/Pie",
+            "description": "Pie接store測試",
+            "config": {
+              "keyLabels": {
+                "doc_count": "Numbers",
+                "key": "Age"
+              },
+              "holeSize": 70,
+              "dataCfg": {
+                "sliceSize": "doc_count",
+                "splitSlice": [
+                  "key"
+                ]
+              }
+            }
+          },
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 1
+          },
+          "storeRef": {
+            "config.data" : ["store2.aggregations.aggsByAges.buckets", "store1"]
+          },
+          "boxTitle":"store try!!!!"
+        }
+      },
+      "layoutCfg": {
+        "cols": 18,
+        "isResizable": false,
+        "isDraggable": false
+      },
+      "storeCfg":{
+        "store1": {"type":"rawData","description":"空資料", "data":[]},
+        "store2": {
+          "type": "request",
+          "query": {
+            "type": "POST",
+            "url": "http://192.168.10.224:13667/uif/cibd/ivar/search",
+            "data": {
+              "startTime": "2018-01-01T00:00:00.000Z",
+              "endTime": "2020-01-01T00:00:00.000Z"
+            }
+          }
+        },
+        "target": {
+          "0": [
+            "demoTarget.$id"
+          ]
+        }
+      }
+    }
+  },
+  "StoreTest3": {
+    "type": "default/Dashboard",
+    "description": "StoreTest",
+    "config": {
+      "widgets": {
+        "SecurityDecisionByTime": {
+          "widgetConfig": {
+            "type": "react-chart/Bar",
+            "config": {
+              "xAxis": {
+                "type": "datetime"
+              },
+              "dataCfg": {
+                "x": "OccurDateTime",
+                "y": "OccurDateTime_doc_count"
+              },
+              "stacked": false,
+              "vertical": true,
+              "legend": {
+                "enabled": false
+              }
+            }
+          },
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 1
+          },
+          "storeRef": {
+            "config.data" : ["securityDecision.aggsByTime"]
+          },
+          "boxTitle":"securityDecision!!!!"
+        }
+      },
+      "layoutCfg": {
+        "cols": 18,
+        "isResizable": false,
+        "isDraggable": false
+      },
+      "storeCfg":{
+        "securityDecision": {
+          "type": "request",
+          "query": {
+            "type": "POST",
+            "url": "http://192.168.10.224:13667/uif/cibd-dashboard/securityDecision/enter",
+            "data": {
+              "@start": "now-1y/y",
+              "@end": "now",
+              "@comparativeStart": "now-2y/y",
+              "@comparativeEnd": "now-1y/y",
+              "@interval": "day",
+              "@caseType": [
+                "A010",
+                "A020",
+                "A030",
+                "A040",
+                "A051",
+                "A052",
+                "A053",
+                "A054",
+                "A060",
+                "B001",
+                "B002",
+                "B003",
+                "C000",
+                "D000",
+                "E000",
+                "F001",
+                "F002",
+                "F003",
+                "F004",
+                "F005",
+                "F006",
+                "F007",
+                "F008",
+                "F009",
+                "F010",
+                "F011",
+                "F012",
+                "G001",
+                "G002",
+                "G003",
+                "G004",
+                "G005",
+                "G006",
+                "G007",
+                "G008",
+                "G009",
+                "G010",
+                "H002",
+                "H003",
+                "H005",
+                "H006",
+                "H008",
+                "H009",
+                "H010",
+                "H011",
+                "I001",
+                "I002",
+                "I003",
+                "I004",
+                "I009",
+                "J001",
+                "J002",
+                "J003",
+                "J005",
+                "J006",
+                "J007",
+                "J008",
+                "J013",
+                "J014",
+                "J015",
+                "K004",
+                "K005",
+                "K009",
+                "K010",
+                "K026",
+                "K036",
+                "K037",
+                "K039",
+                "K048",
+                "K050",
+                "K057",
+                "K058",
+                "K062",
+                "K065",
+                "K069",
+                "K092",
+                "K094",
+                "K098",
+                "K104",
+                "K110",
+                "K111",
+                "L002",
+                "L025",
+                "M000",
+                "M00A",
+                "M00D"
+              ],
+              "@occurBranchCode": [
+                "AC00",
+                "AE00",
+                "AF00",
+                "AL00",
+                "AN00",
+                "AB00",
+                "AM00",
+                "AJ00",
+                "AK00",
+                "AA00",
+                "AD00",
+                "AG00",
+                "AI00",
+                "AH00"
+              ],
+              "@size": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "movie-analysis(Deprecated)": {
+    "type": "dashboard",
+    "description": "movie",
+    "config": {
+      "widgets": {
+        "voteCountByLanguagePieChart": {
+          "widgetConfig": {
+            "type": "react-chart/Pie",
+            "description": "Numbers of each language",
+            "config": {
+              "title": "Distribution of languages",
+              "dataSource": {
+                "query": {
+                  "url": "https://api.themoviedb.org/4/discover/movie?api_key=fadab78fc69bdd21c1745f95f636843b&sort_by=popularity.desc&year=2017"
+                },
+                "selectKey": "results"
+              },
+              "holeSize": 70,
+              "dataCfg": {
+                "splitSlice": [
+                  "original_language"
+                ],
+                "sliceSize": "vote_count"
+              },
+              "keyLabels": {
+                "original_language": "Language",
+                "vote_count": "Vote Number"
+              }
+            }
+          }
+        }
+      },
+      "layoutCfg": {
+        "layout": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 10,
+            "h": 2
+          }
+        ],
+        "cols": 60,
+        "isResizable": false,
+        "isDraggable": false,
+        "verticalCompact": false
+      }
+    }
+  },
+  "PieChart": {
+    "type": "react-chart/Pie",
+    "description": "data and configSource",
+    "configSource": {
+      "query": {"url": "/api/demo/config"}
+    }
+  },
+  "BarChart": {
+    "type": "react-chart/Bar",
+    "description": "data and config bar",
+    "config": {
+      "title": "XXX",
+      "data": [
+        {
+          "key": "SKE",
+          "doc_count": 260,
+          "BrandsSales": {
+            "value": 147330950
+          }
+        },
+        {
+          "key": "NIK",
+          "doc_count": 221,
+          "BrandsSales": {
+            "value": 171904200
+          }
+        }
+      ],
+      "vertical": true,
+      "onTooltip": true,
+      "xAxis":{"type":"category"},
+      "legend":{"enabled":false},
+      "dataCfg": {
+        "x": "key",
+        "y": "doc_count"
+      }
+    }
+  },
+  "pieChartSwitch(Deprecated)": {
+    "type": "dashboard",
+    "description": "",
+    "config": {
+      "widgets": {
+        "select": {
+          "widgetConfig": {
+            "type": "react-ui/Dropdown",
+            "description": "demo用",
+            "config": {
+              "list": [
+                {
+                  "value": "/api/demo/movies1",
+                  "text": "movies data 1"
+                },
+                {
+                  "value": "/api/demo/movies2",
+                  "text": "movies data 2"
+                },
+                {
+                  "value": "/api/demo/movies3",
+                  "text": "movies data 3"
+                }
+              ]
+            }
+          },
+          "eventListeners": {
+            "onChange": {
+              "target":{
+                "demoPieChart":{"config.dataSource.query.url":"0"},
+                "select":{"config.value":"0"}
+              }
+            }
+          }
+        },
+        "demoPieChart": {
+          "widgetConfig": {
+            "type": "react-chart/Pie",
+            "description": "demo用",
+            "config": {
+              "dataSource": {
+                "query": {"url": "/api/demo/movies"}
+              },
+              "keyLabels": {
+                "director": "Director",
+                "actor": "Actor",
+                "year": "Year"
+              },
+              "valueLabels": {
+                "director": {
+                  "martin": "Martin Scorsese",
+                  "francis": "Francis Copola"
+                },
+                "actor": {
+                  "tom": "Tom Cruise",
+                  "nicole": "Nicole Kidman"
+                }
+              },
+              "holeSize": 70,
+              "dataCfg": {
+                "splitSlice": [
+                  "year",
+                  "actor"
+                ],
+                "sliceSize": "movies"
+              }
+            }
+          }
+        }
+      },
+      "layoutCfg": {
+        "layout": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 2
+          },
+          {
+            "x": 3,
+            "y": 0,
+            "w": 8,
+            "h": 2
+          }
+        ],
+        "cols": 18,
+        "isResizable": false,
+        "isDraggable": false
+      }
+    }
+  },
+  "thisPage": {
+    "type": "layout",
+    "description": "現在這一頁",
+    "config": {
+      "widgetsSource":{"query": {"url": "/api/configuration_service/ui_framework"}}
+    }
+  },
+  "pollingAlarmTest": {
+    "type": "default/alarm",
+    "description": "alarmTest",
+    "config": {
+      "type": "polling",
+      "options": {
+        "delay": 3,
+        "query": {
+          "url": "/polling-data-test",
+          "type": "GET"
+        },
+        "startDttmKey": "startTime",
+        "endDttmKey": "endTime"
+      },
+      "dataCfg": {
+        "messageType": {
+          "key": "type",
+          "valueMapping": {
+            "Success": "success",
+            "Info": "info",
+            "Warning": "warning",
+            "Error": "error"
+          }
+        },
+        "titleKey": "label",
+        "messageKey": "content"
+      },
+      "autoDismiss": 2
+    }
+  },
+  "webSocketAlarmTest": {
+    "type": "default/alarm",
+    "description": "alarmTest",
+    "config": {
+      "type": "webSocket",
+      "options": {
+        "wsUrl": "ws://localhost:3006"
+      },
+      "dataCfg": {
+        "messageType": {
+          "key": "type",
+          "valueMapping": {
+            "Success": "success",
+            "Info": "info",
+            "Warning": "warning",
+            "Error": "error"
+          }
+        },
+        "titleKey": "label",
+        "messageKey": "content"
+      },
+      "autoDismiss": 5
+    }
+  }
+}

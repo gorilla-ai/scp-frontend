@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/search.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/search.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import TabView from 'react-ui/build/src/components/tabs'
+import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
+import Form from './visualization/form'
+
+let log = require('loglevel').getLogger('vbda/components/search')
+
+/**
+ * Search
+ * @constructor
+ * @param {string} [id] - Search dom element #id
+ * @param {string} [className] - Classname for the search
+ * @param {string} lng - 
+ * @param {object} cfg - 
+ * @param {object} cfg.data_sources - 
+ * @param {object} cfg.data_types - 
+ * @param {object} cfg.searches -
+ * @param {function} onSearch - Function to call when search button is clicked
+ * @param {object} onSearch.data - params by data types
+ *
+ * @example
+
+import _ from 'lodash'
+import Search from 'vbda/components/search'
+
+React.createClass({
+    search(toSearch) {
+        // toSearch == { dts:['friends'], params:{line:'x', CellPhone:'0999'} }
+    },
+    render() {
+        return &lt;Search
+            lng='en_us'
+            cfg={{
+                data_sources:{
+                    osint:{
+                        name: 'osint',
+                        data_types:['friends']
+                    }
+                }, 
+                data_types:{
+                    friends:{
+                        searches:[
+                            'fulltext',
+                            'geo_bounding_box'
+                        ]
+                    }
+                },
+                searches:{
+                    fulltext:{
+                        name:'fulltext',        
+                        fields:{
+                            Identity:{title:'name',type:'string'}, 
+                            CellPhone:{title:'phone',type:'string'},
+                            TestList:{title:'Test List',type:'dropdown', list:{'1':'a','2':'b'}}
+                        },
+                        locales:{
+                            en_us:{
+                                fields:{
+                                    Identity:{title:'name'},
+                                    CellPhone:{title:'phone'}
+                                }
+                            }
+                        }
+                    },
+                    geo_bounding_box:{
+                        name:'geo_bounding_box',      
+                        fields:{
+                            Location:{title:'coordinate',type:'gis'}
+                        },
+                        locales:{
+                            en_us:{
+                                fields:{
+                                    Location:{title:'coordinate'}
+                                }
+                            }
+                        }
+                    }
+                }
+            }}
+            onSearch={this.search} />
+    }
+})
+ */
+const Search = React.createClass({
+    propTypes:{
+        id: React.PropTypes.string,
+        className: React.PropTypes.string,
+        lng: React.PropTypes.string,
+        cfg: React.PropTypes.shape({
+            data_sources: React.PropTypes.objectOf(React.PropTypes.shape({
+                name: React.PropTypes.string,
+                data_types: React.PropTypes.arrayOf(React.PropTypes.string)
+            })).isRequired,
+            data_types: React.PropTypes.objectOf(React.PropTypes.shape({
+                name: React.PropTypes.string,
+                searches: React.PropTypes.arrayOf(React.PropTypes.string)
+            })).isRequired,
+            searches: React.PropTypes.objectOf(React.PropTypes.shape({
+                name: React.PropTypes.string,
+                vis: React.PropTypes.string
+            })).isRequired
+        }).isRequired,
+        onSearch: React.PropTypes.func.isRequired
+    },
+    getInitialState() {
+        const defaultSid = _.first(_.keys(this.props.cfg.searches))
+        return {
+            selectedSid: defaultSid,
+            selectedDts: this.getAllDts(defaultSid)
+        }
+    },
+    componentWillReceiveProps(nextProps) {
+        const {selectedSid} = this.state
+        const availableSids = _.keys(nextProps.cfg.searches) 
+        if (!selectedSid || availableSids.indexOf(selectedSid) &lt; 0) {
+            this.handleSearchChange(_.first(availableSids))
+        }
+    },    
+    getAllDts(sid) {
+        const {cfg:{data_types}} = this.props
+
+        return _.reduce(data_types, (acc, {name, searches:sids}, dt)=>{
+            if (sids.indexOf(sid) >= 0) {
+                return [...acc, dt]
+            }
+            return acc
+        }, [])
+    },
+    handleSearchChange(selectedSid) {
+        this.setState({selectedSid, selectedDts:this.getAllDts(selectedSid)})
+    },
+    handleDtChange(selectedDts) {
+        this.setState({selectedDts})
+    },
+    handleSearch(params) {
+        const {onSearch} = this.props
+        const {selectedDts:dts} = this.state
+        onSearch({dts, params})
+    },
+    render() {
+        const {id, className, lng, cfg:{data_sources, data_types, searches}} = this.props
+
+        if (_.isEmpty(searches)) {
+            return &lt;div id={id} className='c-error'>No Search Available&lt;/div>
+        }
+
+        const {selectedSid, selectedDts} = this.state
+        const searchCfg = searches[selectedSid]
+        const SearchVis = searchCfg.vis || Form
+
+        return &lt;TabView id={id} 
+            className={cx('c-vbda-search', className)}
+            menu={ _.mapValues(searches, (v,k)=>v.name) }
+            current={selectedSid}
+            onChange={this.handleSearchChange}>
+            &lt;CheckboxGroup 
+                list={this.getAllDts(selectedSid).map(dt=>({value:dt,text:data_types[dt].name||dt}))} 
+                value={selectedDts} 
+                onChange={this.handleDtChange}/>
+            &lt;SearchVis id={selectedSid} 
+                lng={lng} 
+                cfg={searchCfg}
+                onSearch={this.handleSearch} />
+        &lt;/TabView>
+    }
+})
+
+export default Search</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-es-agg.html">es-agg</a></li><li><a href="module-es-hits.html">es-hits</a></li></ul><h3>Classes</h3><ul><li><a href="Chart.html">Chart</a></li><li><a href="Dashboard.html">Dashboard</a></li><li><a href="Detail.html">Detail</a></li><li><a href="Form.html">Form</a></li><li><a href="Gis.html">Gis</a></li><li><a href="Info.html">Info</a></li><li><a href="La.html">La</a></li><li><a href="Search.html">Search</a></li><li><a href="Serp.html">Serp</a></li><li><a href="Table.html">Table</a></li><li><a href="Vbda.html">Vbda</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.1</a> on Wed Apr 12 2017 10:35:34 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

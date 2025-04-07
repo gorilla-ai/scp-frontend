@@ -1,0 +1,12 @@
+{
+  "car":{
+    "description":"The car information.",
+    "unique_property":"licensePlate",
+    "indexed_properties":["direction","color"]
+  },
+  "bac":{
+    "description":"The bac information (camera).",
+    "unique_property":"bacId",
+    "indexed_properties":["ivarId", "channel", "taskId"]
+  }
+}

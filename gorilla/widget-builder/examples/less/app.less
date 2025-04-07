@@ -1,0 +1,118 @@
+
+@import 'node_modules/react-ui/less/react-ui-theme-dark.less';
+@import '../../less/app';
+
+@charset"utf-8";
+
+html, body, #app-container {
+	position: absolute;
+    width: 100%;
+    height: 100%;
+    font-size: 1em;
+	min-width: 1000px;
+}
+
+#g-app {
+    width: 100%;
+    height: 100%;
+
+	display:flex;
+	flex-direction:column;
+
+	#g-header, #g-header-simple, #g-footer {
+		flex-grow:0;
+		flex-shrink:0;
+	}
+
+	#g-header {
+		background: url(/images/bg_header.png) no-repeat, linear-gradient(to right, @g-primary-color, @g-secondary-color);
+	}
+	#g-header-simple {
+	    background: url(/images/bg_header_s.png) no-repeat, linear-gradient(to right, @g-primary-color, @g-secondary-color);
+	}
+
+	#g-header, #g-header-simple {
+		height: 65px;
+		color: @g-primary-font-color;
+		padding: 0 10px;
+		position: relative;
+    	background-position: right;
+
+		> .heading {
+			.title {
+				font-weight: bold;
+				font-size: 1.5em;
+			}
+			.subtitle {
+
+			}
+		}
+		> .c-nav {
+			align-self: stretch;
+		}
+		> .shortcut-menu {
+		    display: flex;
+		    align-items: center;
+			> * {
+			    display: inline-flex;
+			    align-items: center;
+			}
+			> *:not(:first-child) {
+				margin-left:30px;
+			}
+			> .main {
+				font-size:1.2em;
+				i {
+					margin-right:7px;
+					font-size:1.7em;
+				}
+			}
+			> .account {
+				font-size:0.9em;
+				i {
+					margin-left: 7px;
+					font-size:1.4em;
+				}
+			}
+		}
+	}
+	#g-header-simple {
+		height: 40px;
+		.account {
+			font-size: 0.9em;
+		}
+	}
+	#g-header-sub {
+		> .c-nav.sub {
+			height: 50px;
+		}
+	}
+	#g-home {
+		border-top: 20px solid @g-secondary-color;
+	}
+	#g-header + div + div {
+		flex-grow: 1;
+
+		// main frame
+		position: relative;
+	}
+}
+
+#g-cm-container > #account-menu {
+	left: auto !important;
+	top: 60px !important;
+	right: 10px;
+}
+
+button.c-wide, .c-button-group.c-wide > button {
+	padding-left: 2em;
+	padding-right: 2em;
+}
+
+.w-100{
+	width: 100%;
+}
+
+.h-100{
+	height: 100%;
+}

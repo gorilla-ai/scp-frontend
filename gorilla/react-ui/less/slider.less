@@ -1,0 +1,156 @@
+// c-slider theme-color config
+@c-slider-theme-color: @g-primary-color;
+@c-slider-hover-color: @g-primary-hover-color;
+@c-slider-active-color: @g-primary-active-color;
+@c-slider-tooltip-font-color: @g-standard-color;
+@c-slider-tooltip-box-shadow-color: @g-standard-tooltip-box-shadow-color;
+
+.c-slider {
+    &.progress {
+        position: relative;
+        display: inline-block;
+    }
+    .slider-behaviors(@color){
+        cursor: pointer;
+        input[type=range]{
+            &::-webkit-slider-thumb{
+                background:@color;
+            }
+            &::-moz-range-thumb{
+                background:@color;
+            }
+            &+div.progress {
+               background:@color;
+            }
+        }
+    }
+    .tooltip-toggle-behaviors(@opacity: 0){
+        &+div.progress {
+            &:before, &:after {
+                opacity: @opacity;
+            }                
+        }
+    }
+    &:hover {
+        .slider-behaviors(@c-slider-hover-color);
+        input[type=range]{
+            &:disabled {
+                .tooltip-toggle-behaviors(0);  
+            }
+            .tooltip-toggle-behaviors(1);
+        }
+        
+    }
+    &:active {
+        .slider-behaviors(@c-slider-active-color);
+    }
+    > .c-flex.aic {
+        position: relative;
+    }
+   
+    input[type=range] {
+        @slider-margin: 7px;
+        @thumb-border-radius: 50%;
+        /*The thumb height also determines the slider's height*/
+        @thumb-height: 12px;
+        @thumb-width: 12px;
+        @track-border-width: 1px;
+        @track-border: @track-border-width solid @g-standard-box-shadow-color;
+        @track-border-radius: 2px;
+        @track-height: 4px;
+
+        @fill-track-color: @g-standard-hover-color;
+        @hover-track-color: @g-standard-active-color;
+
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background: none;
+        height: @thumb-height;
+        margin: 0 @slider-margin;
+        outline: none;
+        position: relative;
+        width: inherit;
+
+        .thumb-style() {
+            background: @c-slider-theme-color;
+            border: none;
+            border-radius: @thumb-border-radius; 
+            height: @thumb-height;
+            position: relative;
+            top: -(@thumb-height - @track-height) / 2;
+            transition: box-shadow .35s cubic-bezier(0.23, 1, 0.32, 1) 0s;
+            width: @thumb-width;
+        }  
+        &::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            .thumb-style();
+        }
+
+        &::-moz-range-thumb {
+            box-sizing: border-box;
+            -moz-appearance: none;
+            .thumb-style();
+        }
+        .track-range-style(){
+            background: @fill-track-color;
+            border: none;
+            border-radius: @track-border-radius;
+            box-sizing: border-box;
+            cursor: pointer;
+            height: @track-height;
+            transition: background .12s;
+            width: 100%;
+        }
+        &::-webkit-slider-runnable-track {
+            .track-range-style();
+        }
+        &::-moz-range-track {
+            .track-range-style();
+        }
+        &+div.progress {
+            background: @c-slider-theme-color;
+            border-radius: @track-border-radius;
+            height: @track-height;
+            left: 0;
+            margin-left: @slider-margin;
+            position: absolute;
+            pointer-events: none;
+            top: (@thumb-height - @track-height) / 2;
+            &:before {
+                content: attr(data-tooltip);
+                background: @c-slider-hover-color;               
+                color: @c-slider-tooltip-font-color;
+                padding-bottom: .1em;
+                position: absolute;
+                top: -900%;
+                margin-left:calc(88%-1em);
+                width: 2em;
+                text-align: center;
+                border-radius: 3px;
+                box-shadow: 0px 4px 6px 2px @c-slider-tooltip-box-shadow-color;             
+            }
+            &:after {
+                content: "";
+                position: absolute;
+                width: 0;
+                height: 0;
+                top: -400%;
+                left: 90%;
+                border-width: 8px;
+                border-style: solid;
+                border-color: @c-slider-hover-color transparent transparent transparent;  
+            }
+            &:before, &:after{
+                opacity: 0;
+            }
+        }
+        &:disabled {
+            &+div.progress {
+                background: @g-standard-disabled-color;
+            }
+            &::-webkit-slider-thumb {
+               background:@g-standard-disabled-color; 
+            }
+        }
+    }
+}

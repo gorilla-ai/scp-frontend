@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: Combobox</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: Combobox</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>Combobox</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+
+    <h4 class="name" id="Combobox"><span class="type-signature"></span>new Combobox<span class="signature">(id<span class="signature-attributes">opt</span>, name<span class="signature-attributes">opt</span>, list, className<span class="signature-attributes">opt</span>, info<span class="signature-attributes">opt</span>, infoClassName<span class="signature-attributes">opt</span>, defaultValue<span class="signature-attributes">opt</span>, value<span class="signature-attributes">opt</span>, valueLink<span class="signature-attributes">opt</span>, multiSelect<span class="signature-attributes">opt</span>, search<span class="signature-attributes">opt</span>, required<span class="signature-attributes">opt</span>, disabled<span class="signature-attributes">opt</span>, enableClear<span class="signature-attributes">opt</span>, placeholder<span class="signature-attributes">opt</span>, onChange<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>A React Combobox that can dynamically load (via callback function) and update list when user types into input.<br>
+Can be seen as a dropdown with typing/filtering feature.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Input element #id</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Input element name</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>list</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;object></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>List of items</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>item value</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>text</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>item display text</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>className</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Classname for the container</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>info</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">renderable</span>
+|
+
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>React renderable object or function producing renderable object, display additional information about the list</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>list</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">array.&lt;object></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>argument for <strong>info</strong> function, list of currently displayed items</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>infoClassName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Assign className to info node</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>defaultValue</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
+|
+
+<span class="param-type">Array.&lt;(string|number)></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Default selected value</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
+|
+
+<span class="param-type">Array.&lt;(string|number)></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Current selected value</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>valueLink</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Link to update value. Used in conjuction with <a href="module-linked-state-mixins.html">linked-state-mixins</a></p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>value to update</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>requestChange</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>function to request value change</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>multiSelect</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>multi-select configuration</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>enabled</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"><p>Allow multi-select (checkbox)?</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>toggleAll</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"><p>Allow toggle all?</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>toggleAllText</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    'All'
+                
+                </td>
+            
+
+            <td class="description last"><p>Text to show on toggle all label</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>search</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>search/filter configuration</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>enabled</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"><p>Allow search/filter list?</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>placeholder</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Placeholder for search input</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>enableClear</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last"><p>Can this field be cleared?</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>interactive</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last"><p>Determine if search is interactive</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>delaySearch</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    750
+                
+                </td>
+            
+
+            <td class="description last"><p>If search is interactive, this setting will trigger onSearch event after <em>delaySearch</em> milliseconds<br>
+true: onSearch event called as user types; <br>
+false: onSearch event called when user hits enter</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>onSearch</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Callback function when search is changed. <br> Required when value prop is supplied</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>search</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>updated search value</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>required</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"><p>Is this field mandatory?</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>disabled</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"><p>Is this field disabled?</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>enableClear</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last"><p>Can this field can be cleared?</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>placeholder</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Placeholder for input</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>onChange</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Callback function when item is selected. <br> Required when value prop is supplied</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
+|
+
+<span class="param-type">Array.&lt;(string|number)></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>selected value(s)</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>eventInfo</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>event related info</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>before</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
+|
+
+<span class="param-type">Array.&lt;(string|number)></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>previously selected value(s)</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>text</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>currently selected text</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="components_combobox.js.html">components/combobox.js</a>, <a href="components_combobox.js.html#line245">line 245</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// controlled
+
+import $ from 'jquery'
+import cx from 'classnames'
+import {Combobox} from 'react-ui'
+
+React.createClass({
+    getInitialState() {
+        return {
+            movie: {
+                selected: 'test',
+                eventInfo: null,
+                info: null,
+                error: false,
+                list: [{value:'test', text:'TEST'}]
+            },
+            tv: {
+                selected: [],
+                eventInfo: null,
+                info: null,
+                error: false,
+                list: []
+            }
+        }
+    },
+    handleChange(field, value, eventInfo) {
+        this.setState(
+            im(this.state)
+                .set(field+'.selected', value)
+                .set(field+'.eventInfo', eventInfo)
+                .value()
+        )
+    },
+    handleSearch(type, text) {
+        // ajax to fetch movies, but doesn't need to be ajax
+        this.setState(
+            im(this.state)
+                .set(type+'.list', [])
+                .set(type+'.error', false)
+                .set(type+'.info', 'Loading...')
+                .value(),
+            () => {
+                $.get(
+                    `https://api.themoviedb.org/3/${text?'search':'discover'}/${type}`,
+                    {
+                        api_key: 'cd31fe0421c3c911e54d8898541bbe74',
+                        query: text
+                    })
+                    .done(({results:list=[], total_results:total=0})=>{
+                        if (total &lt;= 0) {
+                            this.setState(
+                                im(this.state)
+                                    .set(type+'.list', [])
+                                    .set(type+'.info', `No ${type} found`)
+                                    .value()
+                            )
+                        }
+                        else {
+                            this.setState(
+                                im(this.state)
+                                    .set(type+'.list', _.map(list, ({id, name, title})=>({value:id, text:title||name})))
+                                    .set(type+'.info', total>10 ? `There are ${total} results, only show the first 10 records` : null)
+                                    .value()
+                            )
+                        }
+                    })
+                    .fail((xhr)=>{
+                        this.setState(im.set(this.state, type+'.error', xhr.responseText))
+                    })
+            }
+        )
+    },
+    render() {
+        return &lt;div className='c-form'>
+            {
+                ['movie', 'tv'].map(type=>{
+                    let {info, error, list, selected} = this.state[type]
+
+                    return &lt;div key={type}>
+                        &lt;label htmlFor={type}>Select {type}&lt;/label>
+                        &lt;Combobox
+                            id={type}
+                            required={true}
+                            onChange={this.handleChange.bind(this, type)}
+                            search={{
+                                enabled: true,
+                                onSearch:this.handleSearch.bind(this, type)
+                            }}
+                            info={info}
+                            infoClassName={cx({'c-error':error})}
+                            list={list}
+                            placeholder={type}
+                            enableClear={type==='tv'}
+                            multiSelect={{
+                                enabled:type==='tv',
+                                toggleAll:true,
+                                toggleAllText:'All'
+                            }}
+                            value={selected} />
+                    &lt;/div>
+                })
+            }
+        &lt;/div>
+    }
+})</code></pre>
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ajax-helper.html">ajax-helper</a></li><li><a href="module-contextmenu.html">contextmenu</a></li><li><a href="module-date.html">date</a></li><li><a href="module-download.html">download</a></li><li><a href="module-error-helper.html">error-helper</a></li><li><a href="module-grid-event.html">grid-event</a></li><li><a href="module-input-helper.html">input-helper</a></li><li><a href="module-linked-state-mixins.html">linked-state-mixins</a></li><li><a href="module-outside-event.html">outside-event</a></li><li><a href="module-popover.html">popover</a></li><li><a href="module-popup-dialog.html">popup-dialog</a></li><li><a href="module-progress.html">progress</a></li><li><a href="module-prop-types.html">prop-types</a></li></ul><h3>Classes</h3><ul><li><a href="ButtonGroup.html">ButtonGroup</a></li><li><a href="Checkbox.html">Checkbox</a></li><li><a href="CheckboxGroup.html">CheckboxGroup</a></li><li><a href="Combobox.html">Combobox</a></li><li><a href="DatePicker.html">DatePicker</a></li><li><a href="DateRange.html">DateRange</a></li><li><a href="Dropdown.html">Dropdown</a></li><li><a href="FileInput.html">FileInput</a></li><li><a href="Form.html">Form</a></li><li><a href="Grid.html">Grid</a></li><li><a href="Hierarchy.html">Hierarchy</a></li><li><a href="Image.html">Image</a></li><li><a href="ImageGallery.html">ImageGallery</a></li><li><a href="Input.html">Input</a></li><li><a href="List.html">List</a></li><li><a href="ModalDialog.html">ModalDialog</a></li><li><a href="module-Tiles.html">Tiles</a></li><li><a href="MultiInput.html">MultiInput</a></li><li><a href="PageNav.html">PageNav</a></li><li><a href="RadioGroup.html">RadioGroup</a></li><li><a href="RangeCalendar.html">RangeCalendar</a></li><li><a href="Search.html">Search</a></li><li><a href="Slider.html">Slider</a></li><li><a href="Table.html">Table</a></li><li><a href="Tabs.html">Tabs</a></li><li><a href="Textarea.html">Textarea</a></li><li><a href="Timeline.html">Timeline</a></li><li><a href="ToggleButton.html">ToggleButton</a></li><li><a href="Tree.html">Tree</a></li></ul><h3>Mixins</h3><ul><li><a href="module-linked-state-mixins.LinkedDeepStateMixin.html">LinkedDeepStateMixin</a></li><li><a href="module-linked-state-mixins.LinkedStateMixin.html">LinkedStateMixin</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Dec 04 2018 10:28:46 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

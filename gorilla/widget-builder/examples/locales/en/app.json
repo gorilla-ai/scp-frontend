@@ -1,0 +1,90 @@
+{
+	"title": "Title",
+	"subtitle": "Subtitle",
+	"copyright": "Powered by Gorilla Technology. Copyright © Gorilla Technology. 2016 All Rights Reserved.",
+	"version": "Version: {{version}}",
+	"experience": "For the best experience, use the latest version of Google Chrome, Firefox, Internet Explorer",
+
+	"btn-ok": "OK",
+	"btn-confirm": "OK",
+	"btn-cancel": "Cancel",
+	"btn-close": "Close",
+	"btn-search": "Search",
+	"btn-save": "Save",
+	"btn-export": "Export",
+	"btn-import": "Import",
+	"btn-reload": "Reload",
+	"btn-now": "Now",
+	"btn-back": "Back",
+
+	"btn-new": "New",
+	"btn-edit": "Edit",
+	"btn-delete": "Delete",
+	"btn-file": "Select File",
+
+	"tt-download": "Download",
+	"tt-delete": "Delete",
+	"tt-edit": "Edit",
+	"tt-details": "View Details",
+	"tt-main-menu": "View Main Menu",
+	"tt-home": "Home",
+
+	"txt-logging-in":"Logging in...",
+	"txt-loading":"Loading...",
+	"txt-saving":"Saving...",
+	"txt-uploading":"Uploading...",
+	"txt-uploaded":"Done",
+	"txt-no-data":"No results matching search criteria",
+	"txt-time":"Time",
+	"dlg-confirm":"Please Confirm",
+	"dlg-error":"Error",
+
+	"hdr-search":"Search",
+	
+	"lbl-select-file":"Please select file to upload",
+
+    "ph-search":"Enter keyword here",
+
+    "txt-phone-wc-pattern":"Phone number of 10 characters, composed of digits and * (wildcard), making up 10 characters. Eg. 09123456**",
+    "txt-phone-pattern":"Phone number composed of 10 digits. Eg 0912345678",
+    "txt-phone-international-pattern":"(International) Phone number composed of at least 10 digits. Eg 0912345678, +85212345678",
+    "txt-email-pattern":"Email format",
+
+	"login":{
+		"btn-logout": "Logout",
+		"btn-login": "Login",
+		"btn-setting": "Account Setting",
+		"lbl-username": "Please Enter Username",
+		"lbl-password": "Please Enter Password",
+		"txt-username":"Please enter your username",
+		"txt-password":"Please enter your password"
+	},
+
+	"lng": {
+		"en":"English",
+		"zh":"Chinese"
+	},
+	"menu": {
+		"home": "Home",
+		"page1":"Page 1",
+		"page2":"Page 2",
+		"page2-1":"Page 2 - 1",
+		"page2-2":"Page 2 - 2",
+		"page3":"Page 3",
+		"page3-1":"Page 3 - 1",
+		"page3-2":"Page 3 - 2",
+		"page3-2-1":"Page 3 - 2 - 1",
+		"page3-2-2":"Page 3 - 2 - 2",
+		"page3-2-2-1":"Page 3 - 2 - 2 - 1",
+		"page3-2-2-2":"Page 3 - 2 - 2 - 2",
+		"page3-3":"Page 3 - 3",
+		"projects":"Projects",
+		"user": "USERS",
+		"system": "System",
+		"accounts":"Accounts",
+		"roles":"Roles",
+		"groups":"Groups",
+		"sys-config": "System Profile",
+		"audit": "Auditing"
+	}
+}

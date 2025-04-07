@@ -1,0 +1,16 @@
+{
+	"dlg-edit":"編輯群組",
+	"dlg-add":"新增群組",
+	"dlg-delete":"刪除群組",
+	"txt-delete":"確認刪除所選群組？",
+	"name":"名稱",
+	"owner":"管理員",
+	"members":"成員",
+    "fields":{
+        "name":"$t(name)",
+        "owner":"$t(owner)",
+        "members":"$t(members)"
+    },
+    "txt-no-members":"此群組目前無成員",
+    "txt-max-candidates-reached":"搜尋結果超過{{total}}筆，請縮小搜尋範圍"
+}

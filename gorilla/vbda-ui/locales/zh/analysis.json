@@ -1,0 +1,55 @@
+{
+	"hdr-intel-list":"情資清單",
+	"hdr-la":"關聯分析",
+	"hdr-gis":"地理分析",
+	"hdr-source":"情資來源",
+	"dlg-selected-labels":"已選取情資清單",
+	"dlg-la-download":"下載",
+	"lbl-time":"時間",
+	"tt-la-download":"下載連結分析",
+	"tt-gis-download":"下載地理分析",
+	"tt-labels-download":"下載情資",
+	"tt-fullscreen":"放大",
+	"tt-exit-fullscreen":"還原",
+	"download-types":{
+		"img":"下載至JPG圖檔",
+		"i2":"匯出至I2格式"
+	},
+	"label-types":{
+		"others":"其他"
+	},
+	"la-sna-types":{
+		"same":"無",
+		"degrees":"連結強度",
+		"betweenness":"中介強度",
+		"closeness":"緊密強度",
+		"eigenCentrality":"特徵強度",
+		"pageRank":"有向特徵強度"
+	},
+	"la-layout-types":{
+		"standard":"標準",
+		"hierarchy":"階層",
+		"radial":"放射",
+		"structural":"結構",
+		"tweak":"微調",
+		"lens":"鏡片"
+	},
+	"gis-layout-types":{
+		"standard":"標準",
+		"track":"軌跡",
+		"heatmap":"熱區"
+	},
+	"gis-modes":{
+		"pan":"平移",
+		"measure":"量距"
+	},
+	"gis-unit":"公尺",
+	"gis-measure-hint":"連點滑鼠完成測量",
+	"txt-gis-no-places":"無符合符搜尋之地點",
+	"btn-view-source":"查看情資來源",
+	"btn-analyze": "分析",
+	"btn-clear": "全部清除",
+	"ph-search": "輸入關鍵字",
+	"lbl-select-all": "全選",
+	"txt-selected": "已選取情資{{total}}筆"
+}

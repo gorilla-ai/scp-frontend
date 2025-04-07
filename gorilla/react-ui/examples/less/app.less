@@ -1,0 +1,168 @@
+@charset"utf-8";
+
+html, body, #app-container {
+	position: absolute;
+    width: 100%;
+    height: 100%;
+
+    min-width: 720px;
+    //min-height: 800px;
+}
+
+#g-app {
+    width: 100%;
+    height: 100%;
+
+	display:flex;
+	flex-direction:column;
+	
+	#g-header {
+
+		position:relative;
+		flex-grow:0;
+		flex-shrink:0;
+
+		#g-menu {
+			a {
+				padding: 5px 28px;
+			}
+		}
+	}
+	// main pages
+	#g-header + div {
+		flex-grow:1;
+		margin: 7px 0px 5px 10px;
+		overflow-y:auto;
+	}
+}
+
+#example-table {
+	.example .demo > * {
+		width:100%;
+		height:400px;
+		table {
+			.rate {
+				select {
+					min-width:auto;
+				}
+			}
+		}
+		table:not(.fixed-header) {
+			width: 100%;
+		}
+	}
+}
+
+#example-tabs {
+	#imdb.c-tabs {
+		height:500px;
+	}
+}
+
+#example-list {
+	#movies {
+	    height: 500px;
+	    overflow: auto;
+	}
+}
+
+
+#example-form {
+	#dropdown {
+		width: 300px;
+	}
+}
+#example-form-advanced {
+	input#movie {
+		width: 300px;
+	}
+	input#tv {
+		width: 500px;
+	}
+	div#movie {
+		max-height: 500px;
+		overflow: auto;
+	}
+}
+#example-tiles {
+	#fixed {
+		height: 150px;
+	}
+	#auto {
+		width: 400px;
+		height: 300px;
+	}
+	#gallery-images {
+		width: 500px;
+		height: 200px;
+	}
+	#gallery-posters {
+
+		width: 700px;
+		height: 400px;	
+
+		.poster {
+		    width: 100%;
+		    height: 100%;
+		    text-align: center;
+			.title {
+			    position: absolute;
+			    width: 100%;
+			    bottom: 0;
+			    padding: 5px;
+			    z-index: 1000;
+			    background-color: grey;
+			    color: white;
+			    opacity: 0.8;
+			}
+			.img {
+				&, > .c-image:not(.complete) {
+				    width: 100%;
+				    height: 100%;
+				}
+			}
+		}
+	}
+}
+
+.example {
+	display: flex;
+	justify-content: space-between;
+    margin-right: 5px;
+	.demo-settings {
+		background-color: #f4f4f4;
+		width: 100%;
+		margin-bottom: 5px;
+		flex-grow: 0;
+		flex-shrink: 0;
+	}
+	> .demo {
+		flex-grow:1;
+		flex-shrink:1;
+	}
+	> .state {
+		font-size:0.9em;
+	    flex-grow: 0;
+	    flex-shrink: 0;
+
+	    > div {
+	    	margin-bottom: 0.5em;
+	    	display: flex;
+	    	> label {
+      			padding-left: 5px;
+      			padding-right: 10px;
+      			font-weight: bold;
+      			text-align: right;
+      			flex-grow:0;
+      			flex-shrink: 0;
+      			width: 100px;
+	    	}
+	    	> label + * {
+	    		overflow: auto;
+				max-height:200px;
+     			width: 250px;
+				flex-grow: 1;
+	    	}
+	    }
+	}
+}

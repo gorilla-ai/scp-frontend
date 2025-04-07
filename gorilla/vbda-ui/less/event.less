@@ -1,0 +1,28 @@
+.c-vbda-events {
+	display: flex;
+	flex-wrap: wrap;
+	> * {
+		margin:2px;
+		padding: 5px;
+		border: 1px solid #3399cc;
+		border-radius: 5px;
+	}
+
+    &.content.h0 {
+        height: 0;
+
+        > fieldset {
+            display: block;
+            width: 100%;
+        }
+
+        .event:not(.full) {
+            flex-grow: 1;
+            flex-shrink: 1;
+        }
+    }
+}
+
+.c-box.grow.source {
+    width: 0;
+} 

@@ -1,0 +1,56 @@
+
+@c-popover-triangle-size: 10px;
+@c-popover-small-triangle-size: @c-popover-triangle-size - 1;
+@c-popover-background-color: @g-standard-color;
+@c-popover-border-color: @g-border-color;
+
+.c-popover {
+    display: inline-block;
+    position: fixed;
+    padding: 8px;
+    margin: 0px;
+    //border: solid 1px #A8A8A6;
+    // z-index: 1001;
+    z-index: 100000;
+    font-size: 0.9em;
+    border-radius:3px;
+
+
+    background-color: @c-popover-background-color;
+    box-shadow: 0px 1px 10px @g-standard-tooltip-box-shadow-color;
+    border: 1px solid @c-popover-border-color;
+
+    &.nopad {
+        padding:0;
+    }
+    &.pointy:before {
+        content: "";
+        position: absolute;
+        left: @c-popover-triangle-size;
+        top: -@c-popover-triangle-size;
+        z-index: 99;
+        border: solid;
+        border-color: @c-popover-border-color transparent;
+        border-width: 0 @c-popover-triangle-size @c-popover-triangle-size @c-popover-triangle-size;
+    }
+
+    &.pointy:after {
+        content: ' ';
+        position: absolute;
+        width: 0;
+        height: 0;
+        left: @c-popover-triangle-size + 2;
+        top: -@c-popover-small-triangle-size + 1;
+        border: solid;
+        border-width: 0 @c-popover-small-triangle-size @c-popover-small-triangle-size @c-popover-small-triangle-size;
+        border-color: @c-popover-background-color transparent;
+        z-index:100;
+    }
+    &.fixed-size/* &:not(.pointy) */ {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    &.no-shadow {
+        box-shadow: none;
+    }
+}

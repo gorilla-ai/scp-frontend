@@ -1,0 +1,292 @@
+{ 
+    "data_source":"netflow", 
+    "description":"description",
+    "data_types": [
+        {
+            "name":"netflow",
+            "description":"this is a ip decription",
+            "properties":{
+                "Group_Id":{"type":"long"},
+                "Creator_Id_i":{"type":"long"},
+                "Resource_Id":{"type":"long"},
+                "Resource_Type":{"type":"short"},
+                "Created_DateTime":{"type":"date","format":"yyyy-MM-ddTHH:mm:ss.fffZ"},
+                "Begin_DateTime":{"type":"date","format":"yyyy-MM-ddTHH:mm:ss.fffZ"},
+                "End_DateTime":{"type":"date","format":"yyyy-MM-ddTHH:mm:ss.fffZ"},
+                "Event_Type":{"type":"short"},
+                "Identity":{"type":"text"},
+                "Identity_Type":{"type":"short"},
+                "Identity_DisplayName":{"type":"text"},
+                "Identity_Image_Path":{"type":"image", "format":"path"},
+                "Related_Identities":{"type":"text"},
+                "Related_Identities_Type":{"type":"short"},
+                "Related_Identities_DisplayNames":{"type":"text"},
+                "Related_Identities_Image_Paths":{"type":"image", "format":"path"}
+            },
+            "nodes":[
+                {
+                    "name":"source",
+                    "description":"this is a target description",
+                    "labels":[
+                        {
+                            "label_name":"ip",
+                            "conditions":[
+                            ],
+                            "properties":[
+                                {"name":"ipv4", "reference":"netflow.ipv4_src_addr"}
+                            ]
+                        }
+                    ],
+                    "properties":[
+                        { "name":"location", "reference":"geoip_src_ipv4_src_addr.country_name"}
+                    ],
+                    "images":["Identity_Image_Path"]
+                },
+                {
+                    "name":"destination",
+                    "description":"this is a party description",                    
+                    "labels":[
+                        {
+                            "label_name":"ip",
+                            "conditions":[
+                            ],
+                            "properties":[
+                                {"name":"ipv4", "reference":"netflow.ipv4_dst_addr"}
+                            ]
+                        }
+                    ],
+                    "properties":[
+                        { "name":"location", "reference":"geoip_src_ipv4_dst_addr.country_name"}
+                    ],
+                    "images":["Related_Identities_Image_Paths"]
+                }
+            ],
+            "relationships":[
+                {
+                    "name":"ip",
+                    "description":"this is a friendship description",
+                    "node_a":"source",
+                    "node_b":"destination",
+                    "direction":[
+                        {
+                            "value":1
+                        }
+                    ],
+                    "type":"connect",
+                    "properties":[
+                        {
+                            "name":"packets",
+                            "reference":"netflow.in_pkts"
+                        },
+                        {
+                            "name":"bytes",
+                            "reference":"netflow.in_bytes"
+                        },
+                        {
+                            "name":"time",
+                            "reference":"@timestamp"
+                        }
+                    ]
+                }
+            ],
+            "representative_time":"Begin_DateTime",
+            "partition":"month",
+            "active_image_processing":true
+        },
+        {
+            "name":"connection",
+            "description":"this is a connection decription",
+            "properties":{
+                "Group_Id":{"type":"long"},
+                "Creator_Id_i":{"type":"long"},
+                "Resource_Id":{"type":"long"},
+                "Resource_Type":{"type":"short"},
+                "Created_DateTime":{"type":"date","format":"yyyy-MM-ddTHH:mm:ss.fffZ"},
+                "Begin_DateTime":{"type":"date","format":"yyyy-MM-ddTHH:mm:ss.fffZ"},
+                "End_DateTime":{"type":"date","format":"yyyy-MM-ddTHH:mm:ss.fffZ"},
+                "Event_Type":{"type":"short"},
+                "Identity":{"type":"text"},
+                "Identity_Type":{"type":"short"},
+                "Identity_DisplayName":{"type":"text"},
+                "Identity_Image_Path":{"type":"image", "format":"path"},
+                "Related_Identities":{"type":"text"},
+                "Related_Identities_Type":{"type":"short"},
+                "Related_Identities_DisplayNames":{"type":"text"},
+                "Related_Identities_Image_Paths":{"type":"image", "format":"path"}
+            },
+            "nodes":[
+                {
+                    "name":"target",
+                    "description":"this is a target description",
+                    "labels":[
+                        {
+                            "label_name":"phone",
+                            "conditions":[
+                                {"name":"Identity_Type", "value":1}
+                            ],
+                            "properties":[
+                                {"name":"number", "reference":"Identity"}
+                            ]
+                        },
+                        {
+                            "label_name":"email",
+                            "conditions":[
+                                {"name":"Identity_Type","value":2}
+                            ],
+                            "properties":[
+                                {"name":"email", "reference":"Identity"},
+                                {"name":"email_display_name", "reference":"Identity_DisplayName"}
+                            ]
+                        },
+                        {
+                            "label_name":"line",
+                            "conditions":[
+                                {"name":"Identity_Type","value":3}
+                            ],
+                            "properties":[
+                                {"name":"line_id", "reference":"Identity"},
+                                {"name":"line_display_name", "reference":"Identity_DisplayName"}
+                            ]
+                        },
+                        {
+                            "label_name":"facebook",
+                            "conditions":[
+                                {"name":"Identity_Type","value":5}
+                            ],
+                            "properties":[
+                                {"name":"facebook_id", "reference":"Identity"},
+                                {"name":"facebook_display_name", "reference":"Identity_DisplayName"}
+                            ]
+                        },
+                        {
+                            "label_name":"wechat",
+                            "conditions":[
+                                {"name":"Identity_Type","value":4}
+                            ],
+                            "properties":[
+                                {"name":"wechat_id", "reference":"Identity"},
+                                {"name":"wechat_display_name", "reference":"Identity_DisplayName"}
+                            ]
+                        }
+                    ],
+                    "properties":[
+                        { "name":"lasted_modified_date", "reference":"Created_DateTime"}
+                    ],
+                    "images":["Identity_Image_Path"]
+                },
+                {
+                    "name":"party",
+                    "description":"this is a party description",                    
+                    "labels":[
+                        {
+                            "label_name":"phone",
+                            "conditions":[
+                                {"name":"Related_Identities_Type", "value":1}
+                            ],
+                            "properties":[
+                                {"name":"number", "reference":"Related_Identities"}
+                            ]
+                        },
+                        {
+                            "label_name":"email",
+                            "conditions":[
+                                {"name":"Related_Identities_Type","value":2}],
+                            "properties":[
+                                {"name":"email", "reference":"Related_Identities"},
+                                {"name":"email_display_name", "reference":"Identity_DisplayName"}
+                            ]
+                        },
+                        {
+                            "label_name":"line",
+                            "conditions":[
+                                {"name":"Related_Identities_Type","value":3}],
+                            "properties":[
+                                {"name":"line_id", "reference":"Related_Identities"},
+                                {"name":"line_display_name", "reference":"Identity_DisplayName"}
+                            ]
+                        },
+                        {
+                            "label_name":"facebook",
+                            "conditions":[
+                                {"name":"Related_Identities_Type","value":5}
+                            ],
+                            "properties":[
+                                {"name":"facebook_id", "reference":"Related_Identities"},
+                                {"name":"facebook_display_name", "reference":"Identity_DisplayName"}
+                            ]
+                        },
+                        {
+                            "label_name":"wechat",
+                            "conditions":[
+                                {"name":"Related_Identities_Type","value":4}
+                            ],
+                            "properties":[
+                                {"name":"wechat_id", "reference":"Related_Identities"},
+                                {"name":"wechat_display_name", "reference":"Identity_DisplayName"}
+                            ]
+                        }
+                    ],
+                    "properties":[
+                        { "name":"lasted_modified_date", "reference":"Created_DateTime"}
+                    ],
+                    "images":["Related_Identities_Image_Paths"]
+                }
+            ],
+            "relationships":[
+                {
+                    "name":"connection",
+                    "description":"this is a Communication description",
+                    "conditions":[
+                        {"name":"Event_Type", "value":3}
+                    ],
+                    "node_a":"target",
+                    "node_b":"party",
+                    "direction":[
+                        {
+                            "value":1,
+                            "conditions":[
+                                {"name":"Direction","value":1}
+                            ]
+                        },
+                        {
+                            "value":2,
+                            "conditions":[
+                                {"name":"Direction","value":2}
+                            ]
+                        },
+                        {
+                            "value":1,
+                            "conditions":[
+                                {"name":"Direction","value":3}
+                            ]
+                        },
+                        {
+                            "value":2,
+                            "conditions":[
+                                {"name":"Direction","value":3}
+                            ]
+                        }
+                    ],
+                    "type":"communicate",
+                    "properties":[
+                        {
+                            "name":"created_time",
+                            "reference":"Created_DateTime"
+                        },
+                        {
+                            "name":"start_time",
+                            "reference":"Begin_DateTime"
+                        },
+                        {
+                            "name":"end_time",
+                            "reference":"End_DateTime"
+                        }
+                    ]
+                }
+            ],
+            "representative_time":"Created_DateTime",
+            "partition":"month",
+            "active_image_processing":true
+        }
+    ]
+}

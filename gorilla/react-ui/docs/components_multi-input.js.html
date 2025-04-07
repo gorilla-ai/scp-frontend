@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/multi-input.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/multi-input.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import cx from 'classnames'
+import _ from 'lodash'
+import im from 'object-path-immutable'
+
+import FormElements from './index'
+import {wire} from '../hoc/prop-wire'
+
+let log = require('loglevel').getLogger('react-ui/components/multi-input')
+
+/**
+ * A React Multi Input Group, can be used on any type of 'value', string, number, object etc
+ * @constructor
+ * @param {string} [id] - Container dom element #id
+ * @param {string|function} base - React class to use for rendering the input
+ * * native dom elements: eg 'input'|'div' etc
+ * * react-ui input components: 'ButtonGroup' | CheckboxGroup' | Checkbox' | Combobox' | DatePicker' | DateRange' | Dropdown' | FileInput' | Input' | MultiInput' | RadioGroup' | RangeCalendar' | ToggleButton'
+ * * custom defined React class
+ * @param {object} [props] - Props for the above react class, see individual doc for the base class
+ * @param {string} [className] - Classnames to apply
+ * @param {string} [groupClassName] - Classnames to apply to individual input groups
+ * @param {boolean} [expand=false] - Should input items expand to fill the horizontal space as restricted by its parent element #id
+ * @param {boolean} [inline=false] - Should input items be displayed as inline?
+ * @param {boolean} [boxed=false] - Should input items be displayed as boxed areas? This will make remove icon/button appear at top right corner of the box
+ * @param {boolean} [disabled=false] - Are input items disabled?
+ * @param {boolean} [readOnly=false] - Are input items read only?
+ * @param {boolean} [persistKeys=false] - Avoid react conflict resolution by persisting keys? Should be used along side file inputs
+ * @param {*} [defaultItemValue=''] - When adding new item, what is the default value of this item?
+ * @param {array} [defaultValue] - Default array of input values
+ * @param {array} [value] - Current array of input values
+ * @param {object} [valueLink] - Link to update values. Used in conjuction with [linked-state-mixins]{@link module:linked-state-mixins}
+ * @param {*} valueLink.value - value to update
+ * @param {function} valueLink.requestChange - function to request value change
+ * @param {function} [onChange] - Callback function when any of the input is changed/entered. &lt;br> Required when value prop is supplied
+ * @param {array} onChange.values - input values
+ * @param {object} onChange.eventInfo - event related info
+ * @param {array} onChange.eventInfo.before - previous input values
+ * @param {renderable} [addText] - Text shown in add button, default to showing '+' icon
+ * @param {renderable} [removeText] - Text shown in remove button, default to showing 'x' icon
+ *
+ * @example
+
+import {MultiInput, Input} from 'react-ui'
+
+React.createClass({
+    getInitialState() {
+        return {
+            phones:[]
+        }
+    },
+    handleChange(phones) {
+        this.setState({phones})
+    },
+    render() {
+        let {phones} = this.state;
+        return &lt;div>
+            &lt;label htmlFor='phones'>Enter phones&lt;/label>
+            &lt;MultiInput id='phones'
+                base={Input}
+                props={{validate:{
+                    pattern:/^[0-9]{10}$/,
+                    t:()=>'Incorrect phone number, should read like 0900000000'
+                }}}
+                inline={true}
+                onChange={this.handleChange}
+                value={phones}/>
+        &lt;/div>
+    }
+})
+ */
+const MultiInput = React.createClass({
+    propTypes: {
+        id: React.PropTypes.string,
+        base: React.PropTypes.oneOfType([
+            React.PropTypes.string,
+            React.PropTypes.func
+        ]).isRequired,
+        props: React.PropTypes.object,
+        expand: React.PropTypes.bool,
+        inline: React.PropTypes.bool,
+        boxed: React.PropTypes.bool,
+        className: React.PropTypes.string,
+        groupClassName: React.PropTypes.string,
+        disabled: React.PropTypes.bool,
+        readOnly: React.PropTypes.bool,
+        persistKeys: React.PropTypes.bool,
+        defaultItemValue: React.PropTypes.any,
+        value: React.PropTypes.array,
+        // required: React.PropTypes.bool,
+        onChange: React.PropTypes.func,
+        addText: React.PropTypes.node,
+        removeText: React.PropTypes.node
+    },
+    getDefaultProps() {
+        return {
+            expand: false,
+            inline: false,
+            boxed: false,
+            disabled: false,
+            readOnly: false,
+            persistKeys: false,
+            defaultItemValue: ''/* ,
+            required: false*/
+        }
+    },
+    handleChange(result) {
+        let {onChange} = this.props
+        // onChange(_.compact(result));
+        onChange(result)
+    },
+    modifyInput(i, newVal) {
+        let {value} = this.props
+
+        // support base react input elements such as 'input'
+        if (newVal.target) {
+            // newVal should be event e
+            newVal = newVal.target.value
+        }
+        this.handleChange(im.set(value, i, newVal))
+    },
+    addInput() {
+        let {value, defaultItemValue} = this.props
+
+        // if value was empty, a default item would have been added to display, so need to append this item
+        if (value.length &lt;= 0) {
+            value = [...value, defaultItemValue]
+        }
+
+        if (this.keys) {
+            this.keys.push(_.last(this.keys)+1)
+        }
+
+        this.handleChange([...value, defaultItemValue])
+    },
+    removeInput(i) {
+        let {value} = this.props
+
+        if (this.keys) {
+            if (value.length&lt;=1) {
+                // if last item in the list, after removal, still need to create new key
+                this.keys = [_.last(this.keys)+1]
+            }
+            else {
+                this.keys = im.del(this.keys, i)
+            }
+        }
+
+        this.handleChange(im.del(value, i))
+    },
+    render() {
+        const {
+            id, base, props: baseProps, value, defaultItemValue,
+            /* required, */expand, inline, boxed, disabled, readOnly, persistKeys,
+            className, groupClassName, addText, removeText
+        } = this.props
+
+        const editable = !(disabled || readOnly)
+
+        const items = (value.length&lt;=0 ? [...value, defaultItemValue] : value)
+
+        // use this.keys to maintain react keys,
+        // so adding will always create new key, instead of possibly reusing existing element with same key
+        // mainly used for file input, where react doesn't handle conflict resolution for file inputs
+        // When persist keys, things will not work when assigning passing new set of value prop to MultiInput
+        if (persistKeys &amp;&amp; !this.keys) {
+            this.keys = _.map(items, (item, i)=>i)
+        }
+
+        return &lt;span id={id} className={cx('c-multi', className, {expand, inline, boxed})}>
+            {
+                _.map(items, (item, i) => {
+                    const key = this.keys ? this.keys[i] : i
+                    return &lt;span key={key} className={cx('group', groupClassName)}>
+                        {
+                            React.createElement(
+                                _.isString(base)&amp;&amp;_.has(FormElements, base) ? FormElements[base] : base,
+                                _.extend(baseProps, {
+                                    /* required, */
+                                    onChange: this.modifyInput.bind(this, i),
+                                    value: item,
+                                    disabled,
+                                    readOnly
+                                })
+                            )
+                        }
+                        {editable &amp;&amp; (removeText ?
+                            &lt;button onClick={this.removeInput.bind(this, i)} className='standard remove'>{removeText}&lt;/button> :
+                            &lt;i onClick={this.removeInput.bind(this, i)} className='c-link fg fg-close remove' />
+                        )}
+                        {editable &amp;&amp; !boxed &amp;&amp; &lt;button className={cx('standard add', addText?'':'fg fg-add', {disabled:i&lt;items.length-1})} onClick={this.addInput}>{addText}&lt;/button>}
+                    &lt;/span>
+                })
+            }
+            {editable &amp;&amp; boxed &amp;&amp; &lt;button className={cx('standard add', addText?'':'fg fg-add')} onClick={this.addInput}>{addText}&lt;/button>}
+        &lt;/span>
+    }
+})
+
+export default wire(MultiInput, 'value', [])
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ajax-helper.html">ajax-helper</a></li><li><a href="module-contextmenu.html">contextmenu</a></li><li><a href="module-date.html">date</a></li><li><a href="module-download.html">download</a></li><li><a href="module-error-helper.html">error-helper</a></li><li><a href="module-grid-event.html">grid-event</a></li><li><a href="module-input-helper.html">input-helper</a></li><li><a href="module-linked-state-mixins.html">linked-state-mixins</a></li><li><a href="module-outside-event.html">outside-event</a></li><li><a href="module-popover.html">popover</a></li><li><a href="module-popup-dialog.html">popup-dialog</a></li><li><a href="module-progress.html">progress</a></li><li><a href="module-prop-types.html">prop-types</a></li></ul><h3>Classes</h3><ul><li><a href="ButtonGroup.html">ButtonGroup</a></li><li><a href="Checkbox.html">Checkbox</a></li><li><a href="CheckboxGroup.html">CheckboxGroup</a></li><li><a href="Combobox.html">Combobox</a></li><li><a href="DatePicker.html">DatePicker</a></li><li><a href="DateRange.html">DateRange</a></li><li><a href="Dropdown.html">Dropdown</a></li><li><a href="FileInput.html">FileInput</a></li><li><a href="Form.html">Form</a></li><li><a href="Grid.html">Grid</a></li><li><a href="Hierarchy.html">Hierarchy</a></li><li><a href="Image.html">Image</a></li><li><a href="ImageGallery.html">ImageGallery</a></li><li><a href="Input.html">Input</a></li><li><a href="List.html">List</a></li><li><a href="ModalDialog.html">ModalDialog</a></li><li><a href="module-Tiles.html">Tiles</a></li><li><a href="MultiInput.html">MultiInput</a></li><li><a href="PageNav.html">PageNav</a></li><li><a href="RadioGroup.html">RadioGroup</a></li><li><a href="RangeCalendar.html">RangeCalendar</a></li><li><a href="Search.html">Search</a></li><li><a href="Slider.html">Slider</a></li><li><a href="Table.html">Table</a></li><li><a href="Tabs.html">Tabs</a></li><li><a href="Textarea.html">Textarea</a></li><li><a href="Timeline.html">Timeline</a></li><li><a href="ToggleButton.html">ToggleButton</a></li><li><a href="Tree.html">Tree</a></li></ul><h3>Mixins</h3><ul><li><a href="module-linked-state-mixins.LinkedDeepStateMixin.html">LinkedDeepStateMixin</a></li><li><a href="module-linked-state-mixins.LinkedStateMixin.html">LinkedStateMixin</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Dec 04 2018 10:28:46 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

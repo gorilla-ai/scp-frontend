@@ -1,0 +1,31 @@
+{
+	"btn-search": "搜尋資料庫",
+	"btn-advanceSearch": "進階搜尋",
+	"btn-add-intel":"加入選取情資檢索",
+	"btn-add-all-intel":"加入所有情資",
+	"txt-search": "搜尋資料庫",
+	"txt-advanceSearch": "進階搜尋",
+	"txt-select-database":"請搜尋資料庫",
+	"txt-search-no-match-result":"無符合結果",
+
+    "hdr-search":"搜尋",
+    "lbl-all-dt":"全選",
+    "lbl-type":"類型",
+    "lbl-database":"資料庫",
+
+    "tt-edit":"編輯情資",
+    "tt-create":"新增情資",
+    "tt-delete":"刪除情資",
+    "tt-view-details":"查看詳細內容",
+
+	"form-fulltext":"全文搜尋",
+	"form-event-time":"時間範圍",
+	"form-label-type":"類型",
+
+	"type-person":"人",
+	"type-car":"車",
+	"type-case":"案",
+	"type-phone":"手機",
+	"type-others":"其他",
+	"txt-back-to-search":"回到資料庫搜尋"
+}

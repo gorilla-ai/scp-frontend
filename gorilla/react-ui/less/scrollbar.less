@@ -1,0 +1,33 @@
+// scrollbar theme-color config
+@scrollbar-track-bgcolor: @g-standard-active-color;
+@scrollbar-track-box-shadow-color: @g-border-color;
+@scrollbar-thumb-bgcolor: @g-primary-color;
+@scrollbar-hover-thumb-bgcolor: @g-primary-hover-color;
+@scrollbar-active-thumb-bgcolor: @g-primary-active-color;
+* {
+    &::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+    }
+    
+    &:not(thead)::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 6px @scrollbar-track-box-shadow-color;
+        border-radius: 10px;
+        background: @scrollbar-track-bgcolor;
+        &:window-inactive {
+            box-shadow: none;
+        }
+    }
+
+    &::-webkit-scrollbar-thumb {
+        border-radius:10px;
+        background: @scrollbar-thumb-bgcolor;
+        box-shadow: inset 0 0 6px rgba(0,0,0,.5);
+        &:hover {
+           background: @scrollbar-hover-thumb-bgcolor; 
+        }
+        &:active {
+            background: @scrollbar-active-thumb-bgcolor;
+        }
+    }
+}

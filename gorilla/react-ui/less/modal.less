@@ -1,0 +1,107 @@
+@dialog-bg-color: @g-standard-color;
+@dialog-content-color: @g-standard-color;
+/* this applies to all elements with class=modal */
+.c-modal {
+	display:none;
+	z-index:1001;
+	font-size:0.95rem;
+	
+	&.show {
+		display:block;
+	}
+	> #overlay {
+		position:fixed; 
+		left:0;
+		top:0; 
+		width:100%; 
+		height:100%;
+		background-color: rgba(0, 0, 0, 0.7);
+	}
+	> .dialog {
+	  	min-width:250px;
+	  	min-height:150px;
+	  	> .content {
+	  		// IE11 must use max-height here, 
+	  		// won't work in .dialog
+	  		max-width: 1000px;
+	  		max-height: 700px;
+	  	}
+
+	  	> footer > button {
+	  		padding: 0.3em 2.5em;
+	  	}
+	}
+}
+#g-progress {
+	z-index:3000;
+}
+
+#g-progress.c-modal > .dialog {
+	min-height: inherit;
+	min-width: inherit;
+	background-color: @dialog-bg-color;
+  	opacity: .8;
+	.content {
+		border: none;
+		background-color: inherit;
+		padding: 5px;
+	}
+}
+#g-progress.c-modal.spin > .dialog {
+	background-color:inherit;
+  	opacity: .7;
+	> .content {
+		background-color: black;
+		border-radius: 50% 50%;
+    	color: white;
+	}
+}
+
+
+#g-progress.progress-bar > .dialog > .content {
+	background-color: @dialog-content-color;
+	display: flex;
+	align-items: center;
+    padding: 20px;
+    margin: 0px;
+    progress {
+    	margin: 0 10px;
+    }
+}
+
+.c-modal-enter  {
+  opacity: 0.01;
+}
+
+.c-modal-enter.c-modal-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
+.c-modal-leave {
+  opacity: 1;
+}
+
+.c-modal-leave.c-modal-leave-active {
+  opacity: 0.01;
+  transition: opacity 300ms ease-in;
+}
+
+
+.c-opacity-enter  {
+  opacity: 0.01;
+}
+
+.c-opacity-enter.c-opacity-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
+.c-opacity-leave {
+  opacity: 1;
+}
+
+.c-opacity-leave.c-opacity-leave-active {
+  opacity: 0.01;
+  transition: opacity 300ms ease-in;
+}

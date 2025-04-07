@@ -1,0 +1,64 @@
+
+// c-checkbox theme-color config
+@c-checkbox-color: @g-border-color;
+@c-checkbox-checked-color: @g-primary-color;
+@c-checkbox-checked-hover-color: @g-primary-hover-color;
+@c-checkbox-checked-active-color: @g-primary-active-color;
+@c-checkbox-hover-color: @g-standard-hover-color;
+@c-checkbox-active-color: @g-standard-active-color;
+
+
+i.c-checkbox {
+	cursor:pointer;
+    color: @c-checkbox-color;
+    outline:none;
+    &.fg-checkbox {
+        color:@c-checkbox-checked-color;
+       
+        &:hover:not(.disabled) {
+            color:@c-checkbox-checked-hover-color;
+        }
+        &:active:not(.disabled) {
+            color:@c-checkbox-checked-active-color;
+        }
+
+        &.partial {
+            color: #a6a6a6;
+            &:hover:not(.disabled) {
+                color: #b7b7b7;
+            }
+            &:active:not(.disabled) {
+                color: #c8c8c8;
+            }
+        }
+    }
+
+    &.disabled {
+        cursor:not-allowed;
+        &, &+label {
+            opacity:0.5;
+        }
+    }
+
+    &.fg-checkbox-outline {
+        &:after {
+            content:"\ea4f";
+            display: none;
+        }
+        .unchecked-behaviors(@color-show){
+            &:before{
+                display: none;
+            }
+            &:after {
+                display: block;
+            }
+            color:@color-show;
+        }
+        &:hover:not(.disabled) {
+            .unchecked-behaviors(@c-checkbox-hover-color);
+        }
+        &:active:not(.disabled) {
+            .unchecked-behaviors(@c-checkbox-active-color);
+        } 
+    }      
+}

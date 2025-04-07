@@ -1,0 +1,18 @@
+{
+	"dlg-edit":"Edit $t(lbl-{{key}})",
+	"hdr-config":"Settings",
+	"lbl-audit-limit":"Audit History",
+	"lbl-crossline-report":"Crossline Report Frequency (email to system administrator)",
+	"lbl-autosync":"Auto Sync",
+	"txt-audit-limit":"{{- audit_limit}} years",
+	"txt-crossline-report":"Every {{- crossline_email_interval}} days",
+	"txt-autosync":"When phone number is searched more than {{- autosync_threshold_searches}} times in {{- autosync_threshold_days}} days, this phone number will be synchronized every {{- autosync_interval}} days",
+    "fields":{
+		"audit_limit":"Audit limit",
+		"crossline_email_interval":"Crossline report email interval",
+		"autosync_threshold_days":"Auto sync days",
+		"autosync_threshold_searches":"Auto sync search count",
+		"autosync_interval":"Auto sync interval"
+    },
+    "btn-sync-ad":"Load Accounts from AD"
+}

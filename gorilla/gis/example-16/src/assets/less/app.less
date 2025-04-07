@@ -1,0 +1,24 @@
+div.app {
+  height: 100%;
+
+  & > header.app-header {
+    margin-bottom: 8px;
+
+    & + div {
+      height: calc(~"100vh - 56px");
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+
+  div.state-viewer {
+    padding: 8px;
+    
+    pre.state-detail {
+      padding: 8px;
+      overflow: auto;
+      height: calc(100vh - 185px);
+      margin: 0;
+    }
+  }
+}

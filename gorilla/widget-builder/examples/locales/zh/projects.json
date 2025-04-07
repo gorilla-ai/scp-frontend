@@ -1,0 +1,28 @@
+{
+	"views":{
+		"project":"專案內容",
+		"summary":"專案總覽",
+		"la":"關聯分析",
+		"gis":"地理分析",
+		"cdr":"語音通聯調閱",
+		"ipdr":"IP通聯調閱",
+		"pcap":"網路封包"
+	},
+	"statuses":{
+		"investigating":"偵辦中",
+		"closed":"已結案"
+	},
+	"txt-back-to-projects":"返回專案列表",
+	"dlg-edit":"編輯專案",
+	"dlg-add":"新增專案",
+	"dlg-delete":"刪除專案",
+	"txt-delete":"確認刪除所選專案？",
+	"name":"名稱",
+	"description":"描述",
+	"ph-name":"輸入 $t(name)",
+	"ph-description":"輸入 $t(description)",
+	"fields":{
+	    "name":"$t(name)",
+	    "description":"$t(description)"
+	}
+}

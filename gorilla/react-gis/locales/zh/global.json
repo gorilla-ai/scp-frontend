@@ -1,0 +1,46 @@
+{
+	"btn-ok": "確認",
+	"btn-confirm": "確認",
+	"btn-cancel": "取消",
+	"btn-close": "關閉",
+	"btn-search": "搜尋",
+	"btn-save": "儲存",
+	"btn-export": "匯出",
+	"btn-import": "匯入",
+	"btn-reload": "重新載入",
+	"btn-now": "現在",
+	"btn-back": "返回",
+
+	"btn-new": "新增",
+	"btn-edit": "編輯",
+	"btn-delete": "刪除",
+	"btn-file": "選擇檔案",
+
+	"tt-download": "下載",
+	"tt-delete": "刪除",
+	"tt-edit": "編輯",
+
+	"txt-loading":"讀取中...",
+	"txt-saving":"儲存中...",
+	"txt-uploading":"上傳中...",
+	"txt-uploaded":"上傳成功",
+	"txt-no-data":"無符合搜尋的資料",
+	"txt-time":"時間",
+	"dlg-confirm":"請確認",
+	"dlg-error":"錯誤",
+
+	"hdr-search":"搜尋",
+	
+	"lbl-select-file":"請選擇上傳檔案",
+
+    "ph-search":"輸入關鍵字",
+    "ph-all":"全部",
+
+	"yesno":{
+		"true":"是",
+		"yes":"是",
+		"false":"否",
+		"no":"否",
+		"na":"不適用"
+	}
+}

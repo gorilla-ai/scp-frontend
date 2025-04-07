@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: utils/hoc.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: utils/hoc.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, {PropTypes} from 'react'
+import _ from 'lodash'
+import im from 'object-path-immutable'
+import Promise from 'bluebird'
+
+import widgetLoader from "../loaders/widget";
+
+const log = require('loglevel').getLogger('hoc')
+
+const STATUS = {
+    INIT: 'initializing',
+    LOAD_CONFIG: 'load-config',
+    LOAD_STORE_DATA: 'loading-store-data',
+    ERROR: 'error',
+    DONE: 'done'
+}
+
+class HOC extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            info: null,
+            status: STATUS.INIT,
+            widgetConfigCache: {}
+        }
+    }
+
+    componentDidMount() {
+        this.initial(this.props)
+    }
+
+    componentWillUpdate(nextProps) {
+        if (this.state.status !== STATUS.INIT &amp;&amp; this.state.status !== STATUS.LOAD_STORE_DATA)
+            if ((!_.isEqual(_.pick(nextProps, ['type', '$source', "$id"]), _.pick(this.props, ['type', '$source', "$id"])))) {//type or any source or id change
+                this.state.status = STATUS.INIT
+                this.initial(nextProps)
+            }
+            else {//if hard code props change
+                //TODO append config?
+                const newStoreCfg = {...nextProps.storeCfg, ...parseOldConfigToStoreConfig(nextProps.config)}
+                if (_.has(nextProps, 'config'))
+                    this.state.config = nextProps.config
+                if (!_.isEqual(this.state.storeCfg, newStoreCfg)) {
+                    this.state.status = STATUS.LOAD_STORE_DATA
+                    this.state.storeCfg = newStoreCfg
+                    this.loadStoreData(newStoreCfg)
+                }
+            }
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.state.status === STATUS.LOAD_STORE_DATA) {
+            this.loadStoreData(this.state.storeCfg)
+        }
+    }
+
+    initial(props) {
+        log.info(`initial widget`, props)
+        this.loadRemoteWidgetConfig(props)
+            .then(widgetConfig => {
+                const widget = widgetLoader.loadWidgetSync(widgetConfig.type)
+                //append config
+                if (props.$appendConfig) {
+                    log.info("widgetConfig: ", _.cloneDeep(widgetConfig))
+                    _.forEach(props.$appendConfig, (val, key) => {
+                        _.set(widgetConfig, key, val)
+                    })
+                    log.info("$appendConfig: ", props.$appendConfig)
+                }
+                const config = widgetConfig.config
+                const storeCfg = {...widgetConfig.storeCfg, ...parseOldConfigToStoreConfig(config)}
+                try {
+                    this.setState({
+                        widget,
+                        config,
+                        storeCfg,
+                        info: STATUS.LOAD_STORE_DATA,
+                        status: STATUS.LOAD_STORE_DATA,
+                        error: false
+                    })
+                } catch (err) {
+                    log.error("onRenderError: ", err)
+                    this.onRenderError(err)
+                    throw err
+                }
+            })
+            .catch(err => {
+                log.error(err)
+                this.setState({info: err.message, error: true, status: STATUS.ERROR})
+            })
+    }
+
+    loadRemoteWidgetConfig(props) {//handle $source or $id
+        const {$source, $id} = props
+        if ($id) {
+            return widgetLoader.loadConfigById($id)
+                .then(remoteConfig => {
+                    console.log(remoteConfig)
+                    if (props.config) {// might come from dashboard or...?
+                        remoteConfig.config = {...remoteConfig.config, ...props.config}
+                    }
+                    this.setState({id: $id})
+                    return remoteConfig
+                })
+        }
+        else if ($source) {
+            return widgetLoader.loadWidgetConfigByUrl($source)
+                .then(remoteConfig => {
+                    if (props.config) {// might come from dashboard or...?
+                        remoteConfig.config = {...remoteConfig.config, ...props.config}
+                    }
+                    this.setState({id: $source})
+                    return remoteConfig
+                })
+        }
+        else {
+            return new Promise(resolve => {
+                this.setState({id: 'hardCode'})
+                resolve(_.cloneDeep(props))
+            })
+        }
+    }
+
+    onRenderError(e) {
+        const {onRenderError} = this.props
+        log.error('error while render', e)
+        if(onRenderError)
+            onRenderError(e)
+    }
+
+
+    renderInner() {
+        const {widget: Widget, id} = this.state
+        let config = _.cloneDeep(this.state.config)
+        const props = {...config, HOC}
+        return &lt;Widget id={'widget-' + id} {...props} />
+    }
+
+    loadStoreData(storeCfg, oldStoreCfg = {}) {
+        const requestList = {}//only reload different store
+        _.forEach(storeCfg, (config, storeId) => {
+            if (!_.isEqual(config, oldStoreCfg[storeId]))
+                requestList[storeId] = config
+        })
+
+        if (_.isEmpty(requestList)) {//no need load
+            this.setState({status: STATUS.DONE})
+        }
+
+        log.info('Load store data BEGIN')
+        const process = []
+        _.forEach(requestList, (config, storeId) => {
+            process.push(widgetLoader.loadDataWithQueryConfig(config)
+                .then(data => {
+                    return {key: storeId, data}
+                })
+                .catch((error) => {
+                    throw {message: `Store [${storeId}] load data failed.`, error}
+                }))
+        })
+        return Promise.all(process)
+            .then(data => {
+                const store = _.chain(data).mapKeys('key').mapValues(val => {
+                    return val.data
+                }).value()
+                const $store = {...this.state.$store, ...store}
+                let {config} = this.state
+                _.forEach($store, (storeData, storeId) => {
+                    config = im.set(config, storeCfg[storeId].targetPaths, storeData)
+                })
+                this.setState({config, $store, status: STATUS.DONE})
+                log.info('Load store data END', $store)
+            }).catch(({message, error}) => {
+                log.error(error)
+                const {message: detail = ''} = error
+                this.setState({info: `${message} (${detail})`, status: STATUS.ERROR})
+            })
+    }
+
+    render() {
+        const {info, status} = this.state
+
+        switch (status) {
+            case STATUS.INIT:
+            case STATUS.LOAD_CONFIG:
+            case STATUS.LOAD_STORE_DATA:
+                return &lt;div className='c-center'>
+                    &lt;i className='fg fg-loading-2 fg-spin'/>
+                &lt;/div>
+            case STATUS.ERROR:
+            default:
+                return &lt;div className={'c-error c-center'}>{info}&lt;/div>
+            case STATUS.DONE:
+                return &lt;div>{this.renderInner()}&lt;/div>//TODO survey why div need
+            // return this.renderInner()
+        }
+    }
+}
+
+export default HOC
+
+HOC.propTypes = {
+  $id: PropTypes.string,
+  $source: PropTypes.string,
+  config: PropTypes.object,
+  configSource: PropTypes.object,
+  data: PropTypes.any,
+  dataSource: PropTypes.any,
+  forceReload: PropTypes.any,
+  id: PropTypes.string,
+  onRenderError: PropTypes.func,
+  type: PropTypes.string
+}
+
+
+/**
+ * Cause some old config may have Source config like dataSource etc.
+ *
+ */
+function parseOldConfigToStoreConfig(config) {
+    let storeCfg = {}
+    _.forEach(config, ({query, selectKey, isMulti}, key) => {
+        if (!hasSourceEnd(key))
+            return
+        const originKey = key.substring(0, key.lastIndexOf('Source'));
+        storeCfg[key] = {
+            type: "request",
+            query, selectKey, isMulti, targetPaths: [originKey]
+        }
+        delete config[key]
+    })
+    return storeCfg
+}
+
+function hasSourceEnd(key) {
+    const index = key.lastIndexOf("Source");
+    if (index === -1)
+        return false
+    const x = key.length;
+    return (x - 6) === index
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alarm.html">Alarm</a></li><li><a href="Dashboard.html">Dashboard</a></li></ul><h3>Global</h3><ul><li><a href="global.html#loadConfigById">loadConfigById</a></li><li><a href="global.html#loadDataWithQueryConfig">loadDataWithQueryConfig</a></li><li><a href="global.html#loadSource">loadSource</a></li><li><a href="global.html#loadWidgetConfigByUrl">loadWidgetConfigByUrl</a></li><li><a href="global.html#parseOldConfigToStoreConfig">parseOldConfigToStoreConfig</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Apr 26 2019 10:14:37 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

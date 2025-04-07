@@ -1,0 +1,90 @@
+{
+	"title": "Title",
+	"subtitle": "Subtitle",
+	"copyright": "Powered by Gorilla Technology. Copyright © Gorilla Technology. 2016 All Rights Reserved.",
+	"version": "版本:{{version}}",
+	"experience": "如要獲得最佳瀏覽效果，請使用最新版本的 Google Chrome、Firefox、Internet Explorer。",
+
+	"btn-ok": "確認",
+	"btn-confirm": "確認",
+	"btn-cancel": "取消",
+	"btn-close": "關閉",
+	"btn-search": "搜尋",
+	"btn-save": "儲存",
+	"btn-export": "匯出",
+	"btn-import": "匯入",
+	"btn-reload": "重新載入",
+	"btn-now": "現在",
+	"btn-back": "返回",
+
+	"btn-new": "新增",
+	"btn-edit": "編輯",
+	"btn-delete": "刪除",
+	"btn-file": "選擇檔案",
+
+	"tt-download": "下載",
+	"tt-delete": "刪除",
+	"tt-edit": "編輯",
+	"tt-details": "查看內容",
+	"tt-main-menu": "主選單",
+	"tt-home": "回到首頁",
+
+	"txt-logging-in":"登入中...",
+	"txt-loading":"讀取中...",
+	"txt-saving":"儲存中...",
+	"txt-uploading":"上傳中...",
+	"txt-uploaded":"上傳成功",
+	"txt-no-data":"無符合搜尋的資料",
+	"txt-time":"時間",
+	"dlg-confirm":"請確認",
+	"dlg-error":"錯誤",
+
+	"hdr-search":"搜尋",
+	
+	"lbl-select-file":"請選擇上傳檔案",
+
+    "ph-search":"輸入關鍵字",
+
+    "txt-phone-wc-pattern":"由數字和*組成長度為10的字串，例09123456**",
+    "txt-phone-pattern":"由10個數字組成的字串，例0912345678",
+    "txt-phone-international-pattern":"由至少10個數字組成的(國際)門號，例0912345678, +85212345678",
+    "txt-email-pattern":"Email格式",
+
+	"login":{
+		"btn-logout": "登出",
+		"btn-login": "登入",
+		"btn-setting": "帳戶設定",
+		"lbl-username": "請輸入帳號",
+		"lbl-password": "請輸入密碼",
+		"txt-username":"請輸入帳號",
+		"txt-password":"請輸入密碼"
+	},
+
+	"lng": {
+		"en":"英文",
+		"zh":"中文"
+	},
+	"menu": {
+		"home": "首頁",
+		"page1":"Page 1",
+		"page2":"Page 2",
+		"page2-1":"Page 2 - 1",
+		"page2-2":"Page 2 - 2",
+		"page3":"Page 3",
+		"page3-1":"Page 3 - 1",
+		"page3-2":"Page 3 - 2",
+		"page3-2-1":"Page 3 - 2 - 1",
+		"page3-2-2":"Page 3 - 2 - 2",
+		"page3-2-2-1":"Page 3 - 2 - 2 - 1",
+		"page3-2-2-2":"Page 3 - 2 - 2 - 2",
+		"page3-3":"Page 3 - 3",
+		"projects":"偵辦案件",
+		"user": "帳號管理",
+		"system": "系統",
+		"accounts":"帳號",
+		"roles":"角色",
+		"groups":"群組",
+		"sys-config": "系統設定",
+		"audit": "系統日誌"
+	}
+}

@@ -1,0 +1,26 @@
+{
+    "phone":{
+        "description": "this is a phone decription.",        
+        "unique_property":"number",
+    },
+    "email":{
+        "description": "this is a email decription.",        
+        "unique_property":"email",
+        "indexed_properties":["email_display_name"]
+    },
+    "line":{
+        "description": "this is a line decription.",
+        "unique_property":"line_id",
+        "indexed_properties":["line_display_name"]
+    },
+    "facebook":{
+        "description": "this is a facebook decription.",
+        "unique_property":"facebook_id",
+        "indexed_properties":["facebook_display_name"]
+    },
+    "wechat":{
+        "description": "this is a wechat decription.",
+        "unique_property":"wechat_id",
+        "indexed_properties":["wechat_display_name"]
+    }
+}

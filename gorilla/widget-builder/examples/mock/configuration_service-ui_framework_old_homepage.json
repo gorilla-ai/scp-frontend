@@ -1,0 +1,144 @@
+{
+  "Demo": {
+    "type": "dashboard",
+    "description": "demo",
+    "config": {
+      "widgets": {
+        "demoPieChart": {
+          "widgetConfig": {
+            "type": "react-chart/Pie",
+            "description": "demo用",
+            "config": {
+              "title":"Sales by Categories(Pie)",
+              "dataSource": {
+                "query": {"url": "http://192.168.10.224:13667/uif/posData/sales/enter","data":{"startTime":"2018/02/01","endTime":"2020/01/01"}},
+                "selectKey":"aggregations.aggrByCategories.buckets"
+              },
+              "holeSize": 70,
+              "dataCfg": {
+                "splitSlice": [
+                  "key"
+                ],
+                "sliceSize": "CategoriesSales.value"
+              },
+              "keyLabels":{
+                "key": "類別",
+                "doc_count": "數量"
+              }
+            }
+          },
+          "eventListeners": {
+            "onClick": {
+              "target": {
+                "demoBarChart":{"config.dataSource.query.data.CategoriesName":"0.splitSlice"},
+                "demoLineChart":{"config.dataSource.query.data.CategoriesName":"0.splitSlice"},
+                "demoTableChart":{"config.dataSource.query.data.CategoriesName":"0.splitSlice"}
+              }
+            }
+          }
+        },
+        "demoBarChart": {
+          "widgetConfig": {
+            "type": "react-chart/Bar",
+            "description": "demo用",
+            "config": {
+              "title":"Sales by Brands(Bar)",
+              "dataSource": {
+                "query": {"url": "http://192.168.10.224:13667/uif/smart-retail/pos/search","data":{"startTime":"2018/02/01","endTime":"2020/01/01"}},
+                "selectKey":"aggregations.aggrByBrands.buckets"
+              },
+              "vertical": true,
+              "onTooltip": true,
+              "xAxis":{"type":"category"},
+              "dataCfg": {
+                "x": "key",
+                "y": "doc_count"
+              },
+              "keyLabels":{
+                "key": "品牌",
+                "doc_count": "數量"
+              },
+              "legend":{"enabled":false}
+            }
+          }
+        },
+        "demoLineChart": {
+          "widgetConfig": {
+            "type": "react-chart/Line",
+            "description": "demo用",
+            "config": {
+              "title":"Sales by Date(Line)",
+              "dataSource": {
+                "query": {"url": "http://192.168.10.224:13667/uif/smart-retail/pos/search","data":{"startTime":"2018/02/01","endTime":"2020/01/01"}},
+                "selectKey":"aggregations.aggsBySalesOrderDate.buckets"
+              },
+              "vertical": true,
+              "onTooltip": true,
+              "xAxis":{"type":"category"},
+              "dataCfg": {
+                "x": "key_as_string",
+                "y": "doc_count"
+              },
+              "keyLabels":{
+                "key_as_string": "日期",
+                "doc_count": "數量"
+              },
+              "legend":{"enabled":false}
+            }
+          }
+        },
+        "demoTableChart": {
+          "widgetConfig": {
+            "type": "react-ui/Table",
+            "description": "demo用",
+            "config": {
+              "dataSource": {
+                "query": {"url": "http://192.168.10.224:13667/uif/smart-retail/pos/search","data":{"startTime":"2018/02/01","endTime":"2020/01/01"}},
+                "selectKey":"SearchResult"
+              },
+              "fields": {
+                "SalesOrderDate":{"title":"SalesOrderDate"},
+                "ProductName":{"title":"ProductName"},
+                "Categories":{"title":"Categories"},
+                "Brands":{"title":"Brands"},
+                "Price":{"title":"Price"}
+              }
+            },
+            "legend":{"enabled":false}
+          }
+        }
+      },
+      "layoutCfg": {
+        "layout": [
+          {
+            "x": 3,
+            "y": 0,
+            "w": 12,
+            "h": 2
+          },
+          {
+            "x": 0,
+            "y": 2,
+            "w": 6,
+            "h": 2
+          },
+          {
+            "x": 6,
+            "y": 2,
+            "w": 6,
+            "h": 2
+          },
+          {
+            "x": 12,
+            "y": 2,
+            "w": 6,
+            "h": 2
+          }
+        ],
+        "cols": 18,
+        "isResizable": false,
+        "verticalCompact": false
+      }
+    }
+  }
+}

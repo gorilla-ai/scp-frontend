@@ -1,0 +1,152 @@
+@import (reference) 'base.less';
+
+// form related style
+// button theme-color config
+@button-border-color: @g-border-color;
+@button-base-bg-color: @g-primary-color;
+@button-base-font-color: @g-primary-font-color;
+@button-hover-bg-color: @g-primary-hover-color;
+@button-active-bg-color: @g-primary-active-color;
+@button-standard-bg-color: @g-standard-color;
+@button-standard-hover-color: @g-standard-hover-color;
+@button-standard-active-color: @g-standard-active-color;
+@button-standard-font-color:@g-standard-font-color;
+@button-border: 1px solid @button-border-color;
+// radio theme-color config
+@radio-border-color: @g-border-color;
+@radio-hover-border-color: @g-standard-hover-color;
+@radio-active-border-color: @g-standard-active-color;
+@radio-checked-border-color: @g-primary-color;
+@radio-checked-hover-border-color: @g-primary-hover-color;
+@radio-checked-active-border-color: @g-primary-active-color;
+// input theme-color config
+@input-focus-border-color: @g-standard-hilite-color;
+@input-invalid-border-color: @g-error-color;
+@input-valid-border-color: @g-valid-color;
+
+.button-behaviors(@opacity: .5, @hover-color,@active-color, @button-border){
+	box-shadow: none;
+	background-image: none;
+    outline: none;
+	&[disabled] {
+		border: @button-border;
+		opacity: @opacity;
+	}
+	&:hover:not([disabled]) {
+		background-color:  @hover-color;
+	} 
+	&:active:not([disabled]) {
+		background-color: @active-color;
+	}
+}
+button {
+	.primary() {
+		.button-behaviors(.5,@button-hover-bg-color,@button-active-bg-color,@button-border);
+	}
+	background-image:none;
+	box-shadow: none;
+    border-radius: 4px;
+    padding: .3em 2em;
+    border: @button-border;
+    background-color: @button-base-bg-color;
+    color: @button-base-font-color;
+
+    &.standard {
+		background-color:@button-standard-bg-color;
+		color: @button-standard-font-color;
+		.button-behaviors(.5,@button-standard-hover-color,@button-standard-active-color,@button-border);
+	}
+	.primary();
+}
+
+.fg.button, .icon-button {
+    .c-flex;
+    .inline;
+    .aic;
+    .jcc;
+    .c-border;
+    cursor: pointer;
+    width: 32px;
+    padding: 0;
+}
+   
+.pure-form {
+    label {
+        margin: 0;
+    }
+    input[type='radio'] {
+        &:focus{
+            outline: none;
+        }
+    }
+
+    select {
+    	height: auto;
+    }
+
+    input[type=text], input[type=password], input[type=email], input[type=url], 
+    input[type=date], input[type=month], input[type=time], 
+    input[type=datetime], input[type=datetime-local], input[type=week], 
+    input[type=number], input[type=search], input[type=tel], input[type=color], 
+    select, textarea {
+    	border: 1px solid @g-border-color;
+    	box-shadow: none;
+    	padding:0.4em 0.5em;
+        font-size: 0.9rem;
+    }
+
+    input[type='number'], input[type='text'], input[type='password'], select, textarea {
+        &:active, &:focus, &:hover {
+            border-color: @input-focus-border-color;
+        }
+        &:required+&.valid,&:required+&:valid {
+            border-color: @input-valid-border-color;
+        }
+        &.invalid, &:invalid {
+            border-color: @input-invalid-border-color;
+        }
+    }
+    input[type='number'], input[type='text'], input[type='password'], textarea {
+        &.invalid, &:invalid {
+            color: @input-invalid-border-color;
+        }
+    }
+
+
+    .appearance-replace(@replace-style: none){
+        -webkit-appearance: @replace-style;
+        -moz-appearance: @replace-style;
+        -ms-appearance: @replace-style;
+        -o-appearance: @replace-style;
+    }
+    .radio-behaviors(@opacity: .5, @border-color, @hover-color,@active-color, @disable-border-size: 1px){
+        border: @disable-border-size solid @border-color;       
+        &:hover{
+            border: 6px solid @hover-color;
+        }
+        &:active{
+            border: 6px solid @active-color;
+        }   
+        &:disabled {
+            border: @disable-border-size solid @border-color;
+            opacity: @opacity;
+            &+label{
+                opacity:@opacity;
+            }   
+        }
+    }
+    input[type='radio'] {
+        vertical-align: middle;
+        .appearance-replace(none);
+        height:20px;
+        width: 20px;
+        border-radius: 50%;
+        .radio-behaviors(.5, @radio-border-color, @radio-hover-border-color, @radio-active-border-color,1px);
+        &:checked { 
+            .radio-behaviors(.5, @radio-checked-border-color, @radio-checked-hover-border-color, @radio-checked-active-border-color,6px);
+        }
+    }
+
+
+}
+

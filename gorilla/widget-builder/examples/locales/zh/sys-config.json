@@ -1,0 +1,18 @@
+{
+	"dlg-edit":"設定$t(lbl-{{key}})",
+	"hdr-config":"設定項目",
+	"lbl-audit-limit":"保留稽核記錄年限",
+	"lbl-crossline-report":"碰線報表寄發頻率(email至系統管理者)",
+	"lbl-autosync":"工作同步頻率",
+	"txt-audit-limit":"{{- audit_limit}} 年",
+	"txt-crossline-report":"每 {{- crossline_email_interval}} 天",
+	"txt-autosync":"手機號碼被使用者搜尋超過 {{- autosync_threshold_searches}} 次 / {{- autosync_threshold_days}} 天，則每 {{- autosync_interval}} 天新增此手機號碼同步工作",
+    "fields":{
+		"audit_limit":"保留稽核年限",
+		"crossline_email_interval":"碰線警告email區間",
+		"autosync_threshold_days":"工作同步天數門檻",
+		"autosync_threshold_searches":"工作同步搜尋次數門檻",
+		"autosync_interval":"工作同步區間"
+    },
+    "btn-sync-ad":"同步AD帳號"
+}

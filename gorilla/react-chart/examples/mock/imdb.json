@@ -1,0 +1,45 @@
+{
+	"data":[
+	    { "director":"martin", "actor":"tom", "movies":2, "tvs":1, "year":1990, "timeStart":1501731024000, "timeEnd":1501731224000 },
+	    { "director":"martin", "actor":"tom", "movies":3, "tvs":2, "year":1990, "timeStart":1501731299000, "timeEnd":1501731324000 },
+	    { "director":"martin", "actor":"tom", "movies":3, "year":1991, "timeStart":1501731424000, "timeEnd":1501731524000 },
+	    { "director":"martin", "actor":"tom", "movies":2, "year":1992, "timeStart":1501731524000, "timeEnd":1501731724000 },
+	    { "director":"martin", "actor":"tom", "movies":10, "year":1996, "timeStart":1501730184000, "timeEnd":1501732224000 },
+	    { "director":"martin", "actor":"tom", "movies":2, "year":1997, "timeStart":1501732324000, "timeEnd":1501732424000 },
+	    { "director":"martin", "actor":"tom", "movies":5, "year":2000, "timeStart":1501732624000, "timeEnd":1501732724000 },
+	    { "director":"martin", "actor":"nicole", "movies":5, "year":1990, "timeStart":1501733324000, "timeEnd":1501733624000 },
+	    { "director":"martin", "actor":"nicole", "movies":4, "year":1991, "timeStart":1501734424000, "timeEnd":1501736624000 },
+	    { "director":"martin", "actor":"nicole", "movies":3, "year":1992, "timeStart":1501735524000, "timeEnd":1501735624000 },
+	    { "director":"martin", "actor":"nicole", "movies":6, "year":1993, "timeStart":1501710924000, "timeEnd":1501720924000 },
+	    { "director":"martin", "actor":"nicole", "movies":1, "year":1994, "timeStart":1501720924000, "timeEnd":1501730924000 },
+	    { "director":"martin", "actor":"nicole", "movies":0, "year":1997, "timeStart":1501730924000, "timeEnd":1501750924000 },
+	    { "director":"martin", "actor":"nicole", "movies":1, "year":2000, "timeStart":1501760924000, "timeEnd":1501737924000 },
+	    { "director":"francis", "actor":"tom", "movies":4, "year":1990, "timeStart":1501736924000, "timeEnd":1501738924000 },
+	    { "director":"francis", "actor":"tom", "movies":2, "year":1991, "timeStart":1501760924000, "timeEnd":1501770924000 },
+	    { "director":"francis", "actor":"tom", "movies":7, "year":1992, "timeStart":1501710924000, "timeEnd":1501720924000 },
+	    { "director":"francis", "actor":"tom", "movies":2, "year":1996, "timeStart":1501730926000, "timeEnd":1501734924000 },
+	    { "director":"francis", "actor":"tom", "movies":1, "year":1997, "timeStart":1501730944000, "timeEnd":1501730974000 },
+	    { "director":"francis", "actor":"tom", "movies":1, "year":2000, "timeStart":1501730944000, "timeEnd":1501730984000 },
+	    { "director":"francis", "actor":"nicole", "movies":1, "year":1990, "timeStart":1501730904000, "timeEnd":1501730924000 },
+	    { "director":"francis", "actor":"nicole", "movies":3, "year":1991, "timeStart":1501732924000, "timeEnd":1501736924000 },
+	    { "director":"francis", "actor":"nicole", "movies":4, "year":1992, "timeStart":1501734924000, "timeEnd":1501736924000 },
+	    { "director":"francis", "actor":"nicole", "movies":1, "year":1993, "timeStart":1501737924000, "timeEnd":1501739924000 },
+	    { "director":"francis", "actor":"nicole", "movies":2, "year":1994, "timeStart":1501732924000, "timeEnd":1501736924000 },
+	    { "director":"francis", "actor":"nicole", "movies":1, "year":1997, "timeStart":1501720924000, "timeEnd":1501730924000 },
+	    { "director":"francis", "actor":"nicole", "movies":2, "year":2000, "timeStart":1501730924000, "timeEnd":1501770924000 },
+	    { "director":"francis", "movies":2, "year":2000, "timeStart":1501730924000, "timeEnd":1501780924000 },
+	    { "actor":"tom", "movies":2, "year":1994, "timeStart":1501330924000, "timeEnd":1501730924000 },
+	    { "actor":"nicole", "movies":2, "year":2001, "timeStart":1501230924000, "timeEnd":1501230924000 }
+	],
+	"keyLabels":{
+	    "director": "Director",
+	    "actor": "Actor",
+	    "year": "Year",
+	    "timeStart": "Start",
+	    "timeEnd": "End"
+	},
+	"valueLabels":{
+	    "director": {"martin":"Martin Scorsese", "francis":"Francis Copola"},
+	    "actor": {"tom":"Tom Cruise", "nicole":"Nicole Kidman"}
+	}
+}

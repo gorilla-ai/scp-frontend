@@ -1,0 +1,31 @@
+{
+    "phone":{
+        "description": "this is a decription.",        
+        "unique_property":"number",     /* 不可重複的 Property */
+        "indexed_properties":null       /* 要做 index 的 Property */
+    },
+    "person":{
+        "description": "this is a decription.",        
+        "unique_property":"name",
+        "indexed_properties":null
+    },
+    "line":{
+        "description": "this is a decription.",
+        "unique_property":"line_id",
+        "indexed_properties":["line_display_name"]  
+    },
+    "facebook":{
+        "description": "this is a decription.",
+        "unique_property":"facebook_id",
+        "indexed_properties":["facebook_display_name"] 
+    },
+    "wechat":{
+        "description": "this is a decription.",
+        "unique_property":"wechat_id",
+        "indexed_properties":["wechat_display_name"] 
+    },
+    "ip":{
+        "description": "this is an ip",
+        "unique_property":"ipv4"
+    }
+}

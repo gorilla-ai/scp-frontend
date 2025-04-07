@@ -1,0 +1,289 @@
+{
+    
+  "data_source": "ivar",
+  "description": "ivar_description",
+  "data_types": [
+    {
+      "name": "lpr",
+      "description": "dt_IOD_Description",
+      "properties": {
+        "common": {
+          "properties": {
+            "description": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "fileOffset": {
+              "type": "long"
+            },
+            "subtype": {
+              "type": "keyword"
+            },
+            "time": {
+              "type": "date"
+            },
+            "type": {
+              "type": "keyword"
+            }
+          }
+        },
+        "gps": {
+          "properties": {
+            "altitude": {
+              "type": "float"
+            },
+            "altitudeUnit": {
+              "type": "keyword"
+            },
+            "hdop": {
+              "type": "float"
+            },
+            "latitude": {
+              "type": "float"
+            },
+            "latitudeSector": {
+              "type": "keyword"
+            },
+            "longitude": {
+              "type": "float"
+            },
+            "longitudeSector": {
+              "type": "keyword"
+            },
+            "time": {
+              "type": "date"
+            }
+          }
+        },
+        "headers": {
+          "properties": {
+            "content_length": {
+              "type": "long"
+            },
+            "content_type": {
+              "type": "keyword"
+            },
+            "http_accept": {
+              "type": "keyword"
+            },
+            "http_accept_encoding": {
+              "type": "keyword"
+            },
+            "http_authorization": {
+              "type": "keyword"
+            },
+            "http_host": {
+              "type": "keyword"
+            },
+            "http_user_agent": {
+              "type": "keyword"
+            },
+            "http_version": {
+              "type": "keyword"
+            },
+            "request_method": {
+              "type": "keyword"
+            },
+            "request_path": {
+              "type": "keyword"
+            },
+            "request_uri": {
+              "type": "keyword"
+            }
+          }
+        },
+        "host": {
+          "type": "keyword"
+        },
+        "id": {
+          "type": "keyword"
+        },
+        "images": {
+          "properties": {
+            "dataBase64": {
+              "type": "image",
+              "format": "base64"
+            },
+            "dataFileName": {
+              "type": "keyword"
+            },
+            "dataType": {
+              "type": "keyword"
+            },
+            "fileOffset": {
+              "type": "long"
+            },
+            "objectRect": {
+              "properties": {
+                "height": {
+                  "type": "short"
+                },
+                "width": {
+                  "type": "short"
+                },
+                "x": {
+                  "type": "short"
+                },
+                "y": {
+                  "type": "short"
+                }
+              }
+            },
+            "time": {
+              "type": "date"
+            },
+            "type": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            }
+          }
+        },
+        "indextime": {
+          "type": "keyword"
+        },
+        "lpr": {
+          "properties": {
+            "colors": {
+              "properties": {
+                "rgb": {
+                  "type": "short"
+                },
+                "weight": {
+                  "type": "short"
+                }
+              }
+            },
+            "direction": {
+              "type": "keyword"
+            },
+            "inOut": {
+              "type": "keyword"
+            },
+            "licensePlate": {
+              "type": "keyword"
+            },
+            "objectId": {
+              "type": "long"
+            }
+          }
+        },
+        "source": {
+          "properties": {
+            "bacId": {
+              "type": "keyword"
+            },
+            "channel": {
+              "type": "short"
+            },
+            "ivarId": {
+              "type": "keyword"
+            },
+            "taskId": {
+              "type": "keyword"
+            }
+          }
+        }
+      },
+      "locations": {
+        "gps_location": {
+          "latitude": "gps.latitude",
+          "longitude": "gps.longitude"
+        }
+      },
+      "nodes": [
+        {
+          "name": "car",
+          "description": "The car information.",
+          "labels": [
+            {
+              "label_name": "car",
+              "conditions": [
+                {
+                  "name": "common.type",
+                  "value": "LPR"
+                }
+              ],
+              "properties": [
+                {
+                  "name": "licensePlate",
+                  "reference": "lpr.licensePlate"
+                },
+                {
+                  "name": "direction",
+                  "reference": "lpr.direction"
+                },
+                {
+                  "name": "color",
+                  "reference": "lpr.colors.rgb"
+                }
+              ]
+            }
+          ],
+          "images": [
+            "images.dataBase64"
+          ]
+        },
+        {
+          "name": "bac",
+          "description": "this is a bac description",
+          "labels": [
+            {
+              "label_name": "bac",
+              "properties": [
+                {
+                  "name": "bacId",
+                  "reference": "source.bacId"
+                },
+                {
+                  "name": "ivarId",
+                  "reference": "source.ivarId"
+                },
+                {
+                  "name": "channel",
+                  "reference": "source.channel"
+                },
+                {
+                  "name": "taskId",
+                  "reference": "source.taskId"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "relationships": [
+        {
+          "name": "car_bac",
+          "description": "this is a car_bac description",
+          "node_a": "car",
+          "node_b": "bac",
+          "direction": [
+            {
+              "value": 2
+            }
+          ],
+          "type": "detect",
+          "properties": [
+            {
+              "name": "detected_time",
+              "reference": "common.time"
+            }
+          ]
+        }
+      ],
+      "representative_time": "common.time",
+      "partition": "hour",
+      "active_image_processing": true
+    }
+  ]
+}

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/vbda.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/vbda.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import createFragment from 'react-addons-create-fragment'
+import cx from 'classnames'
+import _ from 'lodash'
+import $ from 'jquery'
+
+import Search from './search'
+import Serp from './serp'
+import Info from './info'
+
+import ah from '../utils/ajax-helper'
+
+let log = require('loglevel').getLogger('vbda/components/vbda')
+
+const INFO_DATA = [{
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "friends",
+    "_id": "AVr3Wy1ok0ufnIoj4-BJ",
+    "_score": null,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 13,
+        "ipv4_dst_addr": "74.125.204.108",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:50:31.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 61363,
+        "version": 9,
+        "flow_seq_num": 1516113592,
+        "ipv4_src_addr": "192.168.11.205",
+        "in_bytes": 1175,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:50:32.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 219,
+        "l4_dst_port": 587
+      },
+      "@timestamp": "2017-03-22T18:50:32.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "America/Los_Angeles",
+        "ip": "74.125.204.108",
+        "latitude": 37.419200000000004,
+        "continent_code": "NA",
+        "city_name": "Mountain View",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 807,
+        "country_code3": "US",
+        "region_name": "California",
+        "location": [
+          -122.0574,
+          37.419200000000004
+        ],
+        "postal_code": "94043",
+        "longitude": -122.0574,
+        "region_code": "CA"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    },
+    "fields": {
+      "netflow.first_switched": [
+        1490208631999
+      ],
+      "netflow.last_switched": [
+        1490208632999
+      ],
+      "@timestamp": [
+        1490208632000
+      ]
+    },
+    "sort": [
+      1490208632000
+    ]
+}]
+/**
+ * Vbda container
+ * @constructor
+ * @param {string} [id] - Vbda dom element #id
+ * @param {string} [className] - Classname for the dashboard
+ * @param {string} [lng] - 
+ * @param {string} url - 
+*
+ * @example
+
+import Vbda from 'vbda/components/vbda'
+
+Examples.Vbda = React.createClass({
+    render() {
+        return &lt;Vbda 
+            url='/api/vbda'
+            lng='en_us' />
+    }
+})
+
+ */
+
+
+const Vbda = React.createClass({
+    propTypes: {
+        id: React.PropTypes.string,
+        className: React.PropTypes.string,
+        lng: React.PropTypes.string,
+        url: React.PropTypes.string.isRequired
+    },
+    getInitialState() {
+        return {
+            cfg: {},
+            dts: [],
+            query: {},
+            selectedHits:[],
+            loading: true,
+            errors: null
+        }
+    },
+    componentDidMount() {
+        const {url} = this.props
+        ah.one($.get(`${url}/config`))
+            .then(cfg => {
+                const errors = this.validateAllInOneCfg(cfg.all_in_one)
+                this.setState({cfg, errors, loading:false})
+            })
+            .catch(err => {
+                log.error(err)
+                this.setState({errors:[err.message], loading:false})
+            })
+    },
+    validateCfg(cfg) {
+        return {
+            allInOne: this.validateAllInOneCfg(cfg.all_in_one)
+        }
+    },
+    validateAllInOneCfg(cfg) {
+        let errors = []
+        if (!cfg) {
+            errors.push('missing cfg')
+        }
+        else {
+            if (!cfg.data_sources) {
+                errors.push('missing data_sources')
+            }
+            if (!cfg.data_types) {
+                errors.push('missing data_sources')
+            }
+            if (!cfg.searches) {
+                errors.push('missing data_sources')
+            }
+            if (!cfg.renders) {
+                errors.push('missing renders')
+            }
+        }
+        if (errors.length > 0) {
+            return errors
+        }
+        return null
+
+    },
+    handleSearch({dts, params:query}) {
+        this.setState({dts, query})
+    },
+    handleSelect(hits) {
+        this.setState({selectedHits:hits})
+    },
+    renderSearch() {
+        const {lng} = this.props
+        const {cfg:{all_in_one}} = this.state
+        return &lt;Search lng={lng}
+            cfg={_.pick(all_in_one, ['data_sources','data_types','searches'])} 
+            onSearch={this.handleSearch}/>
+    },
+    renderSerp() {
+        const {url, lng} = this.props
+        const {cfg:{all_in_one}, dts, query} = this.state
+        return &lt;Serp lng={lng}
+            dts={dts}
+            query={query}
+            cfg={_.pick(all_in_one, ['data_sources','data_types','renders'])} 
+            url={`${url}/search`} 
+            onSelect={this.handleSelect}
+            onClick={this.handleSelect}
+            onMouseOver={this.handleSelect}/>
+    },
+    renderInfo() {
+        const {lng} = this.props
+        const {cfg:{all_in_one}, dts, query, selectedHits} = this.state
+        return &lt;Info lng={lng}
+            data={selectedHits.length>0?selectedHits:INFO_DATA}
+            cfg={_.pick(all_in_one, ['data_sources','data_types','renders'])} />
+    },
+    render() {
+        const {id, className} = this.props
+        const {loading, errors} = this.state
+        let content
+
+        if (loading) {
+            content = 'loading...'
+        }
+        else if (errors) {
+            content = &lt;div className='c-error'>{errors}&lt;/div>
+        }
+        else {
+            content = createFragment({
+                search:this.renderSearch(), 
+                serp:this.renderSerp(),
+                info:this.renderInfo()
+            })
+        }
+
+        return &lt;div id={id} className={cx('c-vbda', 'c-flex fww', className)}>
+            {content}
+        &lt;/div>
+    }
+})
+
+export default Vbda</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-es-agg.html">es-agg</a></li><li><a href="module-es-hits.html">es-hits</a></li></ul><h3>Classes</h3><ul><li><a href="Chart.html">Chart</a></li><li><a href="Dashboard.html">Dashboard</a></li><li><a href="Detail.html">Detail</a></li><li><a href="Form.html">Form</a></li><li><a href="Gis.html">Gis</a></li><li><a href="Info.html">Info</a></li><li><a href="La.html">La</a></li><li><a href="Search.html">Search</a></li><li><a href="Serp.html">Serp</a></li><li><a href="Table.html">Table</a></li><li><a href="Vbda.html">Vbda</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.1</a> on Wed Apr 12 2017 10:35:34 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

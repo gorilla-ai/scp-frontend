@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_chart_pie</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M12,19 C8.14,19 5,15.86 5,12 C5,8.14 8.14,5 12,5 C15.86,5 19,8.14 19,12 C19,15.86 15.86,19 12,19 M12,3 C7.0375,3 3,7.0375 3,12 C3,16.9625 7.0375,21 12,21 C16.9625,21 21,16.9625 21,12 C21,7.0375 16.9625,3 12,3 M12,16.5 C10.566,16.5 9.219,15.809 8.3775,14.669 L12.25,12.433 C12.405,12.3435 12.5,12.1785 12.5,12 L12.5,7.528 C14.747,7.7775 16.5,9.6875 16.5,12 C16.5,14.4815 14.4815,16.5 12,16.5 M11.9988659,6.5 C11.7224308,6.5 11.4989833,6.7235 11.4989833,7 L11.4989833,11.7115 L7.41994131,14.067 C7.30496832,14.1335 7.22098804,14.2425 7.18699603,14.3705 C7.15300401,14.4985 7.1704999,14.6355 7.23698428,14.75 C8.21625428,16.4465 10.0408257,17.5 11.9988659,17.5 C15.0306538,17.5 17.4975744,15.0325 17.4975744,12 C17.4975744,8.9675 15.0306538,6.5 11.9988659,6.5" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_chart_pie">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Combined-Shape" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

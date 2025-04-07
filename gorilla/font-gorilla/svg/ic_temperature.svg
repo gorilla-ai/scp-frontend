@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_temperature</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M12,4 C11.724,4 11.5,4.224 11.5,4.5 L11.5,13.9935 L10.878,14.2475 C9.7375,14.7135 9,15.8035 9,17.0255 C9,18.6795 10.3455,20.0255 12,20.0255 C13.6545,20.0255 15,18.6795 15,17.0255 C15,15.8035 14.2625,14.7135 13.122,14.2475 L12.5,13.9935 L12.5,4.5 C12.5,4.224 12.276,4 12,4 M7,17.0255 C7,15.2195 7.962,13.5875 9.5,12.7 L9.5,4.5 C9.5,3.1215 10.6215,2 12,2 C13.3785,2 14.5,3.1215 14.5,4.5 L14.5,12.7 C16.038,13.5875 17,15.2195 17,17.0255 C17,19.782 14.757,22.0255 12,22.0255 C9.243,22.0255 7,19.782 7,17.0255 Z" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_temperature">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Fill-1" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

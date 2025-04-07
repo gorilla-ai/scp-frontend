@@ -1,0 +1,16 @@
+{
+	"dlg-edit":"Edit Group",
+	"dlg-add":"New Group",
+	"dlg-delete":"Delete Group",
+	"txt-delete":"Are you sure you would like to delete this group?",
+	"name":"Name",
+	"owner":"Owner",
+	"members":"Members",
+    "fields":{
+        "name":"$t(name)",
+        "owner":"$t(owner)",
+        "members":"$t(members)"
+    },
+    "txt-no-members":"This group currently does not have any members",
+    "txt-max-candidates-reached":"Search result exceeded {{total}}, please refine your search"
+}

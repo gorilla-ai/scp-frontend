@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_pin_2</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M11.4377406,13.6476285 C8.36387187,13.6476285 5.95823548,11.2030603 5.95823548,8.16870445 C5.95823548,5.09425465 8.36387187,2.63690289 11.4377406,2.63690289 C14.4471104,2.63690289 16.9166646,5.09425465 16.9166646,8.16870445 C16.9166646,11.2030603 14.4471104,13.6476285 11.4377406,13.6476285 M11.4377406,0 C6.72989855,0 3,3.77987071 3,8.43715953 C3,13.0944483 11.4377406,24 11.4377406,24 C11.4377406,24 19.8754812,13.0944483 19.8754812,8.43715953 C19.8754812,3.77987071 16.0421519,0 11.4377406,0" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_pin_2">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

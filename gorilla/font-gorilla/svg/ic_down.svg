@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_down</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M5.30798265,14.7003573 C4.89733912,14.2868928 4.89733912,13.616138 5.30798265,13.2032029 C5.71810039,12.7897384 6.38427882,12.7897384 6.79492235,13.2032029 L11.4744709,17.9143689 L11.4744709,3 L12.5260549,3 L12.5260549,17.9143689 L17.2050776,13.2032029 C17.6157212,12.7897384 18.2818996,12.7897384 18.6920174,13.2032029 C19.1026609,13.616138 19.1026609,14.2868928 18.6920174,14.7003573 L12.7437327,20.6895046 C12.3325634,21.1034985 11.6674366,21.1034985 11.2562673,20.6895046 L5.30798265,14.7003573 Z" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_down">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Fill-1" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

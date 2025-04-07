@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/dropdown.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/dropdown.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import cx from 'classnames'
+import _ from 'lodash'
+
+import { LIST_PROP, SIMPLE_VALUE_PROP } from '../consts/prop-types'
+import {wireValue} from '../hoc/prop-wire'
+import normalizeList from '../hoc/list-normalizer'
+
+let log = require('loglevel').getLogger('react-ui/components/dropdown')
+
+/**
+ * A React (single-select) DropDown List
+ * @constructor
+ * @param {string} [id] - Input element #id
+ * @param {string} [name] - Input element name
+ * @param {number} [size=1] - Number of items to display
+ * @param {Array.&lt;object>} list - List of items
+ * @param {string | number} list.value - item value
+ * @param {string} list.text - item display text
+ * @param {string} [className] - Classname for the container
+ * @param {string} [defaultText] - Default text to display when nothing is selected
+ * @param {string|number} [defaultValue] - Default selected value
+ * @param {string|number} [value] - Current selected value
+ * @param {object} [valueLink] - Link to update value. Used in conjuction with [linked-state-mixins]{@link module:linked-state-mixins}
+ * @param {*} valueLink.value - value to update
+ * @param {function} valueLink.requestChange - function to request value change
+ * @param {boolean} [required=false] - Is this field mandatory?
+ * @param {boolean} [disabled=false] - Is this field disabled?
+ * @param {boolean} [readOnly=false] - Is this field readonly?
+ * @param {function} [onChange] - Callback function when item is selected. &lt;br> Required when value prop is supplied
+ * @param {string|number} onChange.value - selected value
+ * @param {object} onChange.eventInfo - event related info
+ * @param {string|number} onChange.eventInfo.before - previously selected value
+ *
+ * @example
+// controlled
+
+import {Dropdown} from 'react-ui'
+React.createClass({
+    getInitialState() {
+        return {
+            movie:'',
+            director:''
+        }
+    },
+    handleChange(field, value) {
+        this.setState({[field]:value})
+    },
+    render() {
+        let {movie, director} = this.state;
+        return &lt;div className='c-form'>
+            &lt;div>
+                &lt;label htmlFor='movie'>Select movie (optional)&lt;/label>
+                &lt;Dropdown id='movie'
+                    list={[
+                        {value:'fd',text:'Finding Dory'},
+                        {value:'woo',text:'Wizard of Oz'},
+                        {value:'ck',text:'Citizen Kane'}
+                    ]}
+                    onChange={this.handleChange.bind(this,'movie')}
+                    defaultValue='fd'
+                    value={movie}/>
+            &lt;/div>
+            &lt;div>
+                &lt;label htmlFor='director'>Select director (mandatory)&lt;/label>
+                &lt;Dropdown id='director'
+                    list={[
+                        {value:'a',text:'Steven Spielberg'},
+                        {value:'b',text:'Spike'},
+                        {value:'c',text:'Lynch'},
+                        {value:'d',text:'Bergman'}
+                    ]}
+                    size={3}
+                    required={true}
+                    onChange={this.handleChange.bind(this,'director')}
+                    defaultText='Please select a director'
+                    value={director}/>
+            &lt;/div>
+        &lt;/div>
+    }
+})
+ */
+const Dropdown = React.createClass({
+    propTypes: {
+        id: React.PropTypes.string,
+        name: React.PropTypes.string,
+        size: React.PropTypes.number,
+        list: LIST_PROP,
+        className: React.PropTypes.string,
+        defaultText: SIMPLE_VALUE_PROP,
+        value: SIMPLE_VALUE_PROP,
+        required: React.PropTypes.bool,
+        disabled: React.PropTypes.bool,
+        readOnly: React.PropTypes.bool,
+        onChange: React.PropTypes.func
+    },
+    getDefaultProps() {
+        return {
+            required: false,
+            disabled: false,
+            readOnly: false,
+            size: 1
+        }
+    },
+    handleChange(evt) {
+        let {onChange} = this.props
+        onChange(evt.target.value)
+    },
+    render() {
+        let {id, name, size, list, value, disabled, readOnly,
+            required, defaultText, className} = this.props
+
+        let found = false
+        if (value != null) {
+            found = _.find(list, item => {
+                return (item.value+'')===(value+'')
+            })
+        }
+
+        return &lt;select
+            id={id}
+            name={name}
+            className={cx({invalid:!found&amp;&amp;required}, className)}
+            onChange={readOnly?null:this.handleChange}
+            required={required}
+            value={value}
+            size={size}
+            readOnly={readOnly}
+            disabled={readOnly || disabled}>
+            {
+                (!found || !required) &amp;&amp; &lt;option key='_' value=''>{defaultText || ''}&lt;/option>
+            }
+            {
+                _.map(list, ({value:itemValue, text:itemText}) => {
+                    return &lt;option key={itemValue} value={itemValue}>{itemText}&lt;/option>
+                })
+            }
+        &lt;/select>
+    }
+})
+
+export default wireValue(normalizeList(Dropdown))
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ajax-helper.html">ajax-helper</a></li><li><a href="module-contextmenu.html">contextmenu</a></li><li><a href="module-date.html">date</a></li><li><a href="module-download.html">download</a></li><li><a href="module-error-helper.html">error-helper</a></li><li><a href="module-grid-event.html">grid-event</a></li><li><a href="module-input-helper.html">input-helper</a></li><li><a href="module-linked-state-mixins.html">linked-state-mixins</a></li><li><a href="module-outside-event.html">outside-event</a></li><li><a href="module-popover.html">popover</a></li><li><a href="module-popup-dialog.html">popup-dialog</a></li><li><a href="module-progress.html">progress</a></li><li><a href="module-prop-types.html">prop-types</a></li></ul><h3>Classes</h3><ul><li><a href="ButtonGroup.html">ButtonGroup</a></li><li><a href="Checkbox.html">Checkbox</a></li><li><a href="CheckboxGroup.html">CheckboxGroup</a></li><li><a href="Combobox.html">Combobox</a></li><li><a href="DatePicker.html">DatePicker</a></li><li><a href="DateRange.html">DateRange</a></li><li><a href="Dropdown.html">Dropdown</a></li><li><a href="FileInput.html">FileInput</a></li><li><a href="Form.html">Form</a></li><li><a href="Grid.html">Grid</a></li><li><a href="Hierarchy.html">Hierarchy</a></li><li><a href="Image.html">Image</a></li><li><a href="ImageGallery.html">ImageGallery</a></li><li><a href="Input.html">Input</a></li><li><a href="List.html">List</a></li><li><a href="ModalDialog.html">ModalDialog</a></li><li><a href="module-Tiles.html">Tiles</a></li><li><a href="MultiInput.html">MultiInput</a></li><li><a href="PageNav.html">PageNav</a></li><li><a href="RadioGroup.html">RadioGroup</a></li><li><a href="RangeCalendar.html">RangeCalendar</a></li><li><a href="Search.html">Search</a></li><li><a href="Slider.html">Slider</a></li><li><a href="Table.html">Table</a></li><li><a href="Tabs.html">Tabs</a></li><li><a href="Textarea.html">Textarea</a></li><li><a href="Timeline.html">Timeline</a></li><li><a href="ToggleButton.html">ToggleButton</a></li><li><a href="Tree.html">Tree</a></li></ul><h3>Mixins</h3><ul><li><a href="module-linked-state-mixins.LinkedDeepStateMixin.html">LinkedDeepStateMixin</a></li><li><a href="module-linked-state-mixins.LinkedStateMixin.html">LinkedStateMixin</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Dec 04 2018 10:28:46 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

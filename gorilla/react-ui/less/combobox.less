@@ -1,0 +1,41 @@
+@import (reference) 'base.less';
+@import (reference) 'form.less';
+
+.c-combobox, .pure-form .c-combobox {
+    &.clearable {
+        .c-custom-input(25px, 55px);
+    }
+    &:not(.clearable) {
+        .c-custom-input(25px, 25px);    
+    }
+}
+.c-combo-list {
+    font-size: 0.9rem;
+    > .c-search {
+        margin: auto;
+        padding: 5px;
+    }
+    > .list {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .list-item, > .c-checkbox-group > .list-item {
+        padding:0.3em 0.8em;
+        margin: 0 !important;
+        cursor:pointer;
+        white-space: pre;
+        > *:not(.c-info) {
+            .c-flex;
+            .aic;
+        }
+        &:hover {
+            background-color:@g-standard-hover-color;
+        }
+        &.selected, &:hover {
+            color: @g-standard-hilite-color;
+        }
+        &:disabled, &.disabled {
+            opacity: .5;
+        }
+    }
+}

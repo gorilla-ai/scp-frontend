@@ -1,0 +1,21 @@
+.c-image {
+	&.loading, &.error {
+		position: relative;
+	 	text-align: center;
+		> :not(img) {
+			position: absolute;
+		    display: flex;
+		    justify-content: center;
+		    align-items: center;
+		}
+	}
+	&.error {
+		> .error + img {
+			opacity: 0.3;
+		}
+	}
+	img, &.complete {
+		max-width: 100%;
+		max-height: 100%;
+	}
+}

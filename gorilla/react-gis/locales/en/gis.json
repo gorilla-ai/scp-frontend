@@ -1,0 +1,27 @@
+{
+	"tt-download":"Download GIS",
+	"tt-reset":"Reset View",
+	"tt-zoomin":"Zoom In",
+	"tt-zoomout":"Zoom Out",
+	"layout-types":{
+		"standard":"Standard",
+		"track":"Track",
+		"heatmap":"Heatmap",
+		"contour":"Contour"
+	},
+	"drag-modes":{
+		"pan":"Pan",
+		"measure":"Measure",
+		"region":"Region"
+	},
+	"region-types":{
+		"circle":"Circle",
+		"rectangle":"Rectangle"
+	},
+	"layers":"Layers",
+	"meters":"meters",
+	"measure-hint":"Double-click to finish measure",
+	"txt-no-places":"No places matching your search",
+	"btn-clear": "Clear All",
+	"ph-search": "Enter keyword"
+}

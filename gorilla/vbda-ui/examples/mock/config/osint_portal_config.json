@@ -1,0 +1,383 @@
+{ 
+    "data_source":"osint", 
+    "display_name":"osint_顯示名稱",
+    "description":"osint_description",
+    "data_types":{
+        "accountOwner":{
+            "display_name":"accountOwner",
+            "description":"accountOwner_Description",
+            "renderSerp":["table_accountOwner"],
+            "renderSummary":"detail_accountOwner",
+            "renderDetails":"detail_accountOwner",
+            "fulltext_search":"fulltext",
+            "searches":[
+                "query_accountOwner"
+            ],
+            "default_locale": "en_us",
+            "locales":{
+                "en_us":{
+                    "display_name":"dt_Osint_en"
+                }
+            }
+        },
+        "communication":{
+            "display_name":"communication",
+            "description":"communication_Description",
+            "renderSerp":["table_communication"],
+            "renderSummary":"detail_communication",
+            "renderDetails":"detail_communication",
+            "fulltext_search":"fulltext",
+            "searches":["query_communication"],
+            "default_locale": "en_us",
+            "locales":{
+                "en_us":{
+                    "display_name":"dt_Osint_en"
+                }
+            }
+        },
+        "friendship":{
+            "display_name":"friendship",
+            "description":"friendship_Description",
+            "renderSerp":["table_friendship"],
+            "renderSummary":"detail_friendship",
+            "renderDetails":"detail_friendship",
+            "fulltext_search":"fulltext",
+            "searches":[
+                "query_friendship"
+            ],
+            "default_locale": "en_us",
+            "locales":{
+                "en_us":{
+                    "display_name":"dt_Osint_en"
+                }
+            }
+        }
+    },
+    "searches":{
+        "fulltext":{
+            "query_type":"multi_match_query",
+            "display_name":"全文檢索",
+            "fields":{
+                "query":{"type":"string"}
+            },
+            "template":"{'query':{'match':{'_all': '{query}'}}}"
+        },
+        "query_accountOwner":{
+            "query_type":"bool_query",
+            "display_name":"同步查詢",
+            "fields":{
+                "Identity":{"title":"電話號碼","type":"string"},
+                "Begin_DateTime":{"title":"同步時間","type":"date","format":"yyyy-MM-ddTHH:mm:ss.fffZ"}
+            },                                                                               
+            "template":"{'query':{'bool':{'must':{'bool':{'should':[{'match':{'Identity':'{Identity}'}},{'match':{'Event_Type':'1'}},{'range':{'Begin_DateTime':{'gte':'{Begin_DateTime.start}','lte':'{Begin_DateTime.end}'}}}]}}}}}",
+            "locales":{ 
+                "en_us":{
+                    "display_name":"Sync Search",
+                    "fields":{
+                        "Identity":{"title":"Phone Number"},
+                        "Begin_DateTime":{"title":"Sync Time"}
+                    }
+                }
+            }
+        },
+        "query_communication":{
+            "display_name":"通聯查詢",
+            "query_type":"bool_query",
+            "fields":{
+                "Identity":{"title":"電話號碼/帳號","type":"string"},
+                "Created_DateTime":{"title":"時間","type":"date","format":"yyyy-MM-ddTHH:mm:ss.fffZ"}
+            },                                                                               
+            "template":"{'query':{'bool':{'must':{'bool':{'should':[{'match':{'Identity_DisplayName':'{Identity}'}},{'match':{'Related_Identities_DisplayNames':'{Identity}'}},{'match':{'Event_Type':'3'}},{'range':{'Created_DateTime':{'gte':'{Created_DateTime.start}','lte':'{Created_DateTime.end}'}}}]}}}}}",
+            "locales":{ 
+                "en_us":{
+                    "display_name":"Communication Search",
+                    "fields":{
+                        "Identity":{"title":"Phone Number/Account"},
+                        "Begin_DateTime":{"title":"Time"}
+                    }
+                }
+            }
+        },
+        "query_friendship":{
+            "query_type":"bool_query",
+            "display_name":"好友查詢",
+            "fields":{
+                "Identity":{"title":"電話號碼/帳號","type":"string"},
+                "Begin_DateTime":{"title":"時間","type":"date","format":"yyyy-MM-ddTHH:mm:ss.fffZ"}
+            },                                                                               
+            "template":"{'query':{'bool':{'match':{'Identity_DisplayName':'{Identity}'}},{'match':{'Related_Identities_DisplayNames':'{Identity}'}},{'match':{'Event_Type':'2'}},{'range':{'Begin_DateTime':{'gte':'{Begin_DateTime.start}','lte':'{Begin_DateTime.end}'}}}]}}}}}",
+            "locales":{ 
+                "en_us":{
+                    "display_name":"Friends Search",
+                    "fields":{
+                        "Identity":{"title":"Phone Number/Account"},
+                        "Begin_DateTime":{"title":"Time"}
+                    }
+                }
+            }
+        }
+    },
+    "renders":{
+        "table_accountOwner":{
+            "type":"table",
+            "style":{
+                "font":{ 
+                    "name": "PMingLiU",
+                    "size": 10
+                },
+                "back_color": "blue"
+            },
+            "fields":{
+                "_id":{"hidden":true},
+                "Begin_DateTime":{"title":"同步開始時間"},
+                "End_DateTime":{"title":"同步結束時間"},
+                "Identity_DisplayName":{"title":"電話號碼"},
+                "Related_Identities_Type":{"title":"帳號類型"},
+                "Related_Identities_DisplayNames":{"title":"相關帳號"}
+            },
+            "data_mappings":{
+                "Related_Identities_Type":{
+                    "3":"Line",
+                    "4":"WeChat",
+                    "5":"Facebook"
+                }
+            },
+            "locales":{
+                "en_us":{
+                    "fields":{
+                        "Begin_DateTime":{"title":"Start Time"},
+                        "End_DateTime":{"title":"Finish Time"},
+                        "Identity_DisplayName":{"title":"Phone Number"},
+                        "Related_Identities_Type":{"title":"Account Type"},
+                        "Related_Identities_DisplayNames":{"title":"Account Name"}
+                    }
+                }
+            },
+            "page_size":{"value":25}
+        },
+        "detail_accountOwner":{
+            "type":"detail_table",
+            "style":{
+                "font":{ 
+                    "name": "PMingLiU",
+                    "size": 10
+                },
+                "back_color": "blue"
+            },
+            "fields":{
+                "_id":{"hidden":true},
+                "Begin_DateTime":{"title":"同步開始時間"},
+                "End_DateTime":{"title":"同步結束時間"},
+                "Identity_DisplayName":{"title":"電話號碼"},
+                "Related_Identities_Type":{"title":"帳號類型"},
+                "Related_Identities_DisplayNames":{"title":"相關帳號"}
+            },
+            "data_mappings":{
+                "Related_Identities_Type":{
+                    "3":"Line",
+                    "4":"WeChat",
+                    "5":"Facebook"
+                }
+            },
+            "locales":{
+                "en_us":{
+                    "fields":{
+                        "Begin_DateTime":{"title":"Start Time"},
+                        "End_DateTime":{"title":"Finish Time"},
+                        "Identity_DisplayName":{"title":"Phone Number"},
+                        "Related_Identities_Type":{"title":"Account Type"},
+                        "Related_Identities_DisplayNames":{"title":"Account Name"}
+                    }
+                }
+            }
+        },
+        "table_communication":{
+            "type":"table",
+            "style":{
+                "font":{ 
+                    "name": "PMingLiU",
+                    "size": 10
+                },
+                "back_color": "blue"
+            },
+            "fields":{
+                "_id":{"hidden":true},
+                "Begin_DateTime":{"title":"通聯開始時間"},
+                "End_DateTime":{"title":"通聯結束時間"},
+                "Identity_Type":{"title":"目標帳號類型"},
+                "Identity_DisplayName":{"title":"目標帳號"},
+                "Related_Identities_Type":{"title":"通聯對象帳號類型"},
+                "Related_Identities_DisplayNames":{"title":"通聯對象"}
+            },
+            "data_mappings":{
+                "Identity_Type":{
+                    "3":"Line",
+                    "4":"WeChat",
+                    "5":"Facebook"
+                },
+                "Related_Identities_Type":{
+                    "3":"Line",
+                    "4":"WeChat",
+                    "5":"Facebook"
+                }
+            },
+            "locales":{
+                "en_us":{
+                    "fields":{
+                        "Begin_DateTime":{"title":"Start Time"},
+                        "End_DateTime":{"title":"Finish Time"},
+                        "Identity_Type":{"title":"Target Type"},
+                        "Identity_DisplayName":{"title":"Target"},
+                        "Related_Identities_Type":{"title":"Party Type"},
+                        "Related_Identities_DisplayNames":{"title":"Party"}
+                    }
+                }
+            },
+            "page_size":{"value":25}
+        },
+        "detail_communication":{
+            "type":"detail_table",
+            "style":{
+                "font":{ 
+                    "name": "PMingLiU",
+                    "size": 10
+                },
+                "back_color": "blue"
+            },
+            "fields":{
+                "_id":{"hidden":true},
+                "Begin_DateTime":{"title":"通聯開始時間"},
+                "End_DateTime":{"title":"通聯結束時間"},
+                "Identity_Type":{"title":"目標帳號類型"},
+                "Identity_DisplayName":{"title":"目標帳號"},
+                "Related_Identities_Type":{"title":"通聯對象帳號類型"},
+                "Related_Identities_DisplayNames":{"title":"通聯對象"}
+            },
+            "data_mappings":{
+                "Identity_Type":{
+                    "3":"Line",
+                    "4":"WeChat",
+                    "5":"Facebook"
+                },
+                "Related_Identities_Type":{
+                    "3":"Line",
+                    "4":"WeChat",
+                    "5":"Facebook"
+                }
+            },
+            "locales":{
+                "en_us":{
+                    "fields":{
+                        "Begin_DateTime":{"title":"Start Time"},
+                        "End_DateTime":{"title":"Finish Time"},
+                        "Identity_Type":{"title":"Target Type"},
+                        "Identity_DisplayName":{"title":"Target"},
+                        "Related_Identities_Type":{"title":"Party Type"},
+                        "Related_Identities_DisplayNames":{"title":"Party"}
+                    }
+                }
+            }
+        },
+        "table_friendship":{
+            "type":"table",
+            "style":{
+                "font":{ 
+                    "name": "PMingLiU",
+                    "size": 10
+                },
+                "back_color": "blue"
+            },
+            "fields":{
+                "_id":{"hidden":true},
+                "Begin_DateTime":{"title":"開始時間"},
+                "End_DateTime":{"title":"結束時間"},
+                "Identity_Type":{"title":"目標帳號類型"},
+                "Identity_DisplayName":{"title":"目標帳號"},
+                "Related_Identities_Type":{"title":"好友類型類型"},
+                "Related_Identities_DisplayNames":{"title":"好友帳號"}
+            },
+            "data_mappings":{
+                "Identity_Type":{
+                    "3":"Line",
+                    "4":"WeChat",
+                    "5":"Facebook"
+                },
+                "Related_Identities_Type":{
+                    "3":"Line",
+                    "4":"WeChat",
+                    "5":"Facebook"
+                }
+            },
+            "locales":{
+                "en_us":{
+                    "fields":{
+                        "Begin_DateTime":{"title":"Start Time"},
+                        "End_DateTime":{"title":"Finish Time"},
+                        "Identity_Type":{"title":"Target Type"},
+                        "Identity_DisplayName":{"title":"Target"},
+                        "Related_Identities_Type":{"title":"Friends Type"},
+                        "Related_Identities_DisplayNames":{"title":"Friends"}
+                    }
+                }
+            },
+            "page_size":{"value":25}
+        },
+        "detail_friendship":{
+            "type":"detail_table",
+            "style":{
+                "font":{ 
+                    "name": "PMingLiU",
+                    "size": 10
+                },
+                "back_color": "blue"
+            },
+            "fields":{
+                "_id":{"hidden":true},
+                "Begin_DateTime":{"title":"開始時間"},
+                "End_DateTime":{"title":"結束時間"},
+                "Identity_Type":{"title":"目標帳號類型"},
+                "Identity_DisplayName":{"title":"目標帳號"},
+                "Related_Identities_Type":{"title":"好友類型類型"},
+                "Related_Identities_DisplayNames":{"title":"好友帳號"}
+            },
+            "data_mappings":{
+                "Identity_Type":{
+                    "3":"Line",
+                    "4":"WeChat",
+                    "5":"Facebook"
+                },
+                "Related_Identities_Type":{
+                    "3":"Line",
+                    "4":"WeChat",
+                    "5":"Facebook"
+                }
+            },
+            "locales":{
+                "en_us":{
+                    "fields":{
+                        "Begin_DateTime":{"title":"Start Time"},
+                        "End_DateTime":{"title":"Finish Time"},
+                        "Identity_Type":{"title":"Target Type"},
+                        "Identity_DisplayName":{"title":"Target"},
+                        "Related_Identities_Type":{"title":"Friends Type"},
+                        "Related_Identities_DisplayNames":{"title":"Friends"}
+                    }
+                }
+            }
+        }
+    },
+    "icon_sources":{
+        "person":"/*URI*/",
+        "cellphone":"/*URI*/",
+        "email":"/*URI*/",
+        "line":"/*URI*/",
+        "facebook":"/*URI*/",
+        "twitter":"/*URI*/",
+        "plunk":"/*URI*/"
+    },
+    "locales":{
+        "en_us":{
+            "display_name":"osint_displayname"
+        }
+    }
+}

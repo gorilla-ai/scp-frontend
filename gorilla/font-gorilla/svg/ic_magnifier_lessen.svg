@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_magnifier_lessen</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M5,11 C5,14.3085 7.6915,17 11,17 C14.3085,17 17,14.3085 17,11 C17,7.6915 14.3085,5 11,5 C7.6915,5 5,7.6915 5,11 Z M20.707,19.293 C21.0975,19.6835 21.0975,20.3165 20.707,20.707 C20.5115,20.9025 20.256,21 20,21 C19.744,21 19.4885,20.9025 19.293,20.707 L15.9005,17.3145 C14.5455,18.367 12.8485,19 11,19 C6.5815,19 3,15.4185 3,11 C3,6.5815 6.5815,3 11,3 C15.4185,3 19,6.5815 19,11 C19,12.8485 18.367,14.5455 17.3145,15.9005 L20.707,19.293 Z M7,10 L15,10 L15,12 L7,12 L7,10 Z" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_magnifier_lessen">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Combined-Shape" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

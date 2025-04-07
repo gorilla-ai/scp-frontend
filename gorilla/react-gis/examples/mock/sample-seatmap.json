@@ -1,0 +1,140 @@
+[
+  {
+    "type": "marker",
+    "id": "camera-sw",
+    "xy": [
+      115,
+      115
+    ],
+    "icon": {
+      "iconUrl": "/images/ic_camera.png"
+    },
+    "tooltip": "South West Cam"
+  },
+  {
+    "type": "marker",
+    "id": "camera-ne",
+    "xy": [
+      3515,
+      1085
+    ],
+    "icon": {
+      "iconUrl": "/images/ic_camera.png"
+    },
+    "tooltip": "North East Cam"
+  },
+  {
+    "type": "marker",
+    "id": "camera-nw",
+    "xy": [
+      115,
+      1085
+    ],
+    "icon": {
+      "iconUrl": "/images/ic_camera.png"
+    },
+    "tooltip": "North West Cam"
+  },
+  {
+    "type": "marker",
+    "id": "camera-se",
+    "xy": [
+      3515,
+      115
+    ],
+    "icon": {
+      "iconUrl": "/images/ic_camera.png"
+    },
+    "tooltip": "South East Cam"
+  },
+  {
+    "type": "marker",
+    "id": "tom",
+    "xy": [
+      2300,
+      520
+    ],
+    "icon": {
+      "iconUrl": "/images/ic_person.png"
+    },
+    "label": "Tom"
+  },
+  {
+    "type": "marker",
+    "id": "sam",
+    "xy": [
+      2650,
+      530
+    ],
+    "icon": {
+      "iconUrl": "/images/ic_person.png"
+    },
+    "label": "Sam"
+  },
+  {
+    "type": "marker",
+    "id": "judy",
+    "xy": [
+      2100,
+      780
+    ],
+    "icon": {
+      "iconUrl": "/images/ic_person.png"
+    },
+    "track":"judy-track",
+    "ts":[0],
+    "label": "Judy"
+  },
+  {
+    "type": "marker",
+    "id": "judy-2",
+    "xy": [
+      800,
+      690
+    ],
+    "icon": {
+      "iconUrl": "/images/ic_person.png"
+    },
+    "track":"judy-track",
+    "ts":[50],
+    "label": "Judy"
+  },
+  {
+    "type": "marker",
+    "id": "judy-3",
+    "xy": [
+      1800,
+      520
+    ],
+    "icon": {
+      "iconUrl": "/images/ic_person.png"
+    },
+    "track":"judy-track",
+    "ts":[100],
+    "label": "Judy"
+  },
+  {
+    "type": "marker",
+    "id": "christine",
+    "xy": [
+      1300,
+      530
+    ],
+    "icon": {
+      "iconUrl": "/images/ic_person.png"
+    },
+    "label": "Christine"
+  },
+  {
+    "type": "marker",
+    "id": "will",
+    "xy": [
+      460,
+      590
+    ],
+    "icon": {
+      "iconUrl": "/images/ic_person.png"
+    },
+    "label": "Will"
+  }
+]

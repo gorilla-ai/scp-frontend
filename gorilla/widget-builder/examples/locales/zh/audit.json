@@ -1,0 +1,66 @@
+{
+	"time":"操作時間",
+	"lbl-keyword":"關鍵詞",
+	"name":"操作者",
+	"username":"帳號",
+	"module":"模組",
+	"action-type":"類型",
+	"action":"操作動作",
+	"content":"內容",
+	"result":"結果",
+	"txt-all":"全部",
+
+	"modules": {
+	  "session": "登入/登出紀錄",
+	  "projects": "案件管理",
+	  "system": "系統",
+	  "user": "帳號管理"
+	},
+
+	"result-types": {
+		"success": "成功",
+		"failed": "失敗"
+	},
+
+	"action-types": {
+	  "session": "登入 / 登出",
+	  "search": "搜尋",
+	  "create": "新增",
+	  "update": "更新",
+	  "delete": "刪除",
+	  "view": "查看內容",
+	  "upload": "匯入 / 上傳",
+	  "download": "匯出 / 下載"
+	},
+
+	"actions": {
+	  "login": "登入",
+	  "logout": "登出",
+	  "project-search": "搜尋專案",
+	  "project-create": "新增專案",
+	  "project-update": "編輯專案",
+	  "project-delete": "刪除專案",
+	  "project-view": "查看專案內容",
+	  "project-pcap": "查看專案網路封包",
+	  "project-cdr": "查看專案語音通聯調閱",
+	  "project-ipdr": "查看專案IP通聯調閱",
+	  "project-la-analysis": "專案情資LA分析",
+	  "project-gis-analysis": "專案情資GIS分析",
+	  "sys-config-view": "查看系統設定",
+	  "sys-config-edit": "編輯系統設定",
+	  "audit-search": "搜尋系統日誌",
+	  "audit-download": "下載系統日誌",
+	  "account-search": "搜尋帳號",
+	  "account-create": "新增帳號",
+	  "account-update": "編輯帳號",
+	  "account-delete": "刪除帳號",
+	  "role-search": "搜尋角色",
+	  "role-create": "新增角色",
+	  "role-update": "編輯角色",
+	  "role-delete": "刪除角色",
+	  "group-search": "搜尋群組",
+	  "group-create": "新增群組",
+	  "group-update": "編輯群組",
+	  "group-delete": "刪除群組"
+	}
+}

@@ -1,0 +1,88 @@
+{ 
+    "data_source":"netflow", 
+    "display_name":"netflow_顯示名稱",
+    "description":"netflow_description",
+    "data_types":{
+        "netflow":{
+            "display_name":"IP",
+            "description":"IPs",
+            "renderSerp":["table_connection","table_ip"],
+            "renderSummary":"detail_connection",
+            "renderDetails":"detail_connection",
+            "searches":["query_connection_gis"],
+            "default_locale": "en_us",
+            "locales":{
+                "en_us":{
+                    "display_name":"dt_Netflow_en"
+                }
+            }
+        }
+    },
+    "searches":{
+        "fulltext":{
+            "query_type":"multi_match_query",
+            "display_name":"全文檢索",
+            "fields":{
+                "query":{"type":"string"}
+            },
+            "template":"{'query':{'match':{'_all': '{query}'}}}"
+        },
+        "query_connection_gis":{
+            "vis":"NetflowGisQuery",
+            "display_name":"GIS查詢",
+            "template":"{'query':{'bool':{'must':{'bool':{'should':[{'match':{'Identity_DisplayName':'{Identity}'}},{'match':{'Related_Identities_DisplayNames':'{Identity}'}},{'match':{'Event_Type':'3'}},{'range':{'Created_DateTime':{'gte':'{Created_DateTime.start}','lte':'{Created_DateTime.end}'}}}]}}}}}"
+        }
+    },
+    "renders":{
+        "table_ip":{
+            "type":"table",
+            "style":{
+                "font":{ 
+                    "name": "PMingLiU",
+                    "size": 10
+                },
+                "back_color": "blue"
+            },
+            "fields":{
+                "_id":{"hidden":true},
+                "netflow.ipv4_src_addr":{"title":"IP"},
+                "geoip_src_ipv4_src_addr.timezone":{"title":"Timezone"},
+                "geoip_src_ipv4_src_addr.country_name":{"title":"Country"},
+                "geoip_src_ipv4_src_addr.city_name":{"title":"City"}
+            },
+            "locales":{
+                "en_us":{
+                    "fields":{
+                        "netflow.ipv4_src_addr":{"title":"Start Time"},
+                        "geoip_src_ipv4_src_addr.timezone":{"title":"Finish Time"},
+                        "geoip_src_ipv4_src_addr.country_name":{"title":"Phone Number"},
+                        "geoip_src_ipv4_src_addr.city_name":{"title":"Account Type"}
+                    }
+                }
+            },
+            "page_size":{"value":25}
+        },
+        "table_connection":{
+            "type":"custom",
+            "vis":"NetflowList"
+        },
+        "detail_connection":{
+            "type":"custom",
+            "vis": "NetflowEvent"
+        }
+    },
+    "icon_sources":{
+        "person":"/*URI*/",
+        "cellphone":"/*URI*/",
+        "email":"/*URI*/",
+        "line":"/*URI*/",
+        "facebook":"/*URI*/",
+        "twitter":"/*URI*/",
+        "plunk":"/*URI*/"
+    },
+    "locales":{
+        "en_us":{
+            "display_name":"netflow_displayname"
+        }
+    }
+}

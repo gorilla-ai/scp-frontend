@@ -1,0 +1,28 @@
+[
+  {
+    "objIdKey": "${_index}-from",
+    "objType": "marker",
+    "latlngKey": "_source.geoip_src_ipv4_src_addr.location",
+    "labelKey": "_source.netflow.ipv4_src_addr",
+    "tsKey": "_source.@timestamp",
+    "popoverKey": "_source.geoip_src_ipv4_src_addr.country_name"
+  },
+  {
+    "objIdKey": "${_index}-to",
+    "objType": "marker",
+    "latlngKey": "_source.geoip_src_ipv4_dst_addr.location",
+    "labelKey": "_source.netflow.ipv4_dst_addr",
+    "tsKey": "_source.@timestamp",
+    "popoverKey": "_source.geoip_src_ipv4_dst_addr.country_name"
+  },
+  {
+    "objType": "polyline",
+    "latlngKey": [
+      "_source.geoip_src_ipv4_src_addr.location",
+      "_source.geoip_src_ipv4_dst_addr.location"
+    ],
+    "tsKey": "_source.@timestamp",
+    "tooltipKey": "to.id",
+    "directed": true
+  }
+]

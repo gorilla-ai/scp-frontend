@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_path_line</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M18,7 C17.4485,7 17,6.5515 17,6 C17,5.4485 17.4485,5 18,5 C18.5515,5 19,5.4485 19,6 C19,6.5515 18.5515,7 18,7 M6,19 C5.4485,19 5,18.5515 5,18 C5,17.4485 5.4485,17 6,17 C6.5515,17 7,17.4485 7,18 C7,18.5515 6.5515,19 6,19 M18,3 C16.3455,3 15,4.3455 15,6 C15,6.647 15.208,7.245 15.5575,7.7355 L7.7355,15.5575 C7.245,15.208 6.647,15 6,15 C4.3455,15 3,16.3455 3,18 C3,19.6545 4.3455,21 6,21 C7.6545,21 9,19.6545 9,18 C9,17.353 8.792,16.755 8.4425,16.2645 L16.2645,8.4425 C16.755,8.792 17.353,9 18,9 C19.6545,9 21,7.6545 21,6 C21,4.3455 19.6545,3 18,3" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_path_line">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Page-1" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

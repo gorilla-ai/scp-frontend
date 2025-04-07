@@ -1,0 +1,111 @@
+@import "../node_modules/gis/less/gis.less";
+@import "../node_modules/react-ui/less/react-ui-theme-dark.less";
+
+.c-gis {
+    min-width: 700px;
+    min-height: 700px;
+    > .actions {
+        padding: 5px 10px;
+        > * {
+            margin-left: 5px;
+        }
+        .layers, .fg-search {
+            &.active {
+                background-color: #bcbcbc;
+            }
+        }
+        button, select {
+            height: 31px;
+        }
+        select {
+            padding: 0 0.5em;
+        }
+        button.fg {
+            width: 31px;
+            padding: 0;
+        }
+        .c-button-group {
+            font-size: 0.95em;
+        }
+    }
+    .gis-divIcon.gis-marker {
+        @selected-border-size: 3px;
+        @selected-color: #72b300;
+        
+        border-radius: 50%;
+        border: @selected-border-size solid transparent;
+        box-sizing: content-box;
+        // unset the content-box and border width, so iconAnchor will be correct
+        left: -@selected-border-size; 
+        top: -@selected-border-size;
+
+        > span {
+            background-color: @g-standard-color;
+            color: @g-standard-font-color;
+        }
+        img {
+            border-radius: 50%;
+            // for some reason if this is not specified, the icon will be flat on initial display
+            max-height: 100% !important;
+            max-width: 100% !important;
+        }
+        &.selected {
+            border-color: @selected-color;
+            > span {
+                background-color: @selected-color;
+                color: @g-standard-color;
+            }
+        }
+    }
+    .gis-divIcon.gis-spot {
+        @selected-border-size: 2px;
+        @selected-color: #494949;
+
+        > span {
+            background-color: @g-standard-color;
+            color: @g-standard-font-color;
+        }
+        > .gis-spot {
+            border: @selected-border-size solid #ffffff;
+        }
+        &.selected {
+            > .gis-spot {
+                border-color: @selected-color;
+            }
+            > span {
+                background-color: @selected-color;
+                color: @g-standard-color;
+            }
+        }
+    }
+    > .content {
+        overflow: hidden;
+
+       > .layers, > .base-layers {
+            position: absolute;
+            z-index: 401;
+        }
+        > .base-layers {
+            top: 5px;
+            right: 5px;
+            bottom: auto;
+            left: auto;
+        }
+        > .layers {
+            top: auto;
+            left: 5px;
+            bottom: 5px;
+            right: auto;
+            min-width: 150px;
+        }
+    }
+    
+    > .search {
+        position: absolute;
+        z-index: 401;
+        top: 5px;
+        left: 5px;
+        right: auto;
+        bottom: auto;
+    }
+}

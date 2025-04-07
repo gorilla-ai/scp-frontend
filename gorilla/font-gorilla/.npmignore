@@ -1,0 +1,10 @@
+/assets
+/node-src
+/scripts
+/src
+
+/.babelrc
+/.eslintrc
+/.gitignore
+/.gitlab-ci.yml
+/.versionrc

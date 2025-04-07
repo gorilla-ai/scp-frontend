@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/checkbox.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/checkbox.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import cx from 'classnames'
+import $ from 'jquery'
+
+import {wireChecked} from '../hoc/prop-wire'
+
+const log = require('loglevel').getLogger('react-ui/components/checkbox')
+
+/**
+ * A React Checkbox
+ * @constructor
+ * @param {string} [id] - Container dom element #id
+ * @param {string} [className] - Classname for the container
+ * @param {boolean} [defaultChecked] - Default checked value
+ * @param {boolean} [checked] - Current checked value
+ * @param {object} [checkedLink] - Link to update check value. Used in conjuction with [linked-state-mixins]{@link module:linked-state-mixins}
+ * @param {*} checkedLink.value - value to update
+ * @param {function} checkedLink.requestChange - function to request check value change
+ * @param {boolean} [disabled=false] - Is checkbox disabled?
+ * @param {function} onChange  - Callback function when checkbox is ticked/unticked. &lt;br> Required when value prop is supplied
+ * @param {boolean} onChange.checked - checked?
+ * @param {object} onChange.eventInfo - event related info
+ * @param {boolean} onChange.eventInfo.before - was checked or unchecked?
+ *
+ * @example
+// controlled
+
+import {Checkbox} from 'react-ui'
+React.createClass({
+    getInitialState() {
+        return {subscribe:false}
+    },
+    handleChange(subscribe) {
+        this.setState({subscribe})
+    },
+    render() {
+        const {subscribe} = this.state;
+        return &lt;div className='c-flex aic'>
+            &lt;label htmlFor='subscribe'>Would you like to subscribe to this newsletter?&lt;/label>
+            &lt;Checkbox id='subscribe'
+                onChange={this.handleChange}
+                checked={subscribe}/>
+        &lt;/div>
+    }
+})
+ */
+const Checkbox = React.createClass({
+    propTypes: {
+        id: React.PropTypes.string,
+        className: React.PropTypes.string,
+        checked: React.PropTypes.bool,
+        disabled: React.PropTypes.bool,
+        onChange: React.PropTypes.func
+    },
+    getDefaultProps() {
+        return {
+            disabled: false
+        }
+    },
+    componentDidMount() {
+        if (this.props.id &amp;&amp; !this.props.disabled) {
+            this.getLabelForCheckbox().on('click', (evt) => {
+                this.handleChange(evt)
+            })
+        }
+    },
+    componentWillUnmount() {
+        this.getLabelForCheckbox().off()
+    },
+    getLabelForCheckbox() {
+        return $(this.node).parent().find('label[for="'+this.props.id+'"]')
+    },
+    handleChange(evt) {
+        evt.stopPropagation()
+        const {onChange, checked} = this.props
+        onChange(!checked)
+    },
+    render() {
+        const {id, className, checked, disabled} = this.props
+        return &lt;i
+            id={id}
+            ref={ref=>{ this.node=ref }}
+            onClick={disabled?null:this.handleChange}
+            className={cx('c-checkbox', 'fg', checked?'fg-checkbox':'fg-checkbox-outline', {disabled}, className)} />
+    }
+})
+
+
+export default wireChecked(Checkbox)</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ajax-helper.html">ajax-helper</a></li><li><a href="module-contextmenu.html">contextmenu</a></li><li><a href="module-date.html">date</a></li><li><a href="module-download.html">download</a></li><li><a href="module-error-helper.html">error-helper</a></li><li><a href="module-grid-event.html">grid-event</a></li><li><a href="module-input-helper.html">input-helper</a></li><li><a href="module-linked-state-mixins.html">linked-state-mixins</a></li><li><a href="module-outside-event.html">outside-event</a></li><li><a href="module-popover.html">popover</a></li><li><a href="module-popup-dialog.html">popup-dialog</a></li><li><a href="module-progress.html">progress</a></li><li><a href="module-prop-types.html">prop-types</a></li></ul><h3>Classes</h3><ul><li><a href="ButtonGroup.html">ButtonGroup</a></li><li><a href="Checkbox.html">Checkbox</a></li><li><a href="CheckboxGroup.html">CheckboxGroup</a></li><li><a href="Combobox.html">Combobox</a></li><li><a href="DatePicker.html">DatePicker</a></li><li><a href="DateRange.html">DateRange</a></li><li><a href="Dropdown.html">Dropdown</a></li><li><a href="FileInput.html">FileInput</a></li><li><a href="Form.html">Form</a></li><li><a href="Grid.html">Grid</a></li><li><a href="Hierarchy.html">Hierarchy</a></li><li><a href="Image.html">Image</a></li><li><a href="ImageGallery.html">ImageGallery</a></li><li><a href="Input.html">Input</a></li><li><a href="List.html">List</a></li><li><a href="ModalDialog.html">ModalDialog</a></li><li><a href="module-Tiles.html">Tiles</a></li><li><a href="MultiInput.html">MultiInput</a></li><li><a href="PageNav.html">PageNav</a></li><li><a href="RadioGroup.html">RadioGroup</a></li><li><a href="RangeCalendar.html">RangeCalendar</a></li><li><a href="Search.html">Search</a></li><li><a href="Slider.html">Slider</a></li><li><a href="Table.html">Table</a></li><li><a href="Tabs.html">Tabs</a></li><li><a href="Textarea.html">Textarea</a></li><li><a href="Timeline.html">Timeline</a></li><li><a href="ToggleButton.html">ToggleButton</a></li><li><a href="Tree.html">Tree</a></li></ul><h3>Mixins</h3><ul><li><a href="module-linked-state-mixins.LinkedDeepStateMixin.html">LinkedDeepStateMixin</a></li><li><a href="module-linked-state-mixins.LinkedStateMixin.html">LinkedStateMixin</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Dec 04 2018 10:28:45 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

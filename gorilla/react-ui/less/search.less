@@ -1,0 +1,14 @@
+@import (reference) 'form.less';
+
+.c-search {
+    &.clearable {
+        .c-custom-input(25px, 50px);
+    }
+    &:not(.clearable) {
+        .c-custom-input(25px, 25px);    
+    }
+	
+    input[type=text] {
+        width: 250px;
+    }
+}

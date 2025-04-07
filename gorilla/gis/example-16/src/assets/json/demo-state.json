@@ -1,0 +1,125 @@
+{
+  "standard": {
+    "BasicEvents": [
+      { "eventName": "contextmenu", "stateName": "getTriggeredState"},
+      { "eventName": "contextmenu", "stateName": "getTriggeredState", "binding": false, "params": { "type": "polyline" }},
+      { "eventName": "click", "stateName": "getTriggeredState" },
+      { "eventName": "dblclick", "stateName": "getTriggeredState" },
+      { "eventName": "mouseover", "stateName": "getMouseoverState", "params": { "props": { "cluster": "wifi" }}},
+      { "eventName": "selectionChange", "stateName": "getSelectionChangeState" },
+      { "eventName": "measureend", "stateName": "getMeasureendState" }
+    ],
+    "DragModes": [
+      { "text": "Pan", "handleFn": "handleDragModeChange", "value": "pan" },
+      { "text": "Circle Select", "handleFn": "handleDragModeChange", "value": "region-circle" },
+      { "text": "Rectangle Select", "handleFn": "handleDragModeChange", "value": "region-rectangle" },
+      { "text": "Measure", "handleFn": "handleDragModeChange", "value": "measure" }
+    ],
+    "Manipulations": [
+      { "text": "Load Symbols 1", "value": "set1", "handleFn": "handleLoadSymbols" },
+      { "text": "Load Symbols 2", "value": "set2", "handleFn": "handleLoadSymbols" },
+      { "text": "Load Symbols 3", "value": "set3", "handleFn": "handleLoadSymbols" },
+      { "text": "Set View To Selected", "handleFn": "handleZoomToFitSelection" },
+      { "text": "Show Only Markers", "handleFn": "handleFilterMarkers" },
+      { "text": "Show Circles", "value": "circle", "isShow": true, "handleFn": "handleSymbolsVisible" },
+      { "text": "Hide Circles", "value": "circle", "isShow": false, "handleFn": "handleSymbolsVisible" },
+      { "text": "Show All Symbols", "isShow": true, "handleFn": "handleSymbolsVisible" },
+      { "text": "Hide All Symbols", "isShow": false, "handleFn": "handleSymbolsVisible" },
+      { "text": "Select All Circles", "value": "circle", "handleFn": "handleSelectSymbols" },
+      { "text": "Select G1 Group", "value": "G1", "handleFn": "handleSelectGroup" },
+      { "text": "Remove Selected", "handleFn": "handleRemoveSymbols" },
+      { "text": "Clear", "handleFn": "handleClear" }
+    ]
+  },
+  "track": {
+    "SetMap": [
+      { "text": "Standard / Track", "handleFn": "handleLayoutChange" },
+      { "text": "Pan", "handleFn": "handleDragModeChange", "value": "pan" },
+      { "text": "Circle Select", "handleFn": "handleDragModeChange", "value": "region-circle" },
+      { "text": "Rectangle Select", "handleFn": "handleDragModeChange", "value": "region-rectangle" },
+      { "text": "Set Track Style", "handleFn": "handleSetTrackStyle", "displayOn": "track" }
+    ],
+    "Manipulations": [
+      { "text": "Load Symbols 1", "value": "set1", "handleFn": "handleLoadSymbols" },
+      { "text": "Load Symbols 2", "value": "set2", "handleFn": "handleLoadSymbols" },
+      { "text": "Hide Selected", "handleFn": "handleHideSymbols" },
+      { "text": "Set View To Selected", "handleFn": "handleZoomToFitSelection" },
+      { "text": "Filter Track 1", "handleFn": "handleFilterTrack", "displayOn": { "field": "layout", "value": "track"}, "id": "mobile_0912345678" },
+      { "text": "Filter Track 2", "handleFn": "handleFilterTrack", "displayOn": { "field": "layout", "value": "track"}, "id": "robbery_track_2" },
+      { "text": "Show All Track", "handleFn": "handleFilterTrack", "displayOn": { "field": "layout", "value": "track"}, "type": "track" },
+      { "text": "Clear", "handleFn": "handleClear" }
+    ]
+  },
+  "heatmap": {
+    "SetMap": [
+      { "text": "Standard / Heatmap", "handleFn": "handleLayoutChange" },
+      { "text": "Pan", "handleFn": "handleDragModeChange", "value": "pan" },
+      { "text": "Circle Select", "handleFn": "handleDragModeChange", "value": "region-circle" },
+      { "text": "Rectangle Select", "handleFn": "handleDragModeChange", "value": "region-rectangle" }
+    ],
+    "SetHeatmap": [
+      { "text": "Load Symbols 1", "handleFn": "handleLoadSymbols", "value": "set1" },
+      { "text": "Load Symbols 2", "handleFn": "handleLoadSymbols", "value": "set2" },
+      { "text": "Set Min Opacity", "handleFn": "handleSetHeatmap", "displayOn": { "field": "layout", "value": "heatmap"}, "propName": "minOpacity", "value": 0.1 },
+      { "text": "Set Blur", "handleFn": "handleSetHeatmap", "displayOn": { "field": "layout", "value": "heatmap"}, "propName": "blur", "value": 1 },
+      { "text": "Set Gradient", "handleFn": "handleSetHeatmap", "displayOn": { "field": "layout", "value": "heatmap"}, "propName": "gradient" },
+      { "text": "Reset Heatmap", "handleFn": "handleSetHeatmap", "displayOn": { "field": "layout", "value": "heatmap"}, "propName": "reset" }
+    ]
+  },
+  "contour": {
+    "SetMap": [
+      { "text": "Standard / Contour", "handleFn": "handleLayoutChange" }
+    ],
+    "Manipulations": [
+      { "text": "Show All Symbols", "handleFn": "handleSetSymbolsVisibled", "asShow": true },
+      { "text": "Hide All Symbols", "handleFn": "handleSetSymbolsVisibled", "asShow": false }
+    ]
+  },
+  "draw": {
+    "DragMode": [
+      { "text": "Pan", "handleFn": "handleDragModeChange", "value": "pan" },
+      { "text": "Circle Select", "handleFn": "handleDragModeChange", "value": "region-circle" },
+      { "text": "Rectangle Select", "handleFn": "handleDragModeChange", "value": "region-rectangle" },
+      { "text": "Measure", "handleFn": "handleDragModeChange", "value": "measure" },
+      { "text": "Draw", "handleFn": "handleDragModeChange", "value": "draw" }
+    ],
+    "DrawMode": [
+      { "text": "Marker", "handleFn": "handleDrawModeChange", "displayOn": { "field": "dragMode", "value": "draw" }, "value": "marker" },
+      { "text": "Spot", "handleFn": "handleDrawModeChange", "displayOn": { "field": "dragMode", "value": "draw" }, "value": "spot" },
+      { "text": "Circle", "handleFn": "handleDrawModeChange", "displayOn": { "field": "dragMode", "value": "draw" }, "value": "circle" },
+      { "text": "Rectangle", "handleFn": "handleDrawModeChange", "displayOn": { "field": "dragMode", "value": "draw" }, "value": "rectangle" },
+      { "text": "Polyline", "handleFn": "handleDrawModeChange", "displayOn": { "field": "dragMode", "value": "draw" }, "value": "polyline" },
+      { "text": "Polygon", "handleFn": "handleDrawModeChange", "displayOn": { "field": "dragMode", "value": "draw" }, "value": "polygon" },
+      { "text": "Edit", "handleFn": "handleDrawModeChange", "displayOn": { "field": "dragMode", "value": "draw" }, "value": "edit", "options": { "editableIds": { "type": "spot" }}},
+      { "text": "Delete", "handleFn": "handleDrawModeChange", "displayOn": { "field": "dragMode", "value": "draw" }, "value": "delete" }
+    ],
+    "Manipulations": [
+      { "text": "Set View To Selected", "handleFn": "handleZoomToFitSelection" },
+      { "text": "Show Only Markers", "handleFn": "handleFilterMarkers" },
+      { "text": "Show All Symbols", "handleFn": "handleSetSymbolsVisibled", "asShow": true },
+      { "text": "Hide All Symbols", "handleFn": "handleSetSymbolsVisibled", "asShow": false },
+      { "text": "Clear", "handleFn": "handleClear" }
+    ]
+  },
+  "overlay": {
+    "DragMode": [
+      { "text": "Pan", "handleFn": "handleDragModeChange", "value": "pan" },
+      { "text": "Circle Select", "handleFn": "handleDragModeChange", "value": "region-circle" },
+      { "text": "Rectangle Select", "handleFn": "handleDragModeChange", "value": "region-rectangle" },
+      { "text": "Measure", "handleFn": "handleDragModeChange", "value": "measure" }
+    ],
+    "Manipulations": [
+      { "text": "Load Symbols 1", "value": "set1", "handleFn": "handleLoadSymbols" },
+      { "text": "Load Symbols 2", "value": "set2", "handleFn": "handleLoadSymbols" },
+      { "text": "Set View To Selected", "handleFn": "handleZoomToFitSelection" },
+      { "text": "Show Only Markers", "handleFn": "handleFilterMarkers" },
+      { "text": "Show Circles", "value": "circle", "isShow": true, "handleFn": "handleSymbolsVisible" },
+      { "text": "Hide Circles", "value": "circle", "isShow": false, "handleFn": "handleSymbolsVisible" },
+      { "text": "Show All Symbols", "isShow": true, "handleFn": "handleSymbolsVisible" },
+      { "text": "Hide All Symbols", "isShow": false, "handleFn": "handleSymbolsVisible" },
+      { "text": "Select All Circles", "value": "circle", "handleFn": "handleSelectSymbols" },
+      { "text": "Remove Selected", "handleFn": "handleRemoveSymbols" },
+      { "text": "Clear", "handleFn": "handleClear" }
+    ]
+  }
+}

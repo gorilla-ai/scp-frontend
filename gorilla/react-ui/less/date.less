@@ -1,0 +1,113 @@
+@import (reference) 'base-form.less';
+
+.c-date-picker {
+    .c-flex;
+    .inline;
+    i.fg {
+        .icon-button;
+        margin-left: 4px;
+    }
+}
+.c-date-range {
+    > .between {
+        margin: 0 5px;
+    }
+}
+
+.c-range-calendar {
+    position: relative;
+
+    > .date-display {
+        .c-flex;
+        .inline;
+
+        i.fg {
+            .icon-button;
+            margin-left: 4px;
+        }
+
+        input {
+            background-color: inherit;
+            color: inherit;
+            width: 270px;
+        }
+    }
+
+    > .date-wrapper {
+        .c-flex;
+        background-color: #FFFFFF;
+        height: 0;
+        outline: none;
+        overflow-y: hidden;
+        position: absolute;
+        top: 40px;
+        transition: height .23s cubic-bezier(.23, 1, .32, 1);
+        width: auto;
+        z-index: 100;
+
+        &.show {
+            .c-border;
+            height: auto;
+        }
+
+        > .date-calendar {
+            .c-flex;
+            .fdc;
+            .c-margin-l;
+            .fixed;
+
+            > div.flatpickr-calendar.arrowBottom::before, 
+                div.flatpickr-calendar.arrowBottom::after,
+                div.flatpickr-calendar.arrowTop::before, 
+                div.flatpickr-calendar.arrowTop::after {
+                    content: none;
+                }
+
+            // Overwrite the effect from c-form
+            > div.flatpickr-calendar div.numInputWrapper input {
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+                font-size: inherit;
+                
+                &.cur-year {
+                    padding: 0 0 0 .5ch;
+                }
+
+                &.flatpickr-hour, &.flatpickr-minute {
+                    font-size: 14px;
+                    padding: 0;
+                }
+            }
+        }
+
+        > div.c-form {
+            .c-margin-l;
+
+            > div.shortcut {
+                width: 170px;
+
+                > div {
+                    display: flex;
+                    flex-wrap: wrap;
+                }
+                
+                > div > button {
+                    margin-bottom: 2%;
+                    padding: .3em;
+                    width: 49%;
+
+                    &:nth-child(even) {
+                        margin-left: 2%;
+                    }
+                }
+            } 
+
+            > button.btn-done {
+                // .end;
+                margin-bottom: 4px;
+                margin-top: auto;
+            }
+        }
+    }
+}

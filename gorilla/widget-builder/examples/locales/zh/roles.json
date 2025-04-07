@@ -1,0 +1,14 @@
+{
+	"dlg-edit":"編輯角色",
+	"dlg-add":"新增角色",
+	"dlg-delete":"刪除角色",
+	"txt-delete":"確認刪除所選角色？",
+	"name":"名稱",
+	"apply":"套用角色",
+	"rights":"權限",
+	"open-to-group-owners":"開放給群組擁有者使用",
+    "fields":{
+        "name":"$t(name)",
+        "rights":"$t(rights)"
+    }
+}

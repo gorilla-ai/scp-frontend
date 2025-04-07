@@ -1,0 +1,167 @@
+[
+  {
+    "id": "set2-marker_1",
+    "type": "spot",
+    "latlng": [
+      44.5,
+      134.4
+    ],
+    "heatmap": {
+      "intensity": 0.44
+    },
+    "tooltip": "New marker 1",
+    "ts": [
+      1483275600,
+      1483276600
+    ],
+    "selected":true,
+    "selectedProps":{
+      "label":"test"
+    },
+    "data": {
+      "thing":"person"
+    },
+    "group": "Hello"
+  },
+  {
+    "id": "set2-marker_2",
+    "type": "marker",
+    "latlng": [
+      43.89,
+      132.0
+    ],
+    "tooltip": "New marker 2",
+    "heatmap": {
+      "intensity": 0.63
+    },
+    "data": {
+      "thing":"person"
+    },
+    "group": "World",
+    "icon": {
+      "iconUrl": "../images/mobile_small.png",
+      "iconSize": [32, 32],
+      "iconAnchor": [16, 16]
+    }
+  },
+  {
+    "id": "set2-marker_3",
+    "type": "marker",
+    "latlng": [
+      50.6,
+      140.4
+    ],
+    "tooltip": "New marker 3",
+    "heatmap": {
+      "intensity": 0.72
+    },
+    "data": {
+      "thing":"person"
+    },
+    "group": "Hello",
+    "icon": {
+      "iconUrl": "../images/mobile_small.png",
+      "iconSize": [32, 32],
+      "iconAnchor": [16, 16]
+    }
+  },
+  {
+    "id": "set2-line_1",
+    "type": "polyline",
+    "latlng": [
+      [
+        44.5,
+        134.4
+      ],
+      [
+        43.89,
+        132.0
+      ],
+      [
+        50.6,
+        140.4
+      ]
+    ],
+    "heatmap": {
+      "intensity": 0.51
+    },
+    "weight": 2,
+    "selectedProps": {
+      "color": "orange",
+      "weight": 3
+    }
+  },
+  {
+    "id": "set2-camera",
+    "type": "marker",
+    "latlng": [
+      34.9,
+      134.5
+    ],
+    "icon": {
+      "iconUrl": "../images/camera-icon.png",
+      "iconSize": [45, 45]
+    },
+    "data": {
+      "thing":"camera"
+    }
+  },
+  {
+    "id": "set2-fan",
+    "type": "circle",
+    "latlng": [
+      43.5,
+      140.5
+    ],
+    "opacity": 0.6,
+    "radius": 500,
+    "startAngle": 0,
+    "stopAngle": 45,
+    "selectedProps": {
+      "color": "orange",
+      "weight": 4,
+      "latlng": [
+        46.5,
+        140.5
+      ]
+    }
+  },
+  {
+    "id": "set2-polygon",
+    "type": "polygon",
+    "heatmap": {
+      "intensity": 0.89
+    },
+    "latlng": [
+      [
+        40.867675,
+        141.736691
+      ],
+      [
+        40.991060,
+        143.121583
+      ],
+      [
+        40.102546,
+        143.304493
+      ],
+      [
+        39.338819,
+        142.435669
+      ],
+      [
+        39.611112,
+        139.770405
+      ],
+      [
+        40.867675,
+        141.736691
+      ]
+    ],
+    "opacity": 0.9,
+    "color":"#34cc33",
+    "selectedProps": {
+      "color": "#DB4D6D"
+    }
+  }
+]

@@ -1,0 +1,140 @@
+.c-chart {
+    .c-chart-timeline {
+        margin-top: .5em;
+
+        > .vis-timeline {
+            border: 1px solid #D9D9D9;
+            border-radius: 6px;
+
+            // This can restrict the height of timeline
+            &.vis-bottom {
+                // max-height: 300px;
+            }
+        }
+
+        .vis-panel {
+            &.vis-center {
+                background-color: #FFFFFF;
+                border: none;
+                border-left: .5px solid #D2D2D2;
+
+                > .vis-shadow.vis-top, .vis-shadow.vis-bottom {
+                    display: none !important;
+                }
+
+                &::-webkit-scrollbar {
+                    background-color: #BCBCBC;
+                    border-radius: 4px;
+                    width: 8px;
+                }
+
+                &::-webkit-scrollbar-thumb
+                {
+                    background-color: #001B34;
+                    border-radius: 4px;
+                }
+            }
+
+            &.vis-left, &.vis-right, &.vis-top, &.vis-bottom {
+                border: none;
+            }
+        }
+
+        .vis-panel.vis-left, .vis-panel.vis-right, 
+        .vis-panel.vis-top, .vis-panel.vis-bottom {
+            border: none;
+        }
+
+        .vis-panel.vis-background {
+            background: #9B9B9B;
+
+            &.vis-vertical .vis-time-axis.vis-background .vis-grid.vis-minor {
+                border: none;
+            }
+        }
+
+        .vis-labelset .vis-label, .vis-foreground .vis-group {
+            &:nth-child(odd) {
+                background-color: #FFFFFF;
+            }
+
+            &:nth-child(even) {
+                background-color: #F5F5F5;
+            }
+
+            &.js-hovered {
+                background-color: #E2ECFD;
+            }  
+        }
+
+        .vis-foreground .vis-group {
+            border-bottom: none;
+        }
+
+        .vis-label {
+            border-bottom: none;
+
+            .vis-inner {
+                align-items: center;
+                display: flex;
+                height: 2.5em;
+                padding: 0;
+            }
+        }
+
+        .vis-background .vis-group {
+            &:nth-child(even) {
+                background-color: #FFFFFF;
+            }
+
+            &:nth-child(odd) {
+                background-color: #F5F5F5;
+            }
+        }
+
+        .vis-panel.vis-bottom > .vis-time-axis.vis-foreground {
+            background: #9B9B9B;
+
+            > .vis-text.vis-minor, .vis-text.vis-major {
+                color: #EFEFEF;
+
+                &:nth-child(even) {
+                    border-left: 1px solid #BBBBBB;
+                    border-right: 1px solid #BBBBBB;
+                }
+            }
+        }
+
+        .vis-item.vis-range {
+            border: none;
+            height: 2.5em;
+
+            .vis-item-content {
+                padding: 0;
+            }
+        }
+
+        .vis-tooltip {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 2px;
+            box-shadow: 2px 1px 8px -2px rgba(176,176,176,1);
+            font-size: .7em;
+        }
+
+        .tl-group-label {
+            margin: 0 .5em;
+            width: 7em;
+        }
+
+        .tl-group-sum {
+            align-items: center;
+            border-radius: 50%;
+            color: #FFFFFF;
+            display: flex;
+            height: 2em;
+            justify-content: center;
+            margin: .5em;
+            width: 2em;
+        }
+    }
+}

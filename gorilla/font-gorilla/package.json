@@ -1,0 +1,60 @@
+{
+  "name": "font-gorilla",
+  "version": "1.2.2",
+  "description": "gorilla font icons",
+  "main": "server.js",
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "scripts": {
+    "clean": "rm -rf css && rm -rf fonts && rm -rf demo-files && rm -f demo.html && rm -f preview.html",
+    "svgPolyToPath": "node node-src/svgPolyToPath.js",
+    "cleanExtractFolders": "rm -rf src/dim src/muiSvgIcons && mkdir src/dim src/muiSvgIcons",
+    "extractSvgDim": "node node-src/extract-svg-dim.js",
+    "cleanAfterBuild": "rm -rf svg.tmp",
+    "build": "npm run svgPolyToPath && npm run cleanExtractFolders && npm run extractSvgDim && rm -rf dist && cross-env BABEL_ENV=production babel ./src -d ./dist && npm run cleanAfterBuild",
+    "build-WF": "npm run clean && node scripts/build",
+    "build-icomoon": "npm run clean && mkdir css && cd icomoon && cp demo.html ../ && cp -R demo-files ../ && cp -R fonts ../ && cp style.css ../css/font-gorilla.css && cd .. && node scripts/build-icomoon",
+    "start": "babel-node server.js",
+    "commit": "git-cz",
+    "release": "standard-version"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.13.10",
+    "@babel/core": "^7.13.10",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.13.8",
+    "@babel/plugin-transform-runtime": "^7.13.10",
+    "@babel/polyfill": "^7.12.1",
+    "@babel/preset-env": "^7.13.10",
+    "@babel/preset-react": "^7.12.13",
+    "@babel/runtime": "^7.13.10",
+    "babel-eslint": "^10.1.0",
+    "babel-plugin-inline-json-import": "^0.3.2",
+    "babel-plugin-transform-remove-console": "^6.9.4",
+    "commit-release-installer": "git+ssh://git@git.gorilla-technology.com:gorilla/f2e/commit-release-installer.git",
+    "cross-env": "^7.0.3",
+    "eslint": "^7.21.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-import-resolver-webpack": "^0.13.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-react": "^7.22.0",
+    "express": "^4.17.1",
+    "extract-svg-path": "^2.1.0",
+    "lodash": "^4.17.21",
+    "morgan": "^1.10.0",
+    "serve-favicon": "^2.5.0",
+    "webfonts-generator": "^0.4.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "publishConfig": {
+    "registry": "http://192.168.10.223:7890/repository/gorilla-npm-registry/"
+  }
+}

@@ -1,0 +1,245 @@
+{
+    "title":"Netflow Dashboard",
+    "url":"/api/es",
+    "query":{
+        "bool": {
+          "must": [
+            {
+              "query_string": {
+                "query": "*",
+                "analyze_wildcard": true
+              }
+            },
+            {
+              "range": {
+                "@timestamp": {
+                  "gte": 1483200000000,
+                  "lte": 1491987035102,
+                  "format": "epoch_millis"
+                }
+              }
+            }
+          ],
+          "must_not": []
+        }
+    },
+    "layout":{
+        "bars":{"x":0, "y":0, "w":9, "h":4},
+        "pie":{"x":9, "y":0, "w":9, "h":2},
+        "table":{"x":9, "y":2, "w":9, "h":2}
+    },
+    "widgets":{
+        "pie": {
+            "search":{
+                "index":"netflow-out-2017.03.22.18",
+                "type":"logs",
+                "body":{
+                    "aggs":{
+                        "2": {
+                            "terms": {
+                                "field": "geoip_src_ipv4_src_addr.country_name.keyword",
+                                "size": 5,
+                                "order": {
+                                    "1": "desc"
+                                }
+                            },
+                            "aggs": {
+                                "1": {
+                                    "sum": {
+                                        "field": "netflow.in_pkts"
+                                    }
+                                },
+                                "3": {
+                                    "terms": {
+                                        "field": "geoip_src_ipv4_src_addr.city_name.keyword",
+                                        "size": 5,
+                                        "order": {
+                                            "4": "desc"
+                                        }
+                                    },
+                                    "aggs": {
+                                        "4": {
+                                            "sum": {
+                                                "field": "netflow.in_pkts"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "type":"pie",
+            "title":"Netflow Pie",
+            "dataCfg":{
+                "splitSlice":[
+                    "2",
+                    "3"
+                ],
+                "sliceSize":"4"
+            },
+            "keyLocales":{
+                "zh":{
+                    "2":"國家",
+                    "3":"城市",
+                    "4":"流量"
+                },
+                "en_us":{
+                    "2":"Country",
+                    "3":"City",
+                    "4":"Traffic"
+                }
+            },
+            "valueLocales":{
+                "zh":{
+                    "2":{
+                        "Taiwan":"台灣"
+                    }
+                }
+            }
+        },
+        "bars": {
+            "search":{
+                "index":"metricbeat-2017.04.12.16", 
+                "type": "metricsets",
+                "body":{
+                    "aggs": {
+                        "2": {
+                            "date_histogram": {
+                                "field": "@timestamp",
+                                "interval": "5m",
+                                "time_zone": "Asia/Shanghai",
+                                "min_doc_count": 1
+                            },
+                            "aggs": {
+                                "10": {
+                                    "terms": {
+                                        "field": "beat.hostname",
+                                        "size": 5,
+                                        "order": {
+                                            "_term": "asc"
+                                        }
+                                    },
+                                    "aggs": {
+                                        "1": {
+                                            "avg": {
+                                                "field": "system.core.idle.pct"
+                                            }
+                                        },
+                                        "3": {
+                                            "avg": {
+                                                "field": "system.core.iowait.pct"
+                                            }
+                                        },
+                                        "4": {
+                                            "avg": {
+                                                "field": "system.core.irq.pct"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "type":"bar",
+            "title":"System Monitor",
+            "stacked":true,
+            "vertical":true,
+            "dataCfg":{
+                "splitChart":["10"],
+                "splitSeries":[
+                    "1",
+                    "3",
+                    "4"
+                ],
+                "x":"2"
+            },
+            "xAxis":{
+                "type":"datetime"
+            },
+            "keyLocales":{
+                "zh":{
+                    "10":"主機",
+                    "1":"Idle",
+                    "3":"IO Wait",
+                    "4":"IRQ",
+                    "2":"時間"
+                },
+                "en_us":{
+                    "10":"Host",
+                    "1":"Idle",
+                    "3":"IO Wait",
+                    "4":"IRQ",
+                    "2":"Time"
+                }
+            }
+        },
+        "table": {
+            "search":{
+                "index":"netflow-out-2017.03.22.18",
+                "type":"logs",
+                "body":{
+                    "aggs": {
+                        "3": {
+                            "terms": {
+                                "field": "geoip_src_ipv4_src_addr.country_name.keyword",
+                                "size": 5,
+                                "order": {
+                                    "_count": "desc"
+                                }
+                            },
+                            "aggs": {
+                                "5": {
+                                    "terms": {
+                                        "field": "geoip_src_ipv4_src_addr.city_name.keyword",
+                                        "size": 5,
+                                        "order": {
+                                            "_count": "desc"
+                                        }
+                                    },
+                                    "aggs": {
+                                        "4": {
+                                            "sum": {
+                                                "field": "netflow.in_pkts"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "type":"table",
+            "title":"Netflow Table",
+            "dataCfg":{
+                "splitRow":["3","5"],
+                "agg":["5_count","4"]
+            },
+            "keyLocales":{
+                "zh":{
+                    "3":"國家",
+                    "5":"城市",
+                    "5_count":"總筆數",
+                    "4":"流量"
+                },
+                "en_us":{
+                    "3":"Country",
+                    "5":"City",
+                    "5_count":"Total",
+                    "4":"Traffic"
+                }
+            },
+            "valueLocales":{
+                "zh":{
+                    "3":{
+                        "Taiwan":"台灣"
+                    }
+                }
+            }
+        }
+    }
+}

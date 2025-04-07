@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/la.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/la.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import cx from 'classnames'
+import _ from 'lodash'
+
+import {DATA_ITEM_PROP, KEY_MAPPING_PROP} from '../consts/prop-types'
+
+let log = require('loglevel').getLogger('chart/components/pie')
+
+/**
+ * A React Pie Chart 
+ * @constructor
+ * @param {string} [id] - Chart dom element #id
+ * @param {string} [className] - Classname for the chart
+ * @param {string} [title] - Title for the chart
+ * @param {array} data - Data, see below example
+ * @param {object} dataCfg - Mapping between data shape and chart
+ * @param {string | array.&lt;string>} [dataCfg.splitChart] - if specified, will split into multiple charts based on the given key/path
+ * @param {array.&lt;string | array.&lt;string>>} dataCfg.splitSlice - Split into multiple layers based on the given key/path
+ * @param {string | array.&lt;string>} dataCfg.sliceSize - key/path to indicate the size of slice
+ * @param {object} [keyLabels] - Key/label pairs for all the keys
+ * @param {object} [valueLabels] - Value/label pairs for all the values
+ * @param {boolean|function} [onTooltip=true] - Tooltip for the hovered slice, can be boolean or self defined rendering function as below
+ * @param {object} onTooltip.eventInfo - statistics for this slice
+ * @param {number} onTooltip.eventInfo.matched - number of data items associated with this slice
+ * @param {string} onTooltip.eventInfo.splitChart - associated chart value
+ * @param {array} onTooltip.eventInfo.splitSlice - array of group keys associated with this slice
+ * @param {number} onTooltip.eventInfo.size - current slice size from **sliceSize**
+ * @param {number} onTooltip.eventInfo.percentage - percentage of current slice size in relation to total size
+ * @param {array.&lt;object>} onTooltip.data - dataset of the current hovered slice
+ * @param {object} onTooltip.cfg - data related cfg for this chart
+ * @param {object} onTooltip.cfg.dataCfg
+ * @param {object} [onTooltip.cfg.keyLabels]
+ * @param {object} [onTooltip.cfg.valueLabels]
+ * @param {function} [onMouseOver] - Function to call when mouse over, see onTooltip for callback function spec
+ * @param {function} [onClick] - Function to call when clicked, see onTooltip for callback function spec
+ * @param {function} [onContextMenu] - Function to call when right clicked, see onTooltip for callback function spec
+ * @param {function} [onDoubleClick] - Function to call when double clicked, see onTooltip for callback function spec
+ *
+ * @example
+
+import _ from 'lodash'
+import La from 'chart/components/pie'
+
+// Actors donut chart, inner circle is year, outer circle is actors, pie size is based on amount of movies by the year/actor
+// also demonstrates use of dot and array notation to access key field
+React.createClass({
+    render() {
+        return &lt;La
+                id='actor-chart'
+                className='fancy'
+                title='Actor Involvement'
+                data={
+                    [
+                        { actor:{'imdb.id':'tom'}, movies:2, produced:{year:1990} },
+                        { actor:{'imdb.id':'tom'}, movies:3, produced:{year:1991} },
+                        { actor:{'imdb.id':'tom'}, movies:2, produced:{year:1992} },
+                        { actor:{'imdb.id':'tom'}, movies:10, produced:{year:1996} },
+                        { actor:{'imdb.id':'tom'}, movies:2, produced:{year:1997} },
+                        { actor:{'imdb.id':'tom'}, movies:5, produced:{year:2000} },
+                        { actor:{'imdb.id':'nicole'}, movies:5, produced:{year:1990} },
+                        { actor:{'imdb.id':'nicole'}, movies:4, produced:{year:1991} },
+                        { actor:{'imdb.id':'nicole'}, movies:3, produced:{year:1992} },
+                        { actor:{'imdb.id':'nicole'}, movies:6, produced:{year:1993} },
+                        { actor:{'imdb.id':'nicole'}, movies:1, produced:{year:1994} },
+                        { actor:{'imdb.id':'nicole'}, movies:0, produced:{year:1997} },
+                        { actor:{'imdb.id':'nicole'}, movies:1, produced:{year:2000} }
+                    ]
+                }
+                dataCfg={{
+                    splitSlice:['produced.year', ['actor','imdb.id']],
+                    sliceSize:'movies'
+                }}
+                keyLabels={{
+                    actor:{'imdb.id':'Actor'},
+                    movies:'# movies',
+                    'produced.year':'Year'
+                }}
+                valueLabels={{
+                    actor:{'imdb.id':{tom:'Tom Cruise', nicole:'Nicole Kidman'}}
+                }}
+                onTooltip />
+    }
+})
+
+
+// split-chart, each chart is for directors martin &amp; francis, 
+// inner circle is year, outer circle is actors, pie size is based on amount of movies by the year/actor
+React.createClass({
+    renderTooltip(eventInfo, dataset, {dataCfg, keyLabels, valueLabels}) {
+
+        // assuming hovered slice corresponds to director='martin' &amp; year=1990
+        // eventInfo == {matched:2, splitChart:'martin', splitSlice:['1990'], size:7, percentage:7/44 }
+        // dataset == [
+        //  { director:'martin', actor:'tom', movies:2, year:1990 },
+        //  { director:'martin', actor:'nicole', movies:5, year:1990 }
+        // ]
+
+        const {splitChart, splitSlice, size:count, percentage} = eventInfo
+        return &lt;div>
+            {
+                splitSlice.map((g,i)=>{
+                    let key = dataCfg.splitSlice[i]
+                    let lbl = _.get(keyLabels, key, key)
+                    let val = _.get(valueLabels, [key,g], g)
+                    return {lbl}: {val}&lt;br/>
+                })
+            }
+            {count} movies ({percentage}%)
+        &lt;/div>
+    },
+    render() {
+        return &lt;La
+                id='director-split-actor-chart'
+                data={
+                    [
+                        { director:'martin', actor:'tom', movies:2, year:1990 },
+                        { director:'martin', actor:'tom', movies:3, year:1991 },
+                        { director:'martin', actor:'tom', movies:2, year:1992 },
+                        { director:'martin', actor:'tom', movies:10, year:1996 },
+                        { director:'martin', actor:'tom', movies:2, year:1997 },
+                        { director:'martin', actor:'tom', movies:5, year:2000 },
+                        { director:'martin', actor:'nicole', movies:5, year:1990 },
+                        { director:'martin', actor:'nicole', movies:4, year:1991 },
+                        { director:'martin', actor:'nicole', movies:3, year:1992 },
+                        { director:'martin', actor:'nicole', movies:6, year:1993 },
+                        { director:'martin', actor:'nicole', movies:1, year:1994 },
+                        { director:'martin', actor:'nicole', movies:0, year:1997 },
+                        { director:'martin', actor:'nicole', movies:1, year:2000 },
+                        { director:'francis', actor:'tom', movies:4, year:1990 },
+                        { director:'francis', actor:'tom', movies:2, year:1991 },
+                        { director:'francis', actor:'tom', movies:7, year:1992 },
+                        { director:'francis', actor:'tom', movies:2, year:1996 },
+                        { director:'francis', actor:'tom', movies:1, year:1997 },
+                        { director:'francis', actor:'tom', movies:1, year:2000 },
+                        { director:'francis', actor:'nicole', movies:1, year:1990 },
+                        { director:'francis', actor:'nicole', movies:3, year:1991 },
+                        { director:'francis', actor:'nicole', movies:4, year:1992 },
+                        { director:'francis', actor:'nicole', movies:1, year:1993 },
+                        { director:'francis', actor:'nicole', movies:2, year:1994 },
+                        { director:'francis', actor:'nicole', movies:0, year:1997 },
+                        { director:'francis', actor:'nicole', movies:2, year:2000 }
+                    ]
+                }
+                dataCfg={{
+                    splitChart:'director',
+                    splitSlice:['year','actor'],
+                    sliceSize:'movies'
+                }}
+                keyLabels={{
+                    director:'Director',
+                    actor:'Actor',
+                    movies:'# movies',
+                    year: 'Year'
+                }}
+                valueLabels={{
+                    actor:{tom:'Tom Cruise', nicole:'Nicole Kidman'},
+                    director:{martin:'Martin Scorses', francis:'Francis Copola'}
+                }}
+                onTooltip={this.renderTooltip} />
+    }
+})
+ */
+const La = React.createClass({
+    propTypes: {
+        id: React.PropTypes.string,
+        className: React.PropTypes.string,
+        title: React.PropTypes.node,
+        data: React.PropTypes.arrayOf(DATA_ITEM_PROP).isRequired,
+        dataCfg: React.PropTypes.shape({
+            splitChart: KEY_MAPPING_PROP,
+            splitSlice: React.PropTypes.arrayOf(KEY_MAPPING_PROP).isRequired,
+            sliceSize: KEY_MAPPING_PROP.isRequired
+        }),
+        keyLabels: DATA_ITEM_PROP,
+        valueLabels: React.PropTypes.objectOf(DATA_ITEM_PROP),
+        onTooltip: React.PropTypes.oneOfType([React.PropTypes.func, React.PropTypes.bool]),
+        onMouseOver: React.PropTypes.func,
+        onClick: React.PropTypes.func,
+        onContextMenu: React.PropTypes.func,
+        onDoubleClick: React.PropTypes.func
+    },
+    getDefaultProps() {
+        return {
+            onTooltip: true,
+            data:[]
+        }
+    },
+    render() {
+        return 'To be implemented'
+    }
+})
+
+export default La</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-es-agg.html">es-agg</a></li><li><a href="module-es-hits.html">es-hits</a></li></ul><h3>Classes</h3><ul><li><a href="Chart.html">Chart</a></li><li><a href="Dashboard.html">Dashboard</a></li><li><a href="Detail.html">Detail</a></li><li><a href="Form.html">Form</a></li><li><a href="Gis.html">Gis</a></li><li><a href="Info.html">Info</a></li><li><a href="La.html">La</a></li><li><a href="Search.html">Search</a></li><li><a href="Serp.html">Serp</a></li><li><a href="Table.html">Table</a></li><li><a href="Vbda.html">Vbda</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.1</a> on Wed Apr 12 2017 10:35:34 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

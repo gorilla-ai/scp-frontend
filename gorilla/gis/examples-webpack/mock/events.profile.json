@@ -1,0 +1,115 @@
+{
+  "baseMap": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  "layout": "standard",
+  "dragMode": "region",
+  "regionType": "circle",
+  "mapOptions": {
+    "center": [
+      46.777128,
+      103.505101
+    ],
+    "zoom": 4,
+    "doublieClickZoom": false
+  },
+  "symbolOptions": [
+    {
+      "match": {
+        "type": "marker"
+      },
+      "selectedProps": {
+        "label": {
+          "className": "selectedLabel"
+        },
+        "icon": {
+          "className": "selectedIcon"
+        }
+      }
+    },
+    {
+      "match": {
+        "type": [
+          "rectangle",
+          "circle",
+          "polygon"
+        ]
+      },
+      "props": {
+        "dashArray": "5,5",
+        "color": "#588a4f",
+        "fill": false,
+        "fillColor": "#000000"
+      },
+      "selectedProps": {
+        "color": "#D0104C"
+      }
+    }
+  ],
+  "trackOptions": [
+    {
+      "props": {
+        "dashArray": "15",
+        "dashOffset": "0",
+        "directed": true,
+        "patterns": [
+          {
+            "offset": "100%",
+            "repeat": 0,
+            "sign": {
+              "type": "arrow",
+              "pixelSize": 15,
+              "pathOptions": {
+                "dashArray": null,
+                "dashOffset": null
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "match": {
+        "id": "track-1"
+      },
+      "props": {
+        "dashArray": "15",
+        "dashOffset": "0",
+        "directed": true,
+        "patterns": [
+          {
+            "offset": "100%",
+            "repeat": 0,
+            "sign": {
+              "type": "arrow",
+              "pixelSize": 15,
+              "pathOptions": {
+                "dashArray": null,
+                "dashOffset": null
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "heatmapOptions": {
+    "minOpacity": 0,
+    "blur": 0.75,
+    "radius": 0.02,
+    "gradient": {
+      "0.07": "rgba(0, 255, 255, 0)",
+      "0.14": "rgba(0, 255, 255, 1)",
+      "0.21": "rgba(0, 191, 255, 1)",
+      "0.28": "rgba(0, 127, 255, 1)",
+      "0.35": "rgba(0, 63, 255, 1)",
+      "0.42": "rgba(0, 0, 255, 1)",
+      "0.49": "rgba(0, 0, 223, 1)",
+      "0.56": "rgba(0, 0, 191, 1)",
+      "0.63": "rgba(0, 0, 159, 1)",
+      "0.70": "rgba(0, 0, 127, 1)",
+      "0.77": "rgba(63, 0, 91, 1)",
+      "0.84": "rgba(127, 0, 63, 1)",
+      "0.91": "rgba(191, 0, 31, 1)",
+      "0.98": "rgba(255, 0, 0, 1)"
+    }
+  }
+}

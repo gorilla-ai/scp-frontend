@@ -1,0 +1,123 @@
+// c-toggle-btn theme-color config
+@c-toggle-theme-color: @g-primary-color;
+@c-toggle-box-shadow-color: rgba(0, 27, 52, 0.2);
+@c-toggle-hover-color: @g-standard-hover-color;
+@c-toggle-checked-hover-color: @g-primary-hover-color;
+@c-toggle-active-color: @g-standard-active-color;
+@c-toggle-checked-active-color: @g-primary-active-color;
+
+.c-toggle-btn {
+    border: 1px solid @g-border-color;
+    border-radius: 33%~"/"83%;
+    font-size: .8em;
+    height: 24px;
+    overflow: hidden;
+    position: relative;
+    width: 60px;
+    &{
+        display: flex;
+        order:2;
+    }
+    &+label {
+       display: flex;
+    }
+    &.disabled {
+        &+label{
+            opacity: .5;
+        }
+        opacity: .5;
+    }
+    .c-toggle-btn-behaviors(@div-checked-color,@div-checkbox-color){
+        input[type=checkbox] {
+            +div {
+                background: @div-checked-color;
+            }
+            &:checked + div {
+                background: @div-checkbox-color;
+            }
+        }
+    }
+    &:hover{
+        .c-toggle-btn-behaviors(@c-toggle-hover-color, @c-toggle-checked-hover-color);
+    }
+    &:active{        
+        .c-toggle-btn-behaviors(@c-toggle-active-color, @c-toggle-checked-active-color);
+    }
+    > input[type=checkbox] {
+        cursor: pointer;
+        opacity: 0;
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        z-index: 999;
+        .checked-behaviors(@div-color,@span-color){
+            background: @div-color;
+            > span {
+                background: @span-color;
+            }
+        }
+        + div {
+            .checked-behaviors(@g-standard-color, @c-toggle-theme-color);
+        }
+        &:checked + div {
+            left: -20%;
+            .checked-behaviors(@c-toggle-theme-color, @g-border-color);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+        }
+    }
+    .align-center(){
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    > div {
+        .align-center();
+        left: -80%;
+        position: absolute;
+        text-align: center;
+        top: 0;
+        bottom: 0;
+        transition: left .35s ease-out, background .35s cubic-bezier(0.23, 1, 0.32, 1);
+        width: 200%;
+        
+        > label {
+            cursor: pointer;
+            .align-center();
+            height: 100%;            
+            margin: 0;
+            max-width: 50%;
+            position: absolute;
+            text-align: center;
+            top: 0;
+            white-space: nowrap;
+            width: 50%;
+            line-height: 3em;
+            .logo_style(@color){
+                color:@color;
+                font-weight: bolder;
+            }
+            &.on {
+                .logo_style(@g-primary-font-color);
+                right: 50%;
+            }
+            &.off {
+                .logo_style(@c-toggle-theme-color);
+                left: 50%;                
+            }
+        }
+
+        > span {
+            border-radius: 50%;
+            cursor: pointer;
+            display: inline-block;
+            height: 45.45%;
+            line-height: normal;
+            position: relative;
+            transition: background .35s cubic-bezier(0.23, 1, 0.32, 1);
+            width: 8.62%;
+        }
+    }
+}

@@ -1,0 +1,87 @@
+@import (reference) 'base.less';
+@import (reference) 'base-form.less';
+
+.c-file-input {
+    @width: 300px;
+    @icon-width: 25px;
+    
+    .c-flex;
+    position: relative;
+    width: @width;
+
+    > input[type='file'] {
+        opacity: 0;
+        padding: 4px;
+        position: absolute;
+        z-index: 5;
+        width: inherit;
+        &:hover + button {
+            opacity: .9;
+        }
+    }
+    
+    > button {
+        border-radius: 4px 0 0 4px;
+        min-width: 105px;
+        position: relative;
+        outline: none;
+        padding: 0;
+        transition: background .45s cubic-bezier(0.23, 1, 0.32, 1) 0s;
+        vertical-align: middle;
+
+        &:hover {
+            cursor: pointer;
+        }
+    }
+    
+    > input[type='text'] {
+        border-radius: 0 4px 4px 0;
+        left: -6px;
+        margin: 0;
+        vertical-align: middle;
+        flex-grow: 1;
+        flex-shrink: 1;
+        
+        &:read-only {
+            background: @g-standard-color;
+        }
+    }
+
+    &.clearable {
+        > input[type='file'] {
+            width: -webkit-calc(~"100% - " @icon-width);
+            width:    -moz-calc(~"100% - " @icon-width);
+            width:         calc(~"100% - " @icon-width);
+        }
+        
+        > input[type='text'] {
+            padding-right:@icon-width;
+            
+            & + i {
+                .icon-button;
+                border: none;
+                width: @icon-width;
+                position: relative;
+                left: -@icon-width;
+                margin-left: 0;
+                margin-right: -@icon-width;
+            }
+        }
+    }
+    
+    &.disabled {
+        opacity: .4;
+        
+        input, button {
+            cursor: not-allowed;
+        }
+        
+        button:hover {
+            background: initial;
+        }
+    }
+
+    &:hover > * {
+        cursor: pointer;
+    }
+}

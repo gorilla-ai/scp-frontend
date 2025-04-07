@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: parser/es-agg.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: parser/es-agg.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const _ = require('lodash')
+
+/**
+ * @module es-agg
+ * @description ES aggregation parser
+ */
+
+/**
+ * Parses both request and response body of Elasticsearch query into Chart API Series' middle format.
+ * 
+ * @param {Object} request The object containing query (and aggs) part of Elasticsearch request body. Only the aggs part will be used.
+ * @param {Object} response One element from responses part of Elasticsearch response body. Currently only supports one response body. If an array is passed, only the first element will be used.
+ * @param {string} [idSeparator=_] Separates aggregation ID with the aggregation field name.
+ * @return {Object} Chart API Series formatted object.
+ */
+
+const esFormat = (request, response, idSeparator) => {
+
+    if ( ! idSeparator) {
+        idSeparator = '_'
+    }
+
+    let exploreRequest = obj => {
+        let result = []
+        
+        if (obj.aggs) {
+
+            // For each agg labels
+            _.forEach(obj.aggs, (el, aggName) => {
+
+                let aggDets = {}
+                
+                // For each agg types. Look for non "aggs" children.
+                // Non-Aggs children should be the aggregation type (dangerous assumption!)
+                // Later we need to note all aggregation types.
+                _.forEach(el, (aggDetails, aggType) => {
+
+                    // Note field names
+                    if (aggType != "aggs") {
+                        aggDets.field = aggDetails.field ? aggDetails.field : ''
+                        aggDets.aggName = aggName
+                        aggDets.aggType = aggType
+                    }
+                })
+
+                // One level deeper
+                aggDets.children = exploreRequest(el)
+
+                result.push(aggDets)
+            })
+        }
+
+        return result
+    }
+
+    let exploreResponse = (obj, fields) => {
+        let result = {}
+
+        // Aggregation names from request body
+        let aggNames = fields.map(el => el.aggName)
+
+        // If it is tree root, go straight to the aggregations
+        if (obj.aggregations) {
+            obj = obj.aggregations
+        }
+
+        // Explore each aggregation names
+        aggNames.forEach(aggName => {
+
+            // Current field properties
+            let field = fields.find(field => field.aggName == aggName)
+
+            if ( ! obj[aggName].buckets) {
+
+                // Leaf part, fill with values
+                result[field.field] = obj[aggName].value
+            } else {
+
+                // Branch part, explore deeper buckets
+                let buckets = obj[aggName].buckets
+                buckets.forEach(bucket => {
+                    result[bucket.key] = exploreResponse(bucket, field.children)
+                })
+            }
+        })
+
+        result.count = obj.doc_count
+
+        return result
+    }
+
+    let flatten = (respObj, fields, curObj) => {
+        if ( ! curObj) {
+            curObj = {}
+        }
+
+        // Decide whether we push the object into the array
+        let update = false
+
+        let aggNames = fields.map(el => el.aggName)
+
+        // Doc_count
+        if ( ! aggNames.length) {
+            update = true
+        }
+
+        aggNames.forEach(aggName => {
+            let field = fields.find(field => field.aggName == aggName)
+            
+            _.forEach(respObj, (el, key) => {
+
+                if (typeof el === 'object' &amp;&amp; el) {
+                    curObj[aggName+idSeparator+field.field] = key
+                    curObj[aggName+idSeparator+'count']  = el.count
+                    
+                    // If the current level is still an object, go deeper
+                    flatten(el, field.children, _.clone(curObj))
+                } else if(field.field == key) {
+
+                    // Reached leaf, update the array
+                    curObj[aggName+idSeparator+key] = el
+                    curObj[aggName+idSeparator+'count']  = el.count
+                    update = true
+                }
+            })
+        })
+
+        if (update) flatResult.push(curObj)
+    }
+
+    // Field names, types, obtained from request body.
+    let fields = exploreRequest(request)
+
+    // Field values obtained from response body, combined with field names from request body.
+    if (Array.isArray(response)) {
+        response = response[0]
+    }
+    let result = exploreResponse(response, fields)
+
+    // Flat format
+    let flatResult = []
+    flatten(result, fields)
+
+    return flatResult
+}
+
+module.exports = esFormat</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-es-agg.html">es-agg</a></li><li><a href="module-es-hits.html">es-hits</a></li></ul><h3>Classes</h3><ul><li><a href="Chart.html">Chart</a></li><li><a href="Dashboard.html">Dashboard</a></li><li><a href="Detail.html">Detail</a></li><li><a href="Form.html">Form</a></li><li><a href="Gis.html">Gis</a></li><li><a href="Info.html">Info</a></li><li><a href="La.html">La</a></li><li><a href="Search.html">Search</a></li><li><a href="Serp.html">Serp</a></li><li><a href="Table.html">Table</a></li><li><a href="Vbda.html">Vbda</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.1</a> on Wed Apr 12 2017 10:35:34 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

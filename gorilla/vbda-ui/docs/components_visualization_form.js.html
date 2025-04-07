@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/visualization/form.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/visualization/form.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import cx from 'classnames'
+import _ from 'lodash'
+
+import localize from '../../hoc/localize'
+
+let log = require('loglevel').getLogger('vbda/components/visualization/search')
+
+/**
+ * Search Form
+ * @constructor
+ * @param {string} [id] - Form dom element #id
+ * @param {string} [className] - Classname for the form
+ * @param {string} lng - 
+ * @param {object} cfg - config
+ * @param {string} cfg.name - title of this search
+ * @param {object} cfg.fields - fields to display in form
+ * @param {object} cfg.fields._key - field key
+ * @param {title} cfg.fields._key.title - field label
+ * @param {'string'|'textarea'|'dropdown'|'checkbox'|'checkbox-group'|'date'|'date-range'|'radio-group'|'gis'} cfg.fields._key.type - field type
+ * @param {object} cfg.fields._key.list - key-text pair of options, required for type=dropdown|checkbox-group|radio-group
+ * @param {object} cfg.locales - translations
+ * @param {function} [onSearch] - Function to call when search button is clicked
+ * @param {object} onSearch.params - form data
+ *
+ * @example
+
+import _ from 'lodash'
+import Form from 'vbda/components/visualization/form'
+
+React.createClass({
+    search(toSearch) {
+        // toSearch == {Identity:'a', CellPhone:'0911'}
+    },
+    render() {
+        return &lt;Form
+            id='fulltext'
+            lng='en_us'
+            cfg={{
+                name:'fulltext',        
+                fields:{
+                    Identity:{title:'name', type:'string'}, 
+                    CellPhone:{title:'phone', type:'string'},
+                    TestList:{title:'Test List',type:'dropdown', list:{'1':'a','2':'b'}}
+                },
+                locales:{
+                    en_us:{
+                        fields:{
+                            Identity:{title:'name'},
+                            CellPhone:{title:'phone'}
+                        }
+                    }
+                }
+            }}
+            onSearch={this.search} />
+    }
+})
+ */
+const Form = React.createClass({
+    propTypes: {
+        id: React.PropTypes.string,
+        className: React.PropTypes.string,
+        lng: React.PropTypes.string,
+        cfg: React.PropTypes.shape({
+            name: React.PropTypes.string,
+            fields: React.PropTypes.objectOf(React.PropTypes.shape({
+                title: React.PropTypes.string,
+                type: React.PropTypes.oneOf([
+                    'string','textarea','dropdown','checkbox','checkbox-group',
+                    'date','date-range','radio-group','gis'
+                ]),
+                list: React.PropTypes.objectOf(React.PropTypes.string)
+            })).isRequired,
+            locales: React.PropTypes.objectOf(React.PropTypes.shape({
+                fields: React.PropTypes.shape({
+                    title: React.PropTypes.string,
+                    list: React.PropTypes.objectOf(React.PropTypes.string)
+                })
+            }))
+        }).isRequired,
+        onSearch: React.PropTypes.func.isRequired
+    },
+    getDefaultProps() {
+        return {
+        }
+    },
+    getInitialState() {
+        return {
+
+        }
+    },
+    handleSearch() {
+        const {onSearch} = this.props
+        onSearch(this.state)
+    },
+    render() {
+        const {id, className, cfg:{fields}} = this.props
+        return &lt;div id={id} className={cx('c-box seamless c-vbda-vis-form', className)}>
+            &lt;div className='content'>
+            {JSON.stringify(fields, null, 4)}
+            &lt;/div>
+            &lt;footer>
+                &lt;button className='pure-button' onClick={this.handleSearch}>Search&lt;/button>
+            &lt;/footer>
+        &lt;/div>
+    }
+})
+
+export default localize(Form, 'cfg')</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-es-agg.html">es-agg</a></li><li><a href="module-es-hits.html">es-hits</a></li></ul><h3>Classes</h3><ul><li><a href="Chart.html">Chart</a></li><li><a href="Dashboard.html">Dashboard</a></li><li><a href="Detail.html">Detail</a></li><li><a href="Form.html">Form</a></li><li><a href="Gis.html">Gis</a></li><li><a href="Info.html">Info</a></li><li><a href="La.html">La</a></li><li><a href="Search.html">Search</a></li><li><a href="Serp.html">Serp</a></li><li><a href="Table.html">Table</a></li><li><a href="Vbda.html">Vbda</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.1</a> on Wed Apr 12 2017 10:35:34 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "title": "Pie Charts By Year",
+  "keyLabels": {
+    "director": "Director",
+    "actor": "Actor",
+    "year": "Year"
+  },
+  "valueLabels": {
+    "director": {
+      "martin": "Martin Scorsese",
+      "francis": "Francis Copola"
+    },
+    "actor": {
+      "tom": "Tom Cruise",
+      "nicole": "Nicole Kidman"
+    }
+  },
+  "holeSize": 70,
+  "dataCfg": {
+    "splitChart": "director",
+    "splitSlice": [
+      "year",
+      "actor"
+    ],
+    "sliceSize": "movies"
+  },
+  "dataSource": {
+    "query": {"url": "/api/demo/movies"}
+  }
+}

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/page-nav.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/page-nav.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import cx from 'classnames'
+import _ from 'lodash'
+
+let log = require('loglevel').getLogger('react-ui/components/page-nav')
+
+/**
+A React Page Navigation Component, containing following:
+ * * (possible) prev button
+ * * thumbnails for pages, up to configurable number of thumbnails (default to 9),
+ * if total number of pages exceed configured number, will display '...' where appropriate
+ * * (possible) next button
+ *
+ * @constructor
+ * @param {number} [pages] - Total number of pages
+ * @param {number} [current=1] - Current (highlighted) page number
+ * @param {number} [thumbnails=9] - Maximum number of thumbnails to display
+ * @param {string} [className] - Classname for the container
+ * @param {function} onChange - Callback function when from/to is changed. &lt;br> Required when value prop is supplied
+ * @param {number} onChange.page - current selected page
+ *
+ * @example
+ *
+import _ from 'lodash'
+import {PageNav} from 'react-ui'
+ *
+const PAGE_SIZE = 30
+
+React.createClass({
+    getInitialState() {
+        return {
+            movies:_(_.range(0,100)).map(i=>`Movie ${i}`), // 100 movies
+            currentPage:1
+        }
+    },
+    handleChange(currentPage) {
+        this.setState({currentPage})
+    },
+    render() {
+        let {movies, currentPage} = this.state;
+        movies = movies.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE)
+        return &lt;div>
+            &lt;ul>
+            {
+                movies.map(movie=>&lt;li>{movie}&lt;/li>)
+            }
+            &lt;/ul>
+            &lt;PageNav pages={Math.ceil(movies/PAGE_SIZE)}
+                current={currentPage}
+                onChange={this.handleChange}/>
+        &lt;/div>
+    }
+})
+
+ */
+const PageNav = React.createClass({
+    propTypes: {
+        pages: React.PropTypes.number,
+        current: React.PropTypes.number,
+        thumbnails: React.PropTypes.number,
+        className: React.PropTypes.string,
+        onChange: React.PropTypes.func.isRequired
+    },
+    getDefaultProps() {
+        return {
+            pages: null,
+            current: 1,
+            thumbnails: 9
+        }
+    },
+    gotoPage(page) {
+        let {onChange} = this.props
+        onChange(page)
+    },
+    renderThumb(page, key) {
+        let {current} = this.props
+        return &lt;button
+            key={key}
+            className={cx('thumb', {current:current===page})}
+            disabled={!page}
+            onClick={this.gotoPage.bind(this, page)}>{page || '...'}&lt;/button>
+    },
+    render() {
+        let {thumbnails, current, pages, className} = this.props
+
+        if (!pages) {
+            return null
+        }
+
+        // let endThumbs = Math.floor(thumbnails/4);
+        let endThumbs = 2 // display 2 at both ends
+        let midThumbs = thumbnails - (endThumbs*2)-2
+        let list = []
+
+        let midStart = Math.max(current-Math.floor(midThumbs/2), endThumbs+1)
+        let midEnd = midStart+midThumbs-1
+        let lastSkipped = false
+
+        if (midEnd >= pages-endThumbs) {
+            midStart = Math.max(endThumbs+1, midStart-(midEnd-(pages-endThumbs)))
+            midEnd = pages-endThumbs
+            midStart--
+        }
+
+        if (midStart === endThumbs+1) {
+            midEnd++
+        }
+
+        if (midStart === endThumbs+2) {
+            midStart--
+        }
+        if (midEnd === pages-endThumbs-1) {
+            midEnd++
+        }
+
+        _.forEach(_.range(1, pages+1), i => {
+            if (i &lt;= endThumbs || i>(pages-endThumbs) || (i>=midStart &amp;&amp; i&lt;=midEnd)) {
+                list.push(this.renderThumb(i, i))
+                lastSkipped = false
+            }
+            else {
+                if (!lastSkipped) {
+                    list.push(this.renderThumb(null, i))
+                    lastSkipped = true
+                }
+            }
+        })
+
+        return &lt;div className={cx('c-page-nav', className)}>
+            &lt;button className='thumb fg fg-arrow-left' disabled={current===1} onClick={this.gotoPage.bind(this, current-1)} />
+            {list}
+            &lt;button className='thumb fg fg-arrow-right' disabled={current===pages} onClick={this.gotoPage.bind(this, current+1)} />
+        &lt;/div>
+    }
+})
+
+export default PageNav</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ajax-helper.html">ajax-helper</a></li><li><a href="module-contextmenu.html">contextmenu</a></li><li><a href="module-date.html">date</a></li><li><a href="module-download.html">download</a></li><li><a href="module-error-helper.html">error-helper</a></li><li><a href="module-grid-event.html">grid-event</a></li><li><a href="module-input-helper.html">input-helper</a></li><li><a href="module-linked-state-mixins.html">linked-state-mixins</a></li><li><a href="module-outside-event.html">outside-event</a></li><li><a href="module-popover.html">popover</a></li><li><a href="module-popup-dialog.html">popup-dialog</a></li><li><a href="module-progress.html">progress</a></li><li><a href="module-prop-types.html">prop-types</a></li></ul><h3>Classes</h3><ul><li><a href="ButtonGroup.html">ButtonGroup</a></li><li><a href="Checkbox.html">Checkbox</a></li><li><a href="CheckboxGroup.html">CheckboxGroup</a></li><li><a href="Combobox.html">Combobox</a></li><li><a href="DatePicker.html">DatePicker</a></li><li><a href="DateRange.html">DateRange</a></li><li><a href="Dropdown.html">Dropdown</a></li><li><a href="FileInput.html">FileInput</a></li><li><a href="Form.html">Form</a></li><li><a href="Grid.html">Grid</a></li><li><a href="Hierarchy.html">Hierarchy</a></li><li><a href="Image.html">Image</a></li><li><a href="ImageGallery.html">ImageGallery</a></li><li><a href="Input.html">Input</a></li><li><a href="List.html">List</a></li><li><a href="ModalDialog.html">ModalDialog</a></li><li><a href="module-Tiles.html">Tiles</a></li><li><a href="MultiInput.html">MultiInput</a></li><li><a href="PageNav.html">PageNav</a></li><li><a href="RadioGroup.html">RadioGroup</a></li><li><a href="RangeCalendar.html">RangeCalendar</a></li><li><a href="Search.html">Search</a></li><li><a href="Slider.html">Slider</a></li><li><a href="Table.html">Table</a></li><li><a href="Tabs.html">Tabs</a></li><li><a href="Textarea.html">Textarea</a></li><li><a href="Timeline.html">Timeline</a></li><li><a href="ToggleButton.html">ToggleButton</a></li><li><a href="Tree.html">Tree</a></li></ul><h3>Mixins</h3><ul><li><a href="module-linked-state-mixins.LinkedDeepStateMixin.html">LinkedDeepStateMixin</a></li><li><a href="module-linked-state-mixins.LinkedStateMixin.html">LinkedStateMixin</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Dec 04 2018 10:28:46 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

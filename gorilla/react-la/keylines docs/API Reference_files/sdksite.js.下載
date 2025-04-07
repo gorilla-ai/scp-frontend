@@ -1,0 +1,735 @@
+//
+//     Copyright © 2011-2018 Cambridge Intelligence Limited.
+//     All rights reserved.
+//
+
+//Sdk namespace, use this for functions available to other js files
+var KL_SDK = KL_SDK || {};
+
+// Used to determine whether scrollspy should scroll side navigation
+// to prevent overscroll from fighting the user's scroll
+var inSideNav = false;
+
+function debounce (func, wait) {
+  var timeout;
+  return function() {
+    var context = this, args = arguments;
+    var later = function() {
+      timeout = null;
+      func.apply(context, args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (!timeout) {
+      func.apply(context, args);
+    }
+  };
+};
+
+// This needs to be available for starter too
+//     Cookie access code from http://www.quirksmode.org/js/cookies.html
+function createCookie(name,value,days) {
+  var expires = "";
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = "; expires=" + date.toGMTString();
+  }
+  document.cookie = name + "=" + value + expires + "; path=/";
+}
+
+function readCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(';');
+  for(var i=0;i < ca.length;i++) {
+    var c = ca[i];
+    while (c.charAt(0) ===' ') {
+      c = c.substring(1,c.length);
+    }
+    if (c.indexOf(nameEQ) === 0) {
+      return c.substring(nameEQ.length,c.length);
+    }
+  }
+  return null;
+}
+
+
+function setTooltip(id, title) {
+  $(id).tooltip('destroy');
+  $(id).tooltip({title: title});
+}
+
+
+var isFirefoxGoingFS = false;
+
+function doFullScreen(evt) {
+  if (KeyLines.fullScreenCapable()){
+    var elem = document.getElementById("fullscreen");
+    // unfortunately FF triggers the mediaquery BEFORE going FS
+    isFirefoxGoingFS = isFirefox();
+
+    KeyLines.toggleFullScreen(elem, onFullScreen);
+  }
+  if(evt){
+    evt.preventDefault();
+  }
+}
+
+// It will always return true if the browser is Firefox (version > 9)
+function isFirefox(){
+  return typeof document.mozFullScreenElement !== 'undefined';
+}
+
+var fsRestore = {};
+
+function onFullScreen(isFullScreen) {
+  isFirefoxGoingFS = false;
+  isRhsOpen = true;
+
+  var rhswidth = $('#rhscontent').width();
+  var rhsheight = $('#rhscontent').height();
+
+  //toggle some CSS classes to get the right look
+  $('#fullscreen').toggleClass('fullscreenrow');
+  $('#row').toggleClass('fullscreenrow row');
+  $('#container').toggleClass('fullscreenrow container');
+  $('.chart-wrapper .lhs').toggleClass('fullscreenlhs');
+  $('.chart-wrapper .rhs').toggleClass('fullscreenrhs');
+  $('#keyline').toggleClass('fullscreenrow cicontent');
+  $('#fullIcon').toggleClass('fa-expand fa-compress');
+  $('#rhscontent').toggleClass('span4');
+  setTooltip('#fullscreenButton', 'Exit Full Screen');
+  $('#fullscreenButton i').removeClass('icon-resize-full').addClass('icon-resize-small');
+
+  // This should get both map & chart
+  var klElements = $('#kl, [id^=kl] [id^=KeyLines-chart-]'),
+    tlElements = $('[id^=tl], [id^=KeyLines-timebar-]');
+      
+  // This element is only used in the time bar -> mapping demo
+  var mapElement = $('#leaflet');
+
+  $('#toggleTab').toggleClass('fs-tabs fshide');
+
+  //resize the component
+  if (isFullScreen) {
+
+    $.each(klElements, function (index, el){
+      fsRestore[el.id] = {
+        // chart
+        width: $(el).width(),
+        height: $(el).height()
+      };
+    });
+
+    var screenHeight = Math.max(screen.availHeight, screen.height);
+
+    // Quickly compute how much room we need for the timebars underneath
+    var timebarsHeight = 0;
+    $.each(tlElements, function (index, el){
+
+      // el is a DOM object here?!
+
+      fsRestore[el.id] = {
+        // timebar
+        width: $(el).width(),
+        height: $(el).height()
+      };
+
+      // if there's no chart, take the entire screen otherwise keep the same height
+      KeyLines.setSize(el.id, screen.availWidth, (klElements.length > 0 ? fsRestore[el.id].height : screenHeight));
+
+      timebarsHeight += fsRestore[el.id].height;
+    });
+
+    if(mapElement.length){
+      // save it for later
+      fsRestore.leaflet = {
+        width: mapElement.width(),
+        height: mapElement.height()
+      };
+      $('#leaflet')
+        .width(screen.width)
+        .height(screen.height);
+    }
+
+    // resize the chart/map here
+    $.each(klElements, function (index, el){
+      KeyLines.setSize(el.id, screen.availWidth, screenHeight - timebarsHeight);
+    });
+
+    var topPosition = rhsheight > 100 ? (screenHeight - rhsheight - 20) : rhsheight + 100;
+
+    $('#rhscontent').css({
+      'position':'absolute',
+      'right': 0,
+      'left': 'auto',
+      'top': topPosition,
+      'z-index': 9999
+    });
+
+    $('#rhscontent').appendTo('#fullscreen > .cicontainer');
+    $('#moreContainer').appendTo('#fullscreen > .cicontainer');
+
+    // hide legend if present
+    if($('#legend')){
+      $('#legend').hide();
+    }
+
+    // move popover/contextMenus
+    $('.floating').appendTo('#keyline');
+
+    // resize the leaflet map for full screen
+    if(isMappingDemo()){
+      map.setView(new L.LatLng(48.5, 12.5), 6);
+    }
+
+  }
+  else {
+    setTooltip('#fullscreenButton', 'Full Screen');
+    $('#fullscreenButton').removeClass('active btn-kl');
+    $('#fullscreenButton i').removeClass('icon-resize-small').addClass('icon-resize-full');
+
+    // Sometimes the user can pass in map mode when in FS
+    // So just set the Map container the restore size of the chart
+    $.each(klElements, function (index, el){
+      if(!fsRestore[el.id]){
+        fsRestore[el.id] = {
+          width: fsRestore.kl.width,
+          height: fsRestore.kl.height
+        };
+      }
+    });
+
+    $.each(fsRestore, function (id, size){
+
+      KeyLines.setSize(id, size.width, size.height);
+
+    });
+
+    $('#rhscontent').prependTo('.chart-wrapper .rhs');
+    $('#moreContainer').appendTo('#moreParent');
+
+    $('#rhscontent').css({'position':'relative', 'left' : 0, 'top': 0, 'margin-left': "", 'z-index': 0});
+
+    // restore legend if present
+    if($('#legend')){
+      $('#legend').show();
+    }
+
+    $('.floating').appendTo('body');
+
+    // resize the leaflet map
+    if(isMappingDemo()){
+      map.setView(new L.LatLng(50.583236614805884, 9.184570312499998), 5);
+    }
+  }
+
+  //and make the charts fit to window
+  $.each(klElements, function (index, el){
+    var chart = KeyLines.components[el.id];
+    chart.zoom('fit');
+  });
+
+  if(isMappingDemo()){
+    // due to some animations in the Leaflet resize action
+    // sometimes it can "forget" to invalidate the current state
+    // for a redraw
+    map.invalidateSize();
+  }
+}
+
+// This is set (optionally) by declaring demoId in the jade file
+// It is used for various demo-specific behaviour
+function getDemoId() {
+  var container = document.getElementById('container');
+
+  if (container) {
+    return container.dataset.demoid;
+  }
+
+  return undefined;
+}
+
+function isMappingDemo(){
+  return getDemoId() === 'mapping';
+}
+
+function fitForSmallScreens(e){
+  var isSmallScreen = $(window).width() < 767;
+
+  if(isSmallScreen && !isDocumentInFullScreenMode()){
+
+    $('#kl,#tl').css('width', $('.chart-wrapper .lhs').width() - 2);
+    var maxWidth = $('#pageContainer').width() - 2;
+
+    $('#tl1,#tl2,#tl3,#kl1,#kl2,#kl3').css('width', maxWidth);
+    // and go regular now
+    fitOnMediaQueries();
+  }
+}
+
+function isDocumentInFullScreenMode() {
+  return (document.fullscreenElement ||
+      document.mozFullScreen ||
+      document.webkitIsFullScreen ||
+      document.msFullscreenElement) ||
+      // Firefox triggers a mediaquery BEFORE going FS
+      isFirefoxGoingFS;
+}
+
+function fitOnMediaQueries(){
+  if(isDocumentInFullScreenMode()) {
+    // Prevent media queries running when in fullscreen #1265
+    return;
+  }
+  var chartEl = document.getElementById('kl') || document.getElementById('KeyLines-chart-1');
+  var chart = $(chartEl);
+
+  var isChart = !!chart.length;
+  var isMap = !!$('#leaflet').length;
+  var needToResize = isChart || isMap;
+
+  var timebarEl = document.getElementById('tl') || document.getElementById('KeyLines-timebar-1');
+  var timebar = $(timebarEl);
+  var isTimebar = !!timebar.length;
+
+  needToResize |= isTimebar;
+  var width;
+
+  if( needToResize ){
+    width = $('.chart-wrapper .lhs').width() - 2;
+    // need to do this due to the resize demo
+    var height = Math.min(580, chart.height());
+
+    if( isTimebar && !isMappingDemo()){
+      height = 418;
+    }
+
+    var isResizeDemo = !!$('.resize-custom-handle').length;
+
+    if(isResizeDemo){
+      $('#resizable').css('width', width).css('height', height);
+      // do not use .css: IE does scale images only with explicit width attribute
+      $('.resize-custom-handle').css('width', width - 48);
+    }
+
+    $('#leaflet').width(width);
+    if (chartEl) {
+      KeyLines.setSize(chartEl, width, height);
+    }
+
+    if (timebarEl) {
+      var tbHeight = timebar.height();
+      KeyLines.setSize(timebarEl, width, tbHeight);
+    }
+  }
+
+  // Two charts
+  var isEnronDemo    = isChart && !!$('#minikl').length;
+  // Two timebars in the page
+  var isOverviewDemo = $('[id^=tl]').length === 2 && isChart;
+  // Two timebars and a chart called kl1
+  var isTimeBarBasics = $('[id^=tl]').length === 2 && document.getElementById('kl1');
+  // Map Basics demo
+  // Some divs aren't loaded when this is first checked, so use title. Issue #1420
+  var isMapBasics    = document.title.indexOf('Map Basics') === 0;
+
+  // Enron Demo code
+  if(isEnronDemo){
+    width = $('.chart-wrapper .rhs').width() - 40;
+    KeyLines.setSize('minikl', width, 232);
+  }
+
+  // Overview Demo code
+  if(isOverviewDemo){
+    width = $('.chart-wrapper .lhs').width() - 2;
+    KeyLines.setSize('tl1', width, $('#tl1').height());
+    KeyLines.setSize('tl2', width, $('#tl2').height());
+  }
+
+  // Fundamentals2 code
+  if(isTimeBarBasics){
+    width = $('#pageContainer').width() - 2;
+    // do not forget to resize the overlay on mediaquery!
+    $('.blue-overlay').css('width', width);
+
+    // resize timebar 1, 2, 3
+    KeyLines.setSize('tl1', width, $('#tl1').height());
+    KeyLines.setSize('tl2', width, $('#tl2').height());
+    // resize chart
+    KeyLines.setSize('kl1', width, $('#kl1').height());
+  }
+
+  if(isMapBasics){
+    width = $('#pageContainer').width() - 2;
+    // do not forget to resize the overlay on mediaquery!
+    $('.blue-overlay').css('width', width);
+
+    // resize map chart 1, 2, 3
+    KeyLines.setSize('kl1', width, $('#kl1').height());
+    KeyLines.setSize('kl2', width, $('#kl2').height());
+    KeyLines.setSize('kl3', width, $('#kl3').height());
+  }
+}
+
+var harveyObject = {
+  on: fitOnMediaQueries,
+  off: fitOnMediaQueries
+};
+
+// media query checker
+function mediaQueriesEnabled (){
+  return (typeof window.matchMedia != "undefined" || typeof window.msMatchMedia != "undefined");
+}
+
+// Monkey-patch mustache so that it de-pretty-prints templates.
+// This is required for some demos.
+function patchMustache() {
+  if (typeof Mustache !== 'undefined') {
+    var origfn = Mustache.to_html;
+    var flattenRegex = /(\r\n|\n|\r)\s*/gm;
+
+    Mustache.to_html = function(template, view, partials, send_fun) {
+      return origfn.call(this, template.replace(flattenRegex, ''), view, partials, send_fun);
+    };
+  }
+}
+patchMustache();
+
+// Handle events so that scrollspy and accordions work well together
+var adjustOnShown = false;
+var adjustMenuScrollPosition = debounce(function () {
+  if(!inSideNav) {
+    // need to check, and maybe adjust, the scroll position
+    var container = $('.scrollspy');
+    var active = $('.scrollspy .active');
+    var activePos = active.position();
+    if (!activePos) {
+      return;
+    }
+    var isHeader = active.hasClass('accordion-heading');
+    var parentPos = {top: 0};
+    if (!isHeader) {
+      parentPos = active.offsetParent().position();
+    }
+    var floatingHeaderHeight = $('.accordion-heading:not(.collapsed)').height();
+    var activePosition = activePos.top + parentPos.top - floatingHeaderHeight;
+
+    // we make bigger scroll jumps going down so animate that way, but not going up
+    if ((container.height() - floatingHeaderHeight) < (activePosition + active.height())) {
+      container.animate({scrollTop: container.scrollTop() + activePosition});
+    } else if (activePosition < 0) {
+      container.scrollTop(container.scrollTop() + activePosition);
+    }
+  }
+}, 250);
+
+function styleHeaders() {
+  $('.kl-sidenav .collapse').each(function(i) {
+    $(this).prev('.accordion-heading').toggleClass('collapsed', !$(this).hasClass('in'));
+  });
+}
+$(document).on('shown', '.kl-sidenav .collapse', function(evt) {
+  if(adjustOnShown) {
+    adjustOnShown = false;
+    adjustMenuScrollPosition();
+  }
+  styleHeaders();
+});
+$(document).on('hidden', '.kl-sidenav .collapse', function(evt) {
+  styleHeaders();
+});
+// collapse closed accordions when their members are scrolled over
+$(document).on('activate', '[data-spy="scroll"]', function(evt) {
+  var target = $(evt.target);
+  // IE11 has issues over-activating this event handler, so need additional checks to make sure
+  // we only act on it in the right circumstances, see #1433
+  var isHeader = target.hasClass('accordion-heading');
+  var isChildNav = target.parent().hasClass('accordion-inner');
+  if(isHeader || isChildNav) {
+    if(isChildNav) {
+      // We might need to open the accordion
+      var collapseParent = target.closest('.kl-sidenav .collapse');
+      if(collapseParent.length > 0 && !collapseParent.hasClass('in')) {
+        // need to show a new accordion menu
+        target.closest('.collapse').collapse('show');
+        adjustOnShown = true;
+      }
+    }
+    adjustMenuScrollPosition();
+  }
+});
+
+function checkForKeyLinesFile(){
+  if(typeof KeyLines !== 'undefined'){
+    // do nothing
+    return;
+  }
+}
+
+function scrollContentPage(anchor) {
+  if (anchor) {
+    $(window).scrollTop($(anchor).offset().top);
+    return;
+  }
+
+  // need to check, and maybe adjust, the scroll position
+  var active = $('.kl-sidenav li.active').find('a');
+  if(active && active[0]){
+    // find the id of the section it was on
+    var id = $(active[0]).data('anchor') || active[0].hash;
+
+    if($(id).offset()){
+      // scrollTop on the window object is the most reliable way to make the whole page scroll cross-browsers I found
+      $(window).scrollTop( $(id).offset().top );
+    }
+  }
+}
+
+$(window).on('load', function() {
+
+  $('.cookie-accept').click(function () {
+    document.cookie = 'ci-accept-cookies=1; max-age=31536000; path=/';
+    $('#cookie-banner').animate({ height: 0, margin: 0, padding: 0, overflow: 'hidden' });
+  });
+
+  checkForKeyLinesFile();
+
+
+
+  // API navbar
+  if($('#nav-wrapper').length){
+    $('#nav-wrapper').affix({
+      offset: {top: $('#nav-wrapper').offset().top - 72 }
+    });
+  }
+  
+  // manually control interface collapse
+  $('.expandcontrol').click(function() {
+    var target = $(this.getAttribute('data-collapse-target'));
+    var label = $('.collapse-label', this);
+    var icon = $('i.fa', this);
+    if(target[0].className.match(/in/)) {
+      label.text(' Show');
+      icon.removeClass('fa-caret-down');
+      icon.addClass('fa-caret-right');
+      $(target).collapse('hide');
+    } else {
+      label.text(' Hide');
+      icon.removeClass('fa-caret-right');
+      icon.addClass('fa-caret-down');
+      $(target).collapse('show');
+    }
+    
+    setTimeout(function() {
+      refreshScrollSpy();
+    },400);
+  });
+
+  $('#fullscreenButton').click(doFullScreen);
+
+  // Enable Fullscreen only for CANVAS
+  var enableFullScreen = KeyLines.fullScreenCapable();
+  $('#fullscreenButton').toggleClass('fshide', !enableFullScreen);
+  $('#fullscreenDisabled').toggleClass('fshide', enableFullScreen);
+
+  setTooltip('#fullscreenDisabled, #fullscreenButton', 'Full Screen');
+
+  var isRhsOpen = true;
+  if($('#toggleRight').length){
+    $('#toggleRight').click(function(){
+      var el = $('#rhscontent');
+
+      // remove pixels and cast to number
+      var right = + el.css('right').replace(/px/, '');
+      var elWidth = el.width();
+      var buttonWidth = $('#toggleRight').width();
+
+      // 17 is the offset for the tab, 5 is padding
+      if (isRhsOpen) {
+        el.animate({'right': 0 - elWidth + buttonWidth - 17 - 5}, 200);
+      } else {
+        el.animate({'right': 0}, 200);
+      }
+      isRhsOpen = !isRhsOpen;
+
+      // swap the icons
+      $('#toggleIcon').toggleClass("icon-chevron-down icon-chevron-up");
+    });
+  }
+
+  //only prettyPrint if it is defined: it shouldn't be defined ofn IE8 or lower because we had to
+  //remove it - the regular expression didn't work
+  if (typeof prettyPrint === 'function') {
+    prettyPrint();
+  }
+
+  $(window).resize(function(){
+    fitForSmallScreens();
+    refreshScrollSpy();
+  });
+
+  if(!mediaQueriesEnabled()){
+    // resize it on startup
+    fitOnMediaQueries();
+  }
+
+  // Resize stuff based for non-resposive layouts
+  fitForSmallScreens();
+
+  /*
+   * Stop the main content from scolling when scrolling the sidenav
+   */
+  // Disable content scrolling on the sidenav
+  $('.kl-sidenav').on('mouseover touchstart', function (e) {
+    inSideNav = true;
+  });
+
+  // Unable content scrolling back when leaving the sidenav (default behaviour)
+  $('.kl-sidenavcontent').on('mouseover touchstart', function (e) {
+    inSideNav = false;
+  });
+
+  styleHeaders();
+
+  $(window).scroll(function() {
+    KL_SDK.updateFooterStyle();
+  }).scroll();
+
+  function setAsyncStyle(mode){
+    var isCallbacks = mode === 'callbacks',
+        isPromises  = mode === 'promises';
+    // Doc & examples
+    $('.callbacks').toggleClass('hide', isPromises);
+    $('.promises').toggleClass('hide', isCallbacks);
+    // Tags on function signatures
+    var classes = 'active';
+    $('.callback-tag').toggleClass(classes, isCallbacks);
+    $('.promise-tag').toggleClass(classes, isPromises);
+  }
+
+  function refreshScrollSpy(){
+    $('[data-spy="scroll"]').each(function () {
+      $(this).scrollspy('refresh');
+    });
+  }
+
+  function syncPageScroll(anchor) {
+    // now look at the menu and scroll the page on the right to match the right signature
+    scrollContentPage(anchor);
+    // Some DOM elements have been hidden, so refresh the scroll spy plugin
+    refreshScrollSpy();
+  }
+
+  // Only activate scrollspy stuff on the API ref
+  var isApiRef = $('.kl-sidenav.apiref').length > 0;
+  if(isApiRef) { 
+    
+
+    // what is the current choice of API flavour?
+    var asyncStyle = readCookie('async') || 'callbacks' ;
+    setAsyncStyle(asyncStyle);
+    // sync the scrollspy plugin with the latest changes and scroll the content at the right place
+    syncPageScroll(document.location.hash);
+  }
+  $('.async-tag').on('click', function(){
+
+    // change asyncStyle
+    var asyncStyle = $(this).hasClass('callback-tag') ? 'callbacks' : 'promises';
+    
+    if(!$(this).hasClass('fake')) {
+      // refresh the API page
+      setAsyncStyle(asyncStyle);
+
+      //save it in the cookies
+      createCookie('async', asyncStyle, 1);
+
+      // keep the side menu synced with the new content
+      refreshScrollSpy();
+    }
+  });
+
+  $('.accordion-toggle[data-anchor]').on("click",function() {
+    document.location.hash = $(this).attr('data-anchor');
+  });
+
+  /*
+   * API Reference method filtering
+   */
+  var $searchInput = $('#nav-search');
+  var $usingTheApiHeader = $('#usingTheApi');
+  var $headings = $('.accordion-heading').not('#usingTheApi');
+  var $bodies = $('.accordion-body');
+  var $links = $('.accordion-inner li a');
+
+  /**
+   * Returns the current sanitized search value.
+   */
+  function getInputValue() {
+    return $searchInput.val().trim().toLowerCase();
+  }
+
+  /**
+   * Triggers the search for a given input.
+   *
+   * @param {string} input The filtering string
+   */
+  function triggerSearch(input) {
+    // Hide the first heading as it's got no links
+    $usingTheApiHeader.toggleClass('hidden', !!input);
+
+    // Open all sections
+    $headings.removeClass('collapsed');
+    $bodies.addClass('in').css('height', 'auto');
+
+    // Hide the list item if it doesn't match with the user input
+    $.each($links, function() {
+      var methodName = $(this).text().toLowerCase();
+      var doesMatch = methodName.indexOf(input) > -1;
+      var $li = $(this).parent();
+      $li.toggleClass('hidden', !doesMatch);
+    });
+
+    // Hide the heading section if no match in its title and in its children
+    $.each($headings, function() {
+      var $ul = $(this).next().find('.accordion-inner');
+      var doesHeadingMatch = $(this).text().toLowerCase().indexOf(input) > -1;
+      var areAllLinksHidden = $ul.children().length === $ul.children('.hidden').length;
+
+      $(this).toggleClass('hidden', !doesHeadingMatch && areAllLinksHidden);
+
+      if (doesHeadingMatch) {
+        // Show all list items back for which their heading matches
+        $(this).next('.accordion-body').find('li.hidden').removeClass('hidden');
+      }
+    });
+
+    // Hide navigation panel if all sections are hidden
+    var areAllHeadingsHidden = $headings.length === $headings.filter('.hidden').length;
+    $('.accordion-group').toggleClass('hidden', areAllHeadingsHidden); // Hide the heading
+    $('#filter-no-match').toggleClass('hidden', !areAllHeadingsHidden); // Show the "No matches" message
+  }
+
+  $searchInput.on('input', function() {
+    triggerSearch(getInputValue());
+  });
+});
+
+// Updates the position of the footer
+KL_SDK.updateFooterStyle = debounce(function() {
+  var footerHeight = $('.footer').height();
+  var sidebar = $(".kl-sidenav");
+  // firefox needs document.body, chrome needs document.documentElement
+  var bodyHeight = Math.min(document.documentElement.scrollHeight, document.body.scrollHeight);
+  var distance_from_bottom = (bodyHeight - window.innerHeight) - window.pageYOffset;
+  if (distance_from_bottom < footerHeight) {
+    sidebar.css("bottom", footerHeight - distance_from_bottom + "px");
+  } else {
+    sidebar.css("bottom", "0");
+  }
+}, 250);
+
+Harvey.attach("(min-width: 1200px)", harveyObject);
+Harvey.attach("(min-width: 980px)", harveyObject);
+Harvey.attach("(min-width: 768px) and (max-width: 979px)", harveyObject);
+Harvey.attach("(max-width: 767px)", harveyObject);

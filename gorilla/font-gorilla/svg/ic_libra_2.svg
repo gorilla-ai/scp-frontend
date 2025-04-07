@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_libra_2</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M2,16.00015 L2,17.00015 L11.423,17.00015 L8.536,22.00015 L15.464,22.00015 L12.577,17.00015 L22,17.00015 L22,16.00015 L2,16.00015 Z M12,18.00015 L13.732,21.00015 L10.268,21.00015 L12,18.00015 Z M3,15 C2.448,15 2,14.552 2,14 L2,8 C2,7.448 2.448,7 3,7 L10,7 C10.552,7 11,7.448 11,8 L11,14 C11,14.552 10.552,15 10,15 L3,15 Z M4,13 L9,13 L9,9 L4,9 L4,13 Z M21,3 C21.552,3 22,3.448 22,4 L22,14 C22,14.552 21.552,15 21,15 L13,15 C12.448,15 12,14.552 12,14 L12,4 C12,3.448 12.448,3 13,3 L21,3 Z M14,13 L20,13 L20,5 L14,5 L14,13 Z" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_libra_2">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Combined-Shape" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

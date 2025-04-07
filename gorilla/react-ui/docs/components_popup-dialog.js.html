@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/popup-dialog.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/popup-dialog.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+  * @module popup-dialog
+  * @description A module to help with opening/closing **global** popup dialog&lt;br>
+  * This is to replace traditional window.alert, window.confirm, window.prompt
+  */
+
+import React from 'react'
+import ReactDOM from 'react-dom'
+import _ from 'lodash'
+
+import {retrieveFormData} from '../utils/input-helper'
+import ModalDialog from './modal-dialog'
+
+let log = require('loglevel').getLogger('react-ui/components/popup-dialog')
+
+let handles = {}
+
+const TYPES = {ALERT:'1', CONFIRM:'2', PROMPT:'3'}
+
+const GLOBAL_POPUP_ID = 'g-popup-container'
+
+const PopupDialog = React.createClass({
+    propTypes: {
+    },
+    getInitialState() {
+        return {
+            open: false,
+            error: null
+        }
+    },
+    open(type, title, display, id, style, cancelText, confirmText, act) {
+        this.setState({
+            type: TYPES[type.toUpperCase()],
+            title,
+            display,
+            id,
+            style,
+            cancelText,
+            confirmText,
+            act,
+            open: true,
+            error: null
+        })
+    },
+    handleConfirm() {
+        let {act} = this.state
+        let result = retrieveFormData(ReactDOM.findDOMNode(this))
+
+        let p = act &amp;&amp; act(true, result)
+        if (p &amp;&amp; p.then) {
+            // is promise
+            p
+                .then(() => {
+                    this.handleError()
+                })
+                .catch((err) => {
+                    this.handleError(err.message)
+                })
+        }
+        else {
+            this.handleError(p)
+        }
+    },
+    handleError(err) {
+        if (err) {
+            this.setState({error:err})
+        }
+        else {
+            this.close()
+        }
+    },
+    close() {
+        this.setState({open:false, error:null})
+    },
+    handleCancel() {
+        let {act} = this.state
+
+        act(false)
+        this.close()
+    },
+    render() {
+        let {type, title, display, id, style, cancelText, confirmText, open, error} = this.state
+
+        if (!open) {
+            return null
+        }
+        switch (type) {
+            case TYPES.ALERT:
+                return &lt;ModalDialog
+                    title={title}
+                    id={id}
+                    defaultAction='confirm'
+                    closeAction='confirm'
+                    contentClassName='pure-form'
+                    actions={{
+                        confirm: {
+                            handler: this.handleConfirm,
+                            text: confirmText
+                        }
+                    }}
+                    global={true}
+                    draggable={true}
+                    style={style}>
+                    {display}
+                &lt;/ModalDialog>
+            case TYPES.CONFIRM:
+            case TYPES.PROMPT:
+                return &lt;ModalDialog
+                    title={title}
+                    id={id}
+                    info={error}
+                    infoClassName='c-error'
+                    defaultAction='cancel'
+                    closeAction='cancel'
+                    contentClassName='pure-form'
+                    actions={{
+                        cancel: {handler:this.handleCancel, className:'standard', text:cancelText},
+                        confirm: {
+                            handler: this.handleConfirm,
+                            text: confirmText
+                        }
+                    }}
+                    global={true}
+                    draggable={true}
+                    style={style}>
+                    {display}
+                &lt;/ModalDialog>
+
+            default:
+                return null
+        }
+    }
+})
+
+function openId(type, id, args) {
+    if (!id) {
+        log.error('openId:missing id')
+        return
+    }
+
+    let handle = handles[id]
+
+    if (!handle) {
+        let node = document.createElement('DIV')
+        node.id = id
+        document.body.appendChild(node)
+        handle = handles[id] = ReactDOM.render(
+            &lt;PopupDialog />,
+            document.getElementById(id)
+        )
+    }
+    if (!_.isObject(args)) {
+        args = {display:args}
+    }
+
+    handle.open(
+        type,
+        args.title,
+        args.display,
+        args.id,
+        args.style,
+        args.cancelText || 'Cancel',
+        args.confirmText || 'Confirm',
+        args.act)
+}
+
+function openIdIf(type, id, condition, args) {
+    if (condition) {
+        openId(type, id, args)
+    }
+    else {
+        args.act(true)
+    }
+}
+
+function closeId(id) {
+    handles[id] &amp;&amp; handles[id].close()
+}
+
+/**
+ * Config for the popup dialog
+ * @typedef {object} PopupConfig
+ * @property {renderable} [title] - Title of the dialog
+ * @property {renderable} display - What to display in the dialog
+ * @property {string} [id] - Container dom #id
+ * @property {object} [style] - Style to apply to the container
+ * @property {string} [cancelText='Cancel'] - Cancel button text, only used with prompt &amp; confirm dialogs
+ * @property {string} [confirmText='Confirm'] - Confirm button text
+ * @property {function} act - Action to perform when submit buttn clicked.&lt;br>Can return a promise or error text
+ * @property {boolean} act.confirmed - did the user say 'ok'?
+ * @property {object} act.data - Input data embedded inside display, only used with prompt &amp; confirm dialogs
+ */
+
+export default {
+    /**
+     * Open alert box
+     * @param {PopupConfig | renderable} cfg - Popup config, or simple renderable string
+     *
+     * @example
+     *
+import {PopupDialog} from 'react-ui'
+
+PopupDialog.alertId('g-custom-alert-container', 'Test')
+PopupDialog.alert('Test')
+PopupDialog.alert({display:'Test', act:(confirmed)=>{
+    console.log('User is okay? ',confirmed)
+}})
+     */
+    alert: openId.bind(null, 'alert', GLOBAL_POPUP_ID),
+    alertId: openId.bind(null, 'alert'),
+
+    /**
+     * Open confirm box
+     * @param {PopupConfig | renderable} cfg - Popup config, or simple renderable string
+     *
+     * @example
+     *
+import {PopupDialog} from 'react-ui'
+
+PopupDialog.confirm({
+    display:'Fetch more data?',
+    cancelText: 'No!',
+    confirmText: 'Go Ahead',
+    act:(confirmed)=>{
+        if (confirmed) {
+            $.get('...') // get more data
+        }
+    }
+})
+     */
+    confirm: openId.bind(null, 'confirm', GLOBAL_POPUP_ID),
+    confirmId: openId.bind(null, 'confirm'),
+
+    /**
+     * Open confirm box if condition is satisfied.&lt;br>
+     * If condition is not satisfied (ie no need to confirm), act will be fired with confirmed=true
+     * @param {boolean} condition - Should confirm first before proceed?
+     * @param {PopupConfig | renderable} cfg - Popup config, or simple renderable string
+     *
+     * @example
+     *
+import Promise from 'bluebird'
+import {PopupDialog} from 'react-ui'
+
+let userDidNotEnterAddress = !user.address;
+PopupDialog.confirmIf(userDidNotEnterAddress, {
+    display:'You have not entered address, are you sure you want to proceed?',
+    act:(confirmed)=>{
+        if (confirmed) {
+            // note if user has entered address, then it will reach here without popup
+            return Promise.resolve($.post('/api/save/user',{data:user})) // post user information
+            // if post returned with error (eg 404), error message will be displayed
+        }
+    }
+})
+     */
+    confirmIf: openIdIf.bind(null, 'confirm', GLOBAL_POPUP_ID),
+    confirmIdIf: openIdIf.bind(null, 'confirm'),
+
+    /**
+     * Open prompt box
+     * @param {PopupConfig | renderable} cfg - Popup config, or simple renderable string
+     *
+     * @example
+     *
+import Promise from 'bluebird'
+import {PopupDialog} from 'react-ui'
+
+PopupDialog.prompt({
+    display: &lt;div>
+        &lt;label htmlFor='name'>Name&lt;/label>&lt;input id='name'/>
+        &lt;label htmlFor='phone'>Phone&lt;/label>&lt;input id='phone'/>
+        &lt;label htmlFor='address'>Address&lt;/label>&lt;input id='address'/>
+    &lt;/div>,
+    act:(confirmed, data)=>{
+        if (confirmed) {
+            console.log(data) // {name:'abc', phone:'012345678', address:'Taiwan'}
+            return Promise.resolve($.post('/api/save/user',data)) // post user information
+        }
+    }
+})
+     */
+    prompt: openId.bind(null, 'prompt', GLOBAL_POPUP_ID),
+    promptId: openId.bind(null, 'prompt'),
+
+    /**
+     * Close popup dialog
+     *
+     * @example
+     *
+import {PopupDialog} from 'react-ui'
+
+PopupDialog.close()
+PopupDialog.closeId('g-g-custom-alert-container')
+     */
+    close: closeId.bind(null, GLOBAL_POPUP_ID),
+    closeId
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ajax-helper.html">ajax-helper</a></li><li><a href="module-contextmenu.html">contextmenu</a></li><li><a href="module-date.html">date</a></li><li><a href="module-download.html">download</a></li><li><a href="module-error-helper.html">error-helper</a></li><li><a href="module-grid-event.html">grid-event</a></li><li><a href="module-input-helper.html">input-helper</a></li><li><a href="module-linked-state-mixins.html">linked-state-mixins</a></li><li><a href="module-outside-event.html">outside-event</a></li><li><a href="module-popover.html">popover</a></li><li><a href="module-popup-dialog.html">popup-dialog</a></li><li><a href="module-progress.html">progress</a></li><li><a href="module-prop-types.html">prop-types</a></li></ul><h3>Classes</h3><ul><li><a href="ButtonGroup.html">ButtonGroup</a></li><li><a href="Checkbox.html">Checkbox</a></li><li><a href="CheckboxGroup.html">CheckboxGroup</a></li><li><a href="Combobox.html">Combobox</a></li><li><a href="DatePicker.html">DatePicker</a></li><li><a href="DateRange.html">DateRange</a></li><li><a href="Dropdown.html">Dropdown</a></li><li><a href="FileInput.html">FileInput</a></li><li><a href="Form.html">Form</a></li><li><a href="Grid.html">Grid</a></li><li><a href="Hierarchy.html">Hierarchy</a></li><li><a href="Image.html">Image</a></li><li><a href="ImageGallery.html">ImageGallery</a></li><li><a href="Input.html">Input</a></li><li><a href="List.html">List</a></li><li><a href="ModalDialog.html">ModalDialog</a></li><li><a href="module-Tiles.html">Tiles</a></li><li><a href="MultiInput.html">MultiInput</a></li><li><a href="PageNav.html">PageNav</a></li><li><a href="RadioGroup.html">RadioGroup</a></li><li><a href="RangeCalendar.html">RangeCalendar</a></li><li><a href="Search.html">Search</a></li><li><a href="Slider.html">Slider</a></li><li><a href="Table.html">Table</a></li><li><a href="Tabs.html">Tabs</a></li><li><a href="Textarea.html">Textarea</a></li><li><a href="Timeline.html">Timeline</a></li><li><a href="ToggleButton.html">ToggleButton</a></li><li><a href="Tree.html">Tree</a></li></ul><h3>Mixins</h3><ul><li><a href="module-linked-state-mixins.LinkedDeepStateMixin.html">LinkedDeepStateMixin</a></li><li><a href="module-linked-state-mixins.LinkedStateMixin.html">LinkedStateMixin</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Dec 04 2018 10:28:46 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

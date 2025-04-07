@@ -1,0 +1,96 @@
+@import (reference) 'base.less';
+
+.c-tabs-menu-fn(
+	@background-color: @g-standard-color, 
+	@border-bottom-color: @g-border-color,
+	@item-background-color: @g-standard-color,
+	@item-hover-background-color: @g-standard-hover-color,
+	@item-color: @g-standard-font-light-color,
+	@current-item-background-color: @g-standard-color,
+	@current-item-border-bottom-color: @g-standard-hilite-color,
+	@current-item-color: @g-standard-hilite-color
+	) {
+	.c-flex;
+	.fixed;
+	.fww;
+	background-color: @background-color;
+	border-bottom: 1.5px solid @border-bottom-color;
+
+	li, a {
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+
+	    background-color: @item-background-color;
+		padding: 5px 20px;
+	    cursor:pointer;
+		color: @item-color;
+	}
+	.current {
+	    background-color: @current-item-background-color;
+		border-style: solid;
+		border-color: @current-item-border-bottom-color;
+		border-width: 0 0 3px 0;
+	    cursor:default;
+		color: @current-item-color;
+	}
+	li:hover, a:hover {
+		background-color: @item-hover-background-color;		    
+	}
+	.disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+}
+
+.c-tabs-menu {
+	.c-tabs-menu-fn()
+}
+
+.c-tabs {
+	.c-flex;
+	.fdc;
+	.ais;
+	.acs;
+	.jcfs;
+
+	font-size:0.95rem;
+	position:relative;
+
+	> .tabContent {
+		.grow;
+	    .c-flex;
+		position:relative;
+		margin-top:10px;
+		padding:5px;
+	    overflow-y:auto;
+
+	    > * {
+	    	.grow;
+	    }
+	}
+	> .menu {
+		.c-tabs-menu;
+	}
+}
+
+.c-tabs.oldie {
+	> .menu {
+		li, a {
+		    margin: 1px 3px 0 0;
+			border-radius:5px 5px 0 0;
+			border-style: solid;
+			border-color: @g-border-color;
+		    border-width:1px 1px 0 1px;
+		    background-color: @g-tertiary-color;
+		}
+		.current {
+			background-color: @g-standard-color;
+			margin-bottom: -1px;
+			z-index: 1;
+		}
+	}
+}

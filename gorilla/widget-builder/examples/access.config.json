@@ -1,0 +1,54 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "name": "Administrator",
+    "password": "gorillakm",
+    "rights": [
+      "account-mgmt",
+      "role-mgmt",
+      "group-mgmt",
+      "sys-config",
+      "audit",
+      "page1",
+      "page2",
+      "page3-1",
+      "page3-2",
+      "projects"
+    ]
+  },
+  {
+    "id": 2,
+    "isGroupOwner": true,
+    "username": "group",
+    "name": "GGroup Owner",
+    "password": "gorillakm"
+  },
+  {
+    "id": 3,
+    "username": "pages",
+    "name": "I can see all pages",
+    "password": "gorillakm",
+    "rights": [
+      "page1",
+      "page2",
+      "page3-1",
+      "page3-2"
+    ]
+  },
+  {
+    "id": 4,
+    "username": "page3-1",
+    "name": "I can see page 3-1",
+    "password": "gorillakm",
+    "rights": [
+      "page3-1"
+    ]
+  },
+  {
+    "id": 5,
+    "username": "page3-3",
+    "name": "I can see page 3-3",
+    "password": "gorillakm"
+  }
+]

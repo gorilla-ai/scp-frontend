@@ -1,0 +1,61 @@
+{
+  "name": "vbda-ui",
+  "version": "16.0.1",
+  "description": "VBDA UI",
+  "main": "server.js",
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "scripts": {
+    "build": "npm run build:clean && mkdir build && npm run build:babel && npm run build:less && npm run build:locales",
+    "build:clean": "rm -rf build",
+    "build:babel": "cd build && mkdir src && babel ../src --out-dir ./src",
+    "build:less": "cd build && mkdir css && lessc ../less/vbda-ui.less css/vbda-ui.css",
+    "build:locales": "cp -r locales/ build/locales/",
+    "lint": "node ./node_modules/eslint/bin/eslint.js \"src/**/*.js\" > lint.log",
+    "lint-fix": "node ./node_modules/eslint/bin/eslint.js --fix \"src/**/*.js\" > lint.log",
+    "doc": "jsdoc -r src -R README.md -p -c jsdoc.json -d docs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "classnames": "^2.2.5",
+    "font-gorilla": "git+ssh://git@git.gorilla-technology.com:gorilla/font-gorilla.git#semver:^1.0.0",
+    "i18next": "^11.2.3",
+    "jquery": "^3.3.1",
+    "json-loader": "^0.5.7",
+    "lodash": "^4.17.5",
+    "loglevel": "^1.6.1",
+    "loglevel-prefix-persist": "^1.0.3",
+    "moment": "^2.22.1",
+    "object-path-immutable": "^1.0.1",
+    "purecss": "^0.6.2",
+    "react": "^16.3.1",
+    "react-dom": "^16.3.1",
+    "react-addons-create-fragment": "^15.6.2",
+    "react-chart": "git+ssh://git@git.gorilla-technology.com:gorilla/react-chart.git#upgrade-react-v16",
+    "react-gis": "git+ssh://git@git.gorilla-technology.com:gorilla/react-gis.git#react-gis-upgrade",
+    "react-la": "git+ssh://git@git.gorilla-technology.com:gorilla/react-la.git#upgrade-react-v16",
+    "react-ui": "git+ssh://git@git.gorilla-technology.com:gorilla/react-ui.git#upgrade-react-v16"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.2.3",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-react-remove-prop-types": "^0.4.13",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-import-resolver-webpack": "^0.9.0",
+    "eslint-plugin-import": "^2.11.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.7.0",
+    "less": "^2.7.2",
+    "webpack": "^4.6.0"
+  }
+}

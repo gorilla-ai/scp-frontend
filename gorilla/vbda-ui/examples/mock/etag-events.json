@@ -1,0 +1,435 @@
+{
+  "took": 245,
+  "timed_out": false,
+  "_shards": {
+    "total": 30,
+    "successful": 30,
+    "failed": 0
+  },
+  "result": {
+    "total": 3599337,
+    "max_score": null,
+    "hits": [
+      {
+        "_index" : "etag-etag-2017.06.15",
+        "_type" : "events",
+        "_id" : "AVzyzqtBDEUOH43AvNuf",
+        "_score" : 1.0,
+        "_source" : {
+          "RecordTime" : "2017-06-15T10:50:01.000000Z",
+          "__index_name" : "etag-etag-2017.06.15",
+          "Location_geopoint" : {
+            "lon" : 121.618645304961,
+            "lat" : 25.0542146020822
+          },
+          "s_uuid" : "fd2dcf81-be12-43b8-a447-e58f872c15bd",
+          "Latitude" : 25.0542146020822,
+          "Longitude" : 121.618645304961,
+          "Source" : 0,
+          "CameraID" : "I000000001",
+          "has_error" : "false",
+          "ImgPath" : "C://image.png",
+          "Type" : 0,
+          "EncData" : "3152-DM",
+          "@timestamp" : "2017-06-29T07:44:09.450Z",
+          "_version_" : 1505613715667419136,
+          "@version" : "1",
+          "__data_type" : "etag",
+          "__data_source" : "etag",
+          "ID" : "01!20170615105001_3152-DM_I000000001",
+          "Location_geoshape" : {
+            "coordinates" : [
+              [
+                121.618545304961,
+                25.0543046020822
+              ],
+              [
+                121.618745304961,
+                25.0541246020822
+              ]
+            ],
+            "type" : "envelope"
+          }
+        }
+      },
+      {
+        "_index" : "etag-etag-2017.06.15",
+        "_type" : "events",
+        "_id" : "AVzyzqtBDEUOH43AvNuh",
+        "_score" : 1.0,
+        "_source" : {
+          "RecordTime" : "2017-06-15T10:50:01.000000Z",
+          "__index_name" : "etag-etag-2017.06.15",
+          "Location_geopoint" : {
+            "lon" : 121.618645304961,
+            "lat" : 25.0542146020822
+          },
+          "s_uuid" : "c36f760e-1ca9-4c17-8455-8b7b32cb2228",
+          "Latitude" : 25.0542146020822,
+          "Longitude" : 121.618645304961,
+          "Source" : 0,
+          "CameraID" : "I000000001",
+          "has_error" : "false",
+          "ImgPath" : "C://image.png",
+          "Type" : 0,
+          "EncData" : "3152-DM",
+          "@timestamp" : "2017-06-29T07:44:09.451Z",
+          "_version_" : 1505613715667419136,
+          "@version" : "1",
+          "__data_type" : "etag",
+          "__data_source" : "etag",
+          "ID" : "01!20170615105001_3152-DM_I000000001",
+          "Location_geoshape" : {
+            "coordinates" : [
+              [
+                121.618545304961,
+                25.0543046020822
+              ],
+              [
+                121.618745304961,
+                25.0541246020822
+              ]
+            ],
+            "type" : "envelope"
+          }
+        }
+      },
+      {
+        "_index" : "etag-etag-2017.06.15",
+        "_type" : "events",
+        "_id" : "AVzyzqtBDEUOH43AvNuj",
+        "_score" : 1.0,
+        "_source" : {
+          "RecordTime" : "2017-06-15T10:50:01.000000Z",
+          "__index_name" : "etag-etag-2017.06.15",
+          "Location_geopoint" : {
+            "lon" : 121.618645304961,
+            "lat" : 25.0542146020822
+          },
+          "s_uuid" : "f2b494e3-0221-4084-ba6f-b284fbe75169",
+          "Latitude" : 25.0542146020822,
+          "Longitude" : 121.618645304961,
+          "Source" : 0,
+          "CameraID" : "I000000001",
+          "has_error" : "false",
+          "ImgPath" : "C://image.png",
+          "Type" : 0,
+          "EncData" : "3152-DM",
+          "@timestamp" : "2017-06-29T07:44:09.452Z",
+          "_version_" : 1505613715667419136,
+          "@version" : "1",
+          "__data_type" : "etag",
+          "__data_source" : "etag",
+          "ID" : "01!20170615105001_3152-DM_I000000001",
+          "Location_geoshape" : {
+            "coordinates" : [
+              [
+                121.618545304961,
+                25.0543046020822
+              ],
+              [
+                121.618745304961,
+                25.0541246020822
+              ]
+            ],
+            "type" : "envelope"
+          }
+        }
+      },
+      {
+        "_index" : "etag-etag-2017.06.15",
+        "_type" : "events",
+        "_id" : "AVzyzqtBDEUOH43AvNun",
+        "_score" : 1.0,
+        "_source" : {
+          "RecordTime" : "2017-06-15T10:50:01.000000Z",
+          "__index_name" : "etag-etag-2017.06.15",
+          "Location_geopoint" : {
+            "lon" : 121.618645304961,
+            "lat" : 25.0542146020822
+          },
+          "s_uuid" : "05f6764a-77c8-4bdd-89a1-cfaa91069908",
+          "Latitude" : 25.0542146020822,
+          "Longitude" : 121.618645304961,
+          "Source" : 0,
+          "CameraID" : "I000000001",
+          "has_error" : "false",
+          "ImgPath" : "C://image.png",
+          "Type" : 0,
+          "EncData" : "3152-DM",
+          "@timestamp" : "2017-06-29T07:44:09.454Z",
+          "_version_" : 1505613715667419136,
+          "@version" : "1",
+          "__data_type" : "etag",
+          "__data_source" : "etag",
+          "ID" : "01!20170615105001_3152-DM_I000000001",
+          "Location_geoshape" : {
+            "coordinates" : [
+              [
+                121.618545304961,
+                25.0543046020822
+              ],
+              [
+                121.618745304961,
+                25.0541246020822
+              ]
+            ],
+            "type" : "envelope"
+          }
+        }
+      },
+      {
+        "_index" : "etag-etag-2017.06.15",
+        "_type" : "events",
+        "_id" : "AVzyzqtBDEUOH43AvNuz",
+        "_score" : 1.0,
+        "_source" : {
+          "RecordTime" : "2017-06-15T10:50:01.000000Z",
+          "__index_name" : "etag-etag-2017.06.15",
+          "Location_geopoint" : {
+            "lon" : 121.618645304961,
+            "lat" : 25.0542146020822
+          },
+          "s_uuid" : "3275bf52-84c3-4984-bb1e-8d2405f8d0e7",
+          "Latitude" : 25.0542146020822,
+          "Longitude" : 121.618645304961,
+          "Source" : 0,
+          "CameraID" : "I000000001",
+          "has_error" : "false",
+          "ImgPath" : "C://image.png",
+          "Type" : 0,
+          "EncData" : "3152-DM",
+          "@timestamp" : "2017-06-29T07:44:09.460Z",
+          "_version_" : 1505613715667419136,
+          "@version" : "1",
+          "__data_type" : "etag",
+          "__data_source" : "etag",
+          "ID" : "01!20170615105001_3152-DM_I000000001",
+          "Location_geoshape" : {
+            "coordinates" : [
+              [
+                121.618545304961,
+                25.0543046020822
+              ],
+              [
+                121.618745304961,
+                25.0541246020822
+              ]
+            ],
+            "type" : "envelope"
+          }
+        }
+      },
+      {
+        "_index" : "etag-etag-2017.06.15",
+        "_type" : "events",
+        "_id" : "AVzyzqtBDEUOH43AvNu3",
+        "_score" : 1.0,
+        "_source" : {
+          "RecordTime" : "2017-06-15T10:50:01.000000Z",
+          "__index_name" : "etag-etag-2017.06.15",
+          "Location_geopoint" : {
+            "lon" : 121.618645304961,
+            "lat" : 25.0542146020822
+          },
+          "s_uuid" : "51bdb2f8-d6ab-44eb-89fc-5df78e145e20",
+          "Latitude" : 25.0542146020822,
+          "Longitude" : 121.618645304961,
+          "Source" : 0,
+          "CameraID" : "I000000001",
+          "has_error" : "false",
+          "ImgPath" : "C://image.png",
+          "Type" : 0,
+          "EncData" : "3152-DM",
+          "@timestamp" : "2017-06-29T07:44:09.462Z",
+          "_version_" : 1505613715667419136,
+          "@version" : "1",
+          "__data_type" : "etag",
+          "__data_source" : "etag",
+          "ID" : "01!20170615105001_3152-DM_I000000001",
+          "Location_geoshape" : {
+            "coordinates" : [
+              [
+                121.618545304961,
+                25.0543046020822
+              ],
+              [
+                121.618745304961,
+                25.0541246020822
+              ]
+            ],
+            "type" : "envelope"
+          }
+        }
+      },
+      {
+        "_index" : "etag-etag-2017.06.15",
+        "_type" : "events",
+        "_id" : "AVzyzqtBDEUOH43AvNu6",
+        "_score" : 1.0,
+        "_source" : {
+          "RecordTime" : "2017-06-15T10:50:01.000000Z",
+          "__index_name" : "etag-etag-2017.06.15",
+          "Location_geopoint" : {
+            "lon" : 121.618645304961,
+            "lat" : 25.0542146020822
+          },
+          "s_uuid" : "992e89da-8bb9-45cc-a104-ce340a9abfa4",
+          "Latitude" : 25.0542146020822,
+          "Longitude" : 121.618645304961,
+          "Source" : 0,
+          "CameraID" : "I000000001",
+          "has_error" : "false",
+          "ImgPath" : "C://image.png",
+          "Type" : 0,
+          "EncData" : "3152-DM",
+          "@timestamp" : "2017-06-29T07:44:09.463Z",
+          "_version_" : 1505613715667419136,
+          "@version" : "1",
+          "__data_type" : "etag",
+          "__data_source" : "etag",
+          "ID" : "01!20170615105001_3152-DM_I000000001",
+          "Location_geoshape" : {
+            "coordinates" : [
+              [
+                121.618545304961,
+                25.0543046020822
+              ],
+              [
+                121.618745304961,
+                25.0541246020822
+              ]
+            ],
+            "type" : "envelope"
+          }
+        }
+      },
+      {
+        "_index" : "etag-etag-2017.06.15",
+        "_type" : "events",
+        "_id" : "AVzyzqtBDEUOH43AvNvC",
+        "_score" : 1.0,
+        "_source" : {
+          "RecordTime" : "2017-06-15T10:50:01.000000Z",
+          "__index_name" : "etag-etag-2017.06.15",
+          "Location_geopoint" : {
+            "lon" : 121.618645304961,
+            "lat" : 25.0542146020822
+          },
+          "s_uuid" : "4e5deb9c-f6bc-4cc7-85d4-cb160e611374",
+          "Latitude" : 25.0542146020822,
+          "Longitude" : 121.618645304961,
+          "Source" : 0,
+          "CameraID" : "I000000001",
+          "has_error" : "false",
+          "ImgPath" : "C://image.png",
+          "Type" : 0,
+          "EncData" : "3152-DM",
+          "@timestamp" : "2017-06-29T07:44:09.467Z",
+          "_version_" : 1505613715667419136,
+          "@version" : "1",
+          "__data_type" : "etag",
+          "__data_source" : "etag",
+          "ID" : "01!20170615105001_3152-DM_I000000001",
+          "Location_geoshape" : {
+            "coordinates" : [
+              [
+                121.618545304961,
+                25.0543046020822
+              ],
+              [
+                121.618745304961,
+                25.0541246020822
+              ]
+            ],
+            "type" : "envelope"
+          }
+        }
+      },
+      {
+        "_index" : "etag-etag-2017.06.15",
+        "_type" : "events",
+        "_id" : "AVzyzqtBDEUOH43AvNvG",
+        "_score" : 1.0,
+        "_source" : {
+          "RecordTime" : "2017-06-15T10:50:01.000000Z",
+          "__index_name" : "etag-etag-2017.06.15",
+          "Location_geopoint" : {
+            "lon" : 121.618645304961,
+            "lat" : 25.0542146020822
+          },
+          "s_uuid" : "c0cf3bd5-b974-4ca4-bdf5-beade3455b48",
+          "Latitude" : 25.0542146020822,
+          "Longitude" : 121.618645304961,
+          "Source" : 0,
+          "CameraID" : "I000000001",
+          "has_error" : "false",
+          "ImgPath" : "C://image.png",
+          "Type" : 0,
+          "EncData" : "3152-DM",
+          "@timestamp" : "2017-06-29T07:44:09.469Z",
+          "_version_" : 1505613715667419136,
+          "@version" : "1",
+          "__data_type" : "etag",
+          "__data_source" : "etag",
+          "ID" : "01!20170615105001_3152-DM_I000000001",
+          "Location_geoshape" : {
+            "coordinates" : [
+              [
+                121.618545304961,
+                25.0543046020822
+              ],
+              [
+                121.618745304961,
+                25.0541246020822
+              ]
+            ],
+            "type" : "envelope"
+          }
+        }
+      },
+      {
+        "_index" : "etag-etag-2017.06.15",
+        "_type" : "events",
+        "_id" : "AVzyzqtBDEUOH43AvNvN",
+        "_score" : 1.0,
+        "_source" : {
+          "RecordTime" : "2017-06-15T10:50:01.000000Z",
+          "__index_name" : "etag-etag-2017.06.15",
+          "Location_geopoint" : {
+            "lon" : 121.618645304961,
+            "lat" : 25.0542146020822
+          },
+          "s_uuid" : "d395a216-8384-476c-8b70-bbe11ee1ad4c",
+          "Latitude" : 25.0542146020822,
+          "Longitude" : 121.618645304961,
+          "Source" : 0,
+          "CameraID" : "I000000001",
+          "has_error" : "false",
+          "ImgPath" : "C://image.png",
+          "Type" : 0,
+          "EncData" : "3152-DM",
+          "@timestamp" : "2017-06-29T07:44:09.472Z",
+          "_version_" : 1505613715667419136,
+          "@version" : "1",
+          "__data_type" : "etag",
+          "__data_source" : "etag",
+          "ID" : "01!20170615105001_3152-DM_I000000001",
+          "Location_geoshape" : {
+            "coordinates" : [
+              [
+                121.618545304961,
+                25.0543046020822
+              ],
+              [
+                121.618745304961,
+                25.0541246020822
+              ]
+            ],
+            "type" : "envelope"
+          }
+        }
+      }
+    ]
+  }
+}

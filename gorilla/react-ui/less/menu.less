@@ -1,0 +1,163 @@
+@import (reference) 'base.less';
+
+// menu theme-color config
+@c-nav-background-color: @g-primary-color;
+@c-nav-hover-color: @g-primary-hover-color;
+@c-nav-current-color: @g-primary-hilite-color;
+@c-nav-sub-background-color: @g-secondary-color;
+@c-nav-sub-hover-color: @g-secondary-hover-color;
+@c-nav-sub-current-color:@g-secondary-hilite-color;
+@c-nav-sub-current-font-color: @g-secondary-hilite-font-color;
+@c-nav-default-font-color: @g-primary-font-color;
+@c-nav-sub-default-font-color: @g-secondary-font-color;
+@c-menu-bg-default-color: @g-tertiary-color;
+@c-menu-sub-bg-default-color: @g-standard-color;
+@c-menu-border-color:@g-border-color;
+@c-menu-hover-bg-color: @g-tertiary-hover-color;
+@c-menu-sub-hover-bg-color: @g-standard-hover-color;
+@c-menu-active-bg-color: @g-standard-active-color;
+@c-menu-current-color: @g-standard-hilite-color;
+
+.c-menu-behaviors(@margin-top: 5px, @spacing, @border-color, @header-border-color, @current-color, 
+                                    @current-border-color, @hover-bg-color, @active-bg-color){
+    & {
+        padding: @spacing;
+        border-bottom: 1px solid @border-color;
+    }
+
+    &.header {
+        font-weight: bolder;
+        border-bottom: 1px solid @header-border-color;
+       
+        &:nth-child(n+2){
+            margin-top: @margin-top;
+        }
+    }
+    &.current {
+        color:@current-color;
+        
+        margin: 0 .5em;
+        padding: .5em .5em;
+        border-bottom: 1px solid @current-border-color;
+        &.header {
+            border-bottom: 1px solid @current-color;
+           
+            margin: 0;
+            padding: @spacing;
+            &:nth-child(n+2){
+                margin-top: @margin-top;
+            }
+        } 
+    }
+    &:disabled, &.disabled{
+        opacity: .5;
+    }
+    &:hover {
+        background-color:@hover-bg-color;
+       
+        margin: 0;
+        padding:  @spacing;
+        border-bottom: 1px solid @hover-bg-color;
+    }
+    &:active {
+        background-color:@active-bg-color;
+        
+        margin: 0;
+        padding:  @spacing;
+        border-bottom: 1px solid @active-bg-color;
+    }
+}
+.c-menu {
+    .c-border;
+    border-color: @c-menu-border-color;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 8px;
+    .c-flex;
+    .inline;
+    .fdc;
+    min-width: 100px;
+
+    > * {
+        cursor:pointer;
+    }
+
+   
+    &:not(.plain):not(.sub) {
+        background-color: @c-menu-bg-default-color;
+        > * {
+            color: @g-tertiary-font-color;
+            .c-menu-behaviors(10px, 0.5em 1em, @c-menu-bg-default-color, @c-menu-border-color, 
+                                   @c-menu-current-color, @c-menu-current-color,
+                                   @c-menu-hover-bg-color,@c-menu-active-bg-color);  
+            
+        }
+    }
+
+    &.plain {
+        background-color:@c-menu-sub-bg-default-color;
+        > * {
+            color: @g-standard-font-color;
+            .c-menu-behaviors(10px, 0.5em 1em, @c-menu-sub-bg-default-color, @c-menu-border-color, 
+                                   @c-menu-current-color, @c-menu-current-color,
+                                   @c-menu-sub-hover-bg-color, @c-menu-active-bg-color);  
+        }
+    }
+     // list長相
+    &.sub {
+        background-color:@c-menu-sub-bg-default-color;
+        > * {
+            color: @g-standard-font-color;
+            .c-menu-behaviors(10px, 0.5em 1em, @c-menu-sub-bg-default-color, @c-menu-border-color, 
+                                   @c-menu-current-color, @c-menu-sub-bg-default-color,
+                                   @c-menu-sub-hover-bg-color,@c-menu-active-bg-color);  
+        }
+    }
+}
+
+.c-nav-behaviors(@font-color, @bgcolor, @hover-color,
+                 @hover-font-color, @current-color, @current-font-color){
+    .c-flex;
+    .jcc;
+    .aic;
+    cursor:pointer;
+
+    &:hover, &:active {
+        background-color: @hover-color;
+        color: @hover-font-color;
+    }
+    &.current {
+        background-color:  @current-color;
+        color: @current-font-color;
+        &:hover {
+            opacity: .9;
+        }
+        &:active {
+            opacity: .7;
+        }
+    }
+}
+.c-nav {
+    .c-flex;
+    &:not(.sub) {
+        background-color: @c-nav-background-color;
+        color: @c-nav-default-font-color;
+        > * {
+            padding: 0.6em 2em;
+            .c-nav-behaviors(@c-nav-default-font-color, @c-nav-background-color, 
+                             @c-nav-hover-color, @c-nav-default-font-color, @c-nav-current-color, @c-nav-default-font-color);
+        }
+    }
+    &.sub {
+        background-color: @c-nav-sub-background-color;
+        color: @c-nav-sub-default-font-color;
+        >* {
+            padding: 0.2em 1.4em;
+            margin:0.4em 0.5em;
+            .c-nav-behaviors(@c-nav-sub-default-font-color, @c-nav-sub-background-color, 
+                             @c-nav-sub-hover-color, @c-nav-sub-default-font-color, @c-nav-sub-current-color,@c-nav-sub-current-font-color);
+            .c-bullet;
+            border: 1px solid @c-nav-sub-background-color;
+        }       
+    }
+}

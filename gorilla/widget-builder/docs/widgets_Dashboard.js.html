@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: widgets/Dashboard.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: widgets/Dashboard.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import cx from 'classnames'
+import _ from 'lodash'
+import im from 'object-path-immutable'
+import {PopupDialog} from 'react-ui'
+import i18n from 'i18next';
+import RectUIDashboard from 'react-chart/build/src/components/dashboard'
+const gt = i18n.getFixedT(null, 'app');
+
+import ah from "react-ui/build/src/utils/ajax-helper";
+
+let log = require('loglevel').getLogger('chart/components/tes')
+
+const PROGRESS_STATUS = {
+    LOADING: 'loading',
+    ERROR: 'error',
+    DONE: 'done',
+    INIT: 'init',
+}
+
+/**
+ * Dashboard support add multiple widget inside.
+ * @constructor
+ * @description storeCfg:{
+ *     [key] :{
+ *          type: 'rawData'
+ *          description: ''
+ *          data: { }
+ *          or
+ *          type: 'request'
+ *          description: ''
+ *          query:{
+ *              type:'GET/POST',
+ *              url:''
+ *              data:{ }
+ *          }
+ *          selectKey:'' *
+ *          isMulti:'' * //TODO
+ *     }
+ * }
+ */
+class Dashboard extends React.Component {
+    constructor(props) {
+        super(props)
+        const widgets = this.initial()
+        const layoutCfg = {...props.layoutCfg, layout: this.initialLayout()}
+        const {widgetStatus = {}} = props
+        this.state = {
+            info: null,
+            initialProgress: {
+                "loadStoreData": {
+                    text: 'load Store Data',
+                    status: PROGRESS_STATUS.INIT
+                },
+            },
+            widgets,
+            layoutCfg,
+            $store: {},
+            $widget: {},
+            lastStoreCfg: _.cloneDeep(props.storeCfg),
+            initialled: false,
+            widgetStatus: widgetStatus
+        }
+    }
+
+    componentWillUpdate(nextProps, nextState) {
+        const {widgetStatus} = nextProps
+        if (!_.isEmpty(widgetStatus)) {
+            _.forEach(widgetStatus, (status, id) => {
+                this.state.widgetStatus[id] = status
+            })
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        const {lastStoreCfg} = prevState
+        const {storeCfg} = this.props
+        if (!_.isEqual(prevProps, this.props)//check if props change, state's storeCfg change will load store data its self
+            &amp;&amp; !_.isEqual(lastStoreCfg, storeCfg))
+            this.loadStoreData(storeCfg)
+
+        const {initialled, initialProgress} = this.state
+        if(!initialled &amp;&amp;
+            _.find(initialProgress, (o) => o.status !== PROGRESS_STATUS.DONE) === undefined){
+            this.setState({initialled: true})
+        }
+    }
+
+    componentDidMount() {
+        const {storeCfg} = this.props
+        this.loadStoreData(storeCfg)
+    }
+
+    loadStoreData(storeCfg) { //TODO 只讀部分不要每次更新就全部都重新整理
+        const requestList = {}
+        const rawData = {}
+        _.forEach(storeCfg, (config, storeId) => {
+            if (config.type === 'request')
+                requestList[storeId] = config
+            else
+                rawData[storeId] = config.data
+        })
+
+        if (_.isEmpty(requestList)) {//no need load
+            this.setState({$store: rawData, initialProgress: this.getUpdateProgress("loadStoreData", PROGRESS_STATUS.DONE)})
+            return
+        }
+
+        log.info('dashboard load store data BEGIN')
+        this.setState({$store: rawData, initialProgress: this.getUpdateProgress("loadStoreData", PROGRESS_STATUS.LOADING)})
+        const process = []
+        _.forEach(requestList, (config, storeId) => {
+            const {selectKey, query} = config
+            const type = _.upperCase(query.type)
+            switch (type) {
+                case 'GET':
+                    break;
+                default: //others
+                    query.data = JSON.stringify(query.data)
+                    query.contentType= 'application/json'
+            }
+            log.info(`load store[${storeId}] with`, query)
+            process.push(ah.one(query, {showProgress: false})
+                .then(data => {
+                    if (selectKey) {
+                        data = _.get(data, selectKey)
+                    }
+                    log.info(`store[${storeId}] loaded success.`, data)
+                    return {key: storeId, data}
+                })
+                .catch((error) => {
+                    PopupDialog.alertId(
+                        `store-${storeId}`,
+                        {
+                            title: 'Error',
+                            display: &lt;div className='c-error'>store[{storeId}] loaded fail.&lt;/div>,
+                            confirmText: gt('btn-close')
+                        }
+                    )
+                    log.error(`store[${storeId}] loaded fail.`, error)
+                    return {key: storeId, data}
+                }))
+        })
+        return Promise.all(process)
+            .then(data => {
+                const store = _.chain(data).mapKeys('key').mapValues(val => {
+                    return val.data
+                }).value()
+                log.info('dashboard load store data END', store)
+                this.setState({$store:{...this.state.store, ...store}, initialProgress: this.getUpdateProgress("loadStoreData", PROGRESS_STATUS.DONE)})
+            }).catch(() => {
+                this.setState({initialProgress: this.getUpdateProgress("loadStoreData", PROGRESS_STATUS.ERROR)})
+            })
+    }
+
+    getUpdateProgress(key, status) {
+        const {initialProgress} = this.state
+        return im.set(initialProgress, [key, 'status'], status)
+    }
+
+    initial() {
+        let widgets = _.cloneDeep(this.props.widgets)
+        _.forEach(widgets, ({widgetConfig, eventListeners}, widgetId) => {
+            const eventListenerFunctions = _.chain(eventListeners)
+                .mapValues((eventListenerConfig) => {
+                    const {target} = eventListenerConfig
+                    const eventListenerFunction = (..._arguments) => {
+                        let {lastStoreCfg} = this.state
+                        const targetState = {}
+                        _.forEach(target, (paths, argumentPath) => {
+                            _.forEach(paths, (targetPath) => {
+                                if(_.startsWith(targetPath, '$store')){//modify store
+                                    targetPath = targetPath.replace(/^\$store./, '')
+                                    let value = _.get(_arguments, argumentPath, undefined)
+                                    if (_.isString(value) ? value === '' : _.isEmpty(value))
+                                        value = undefined
+                                    lastStoreCfg = im.set(lastStoreCfg, targetPath, value)
+                                }
+                                else{//directly to widget
+                                    const value = _.get(_arguments, argumentPath, undefined)
+                                    if (_.isString(value) ? value === '' : _.isEmpty(value)){//clear and cause the hoc dont get wrong data//TODO WHYYYY?
+                                         if(value || !value)
+                                             _.set(targetState, targetPath, value)
+                                        else
+                                             _.set(targetState, targetPath, undefined)
+                                    }
+                                    else
+                                        _.set(targetState, targetPath, value)
+                                }
+                            })
+                        })
+                        log.info(targetState)
+                        this.setState({$widget: targetState, lastStoreCfg},()=>{this.loadStoreData(lastStoreCfg)})
+                    }
+                    return eventListenerFunction
+                })
+                .mapKeys((eventListenerConfig, eventListenerConfigName) => {//create an _listener for hoc
+                    return eventListenerConfigName
+                })
+                .value()
+            // if(!widgetConfig.config)//for?
+            //     widgetConfig.config = {}
+            // widgetConfig.config = {...widgetConfig.config, ...eventListenerFunctions}
+            _.forEach(eventListenerFunctions,(value,keyPath)=>{
+                _.set(widgetConfig.config,keyPath, value)
+            })
+            log.info('dashboard:', widgetId, '-', widgetConfig)
+            widgets[widgetId].widgetConfig = widgetConfig
+        })
+        log.info(`widgets initialled`, widgets)
+        return widgets
+    }
+
+    initialLayout() {
+        const {widgets} = this.props
+        return _.map(widgets, ({layout}) => {
+            return layout
+        })
+    }
+
+    // renderHOC() {
+    //     const {widgets} = this.props
+    //     return _.map(widgets, ({layout}) => {
+    //         return layout
+    //     })
+    // }
+
+    renderProgress(initialProgress) {
+        const {debug = false} = this.props
+        if(!debug){
+            _.forEach(initialProgress, ({text, status}, id) => {
+                log.info(`[${id}]${text}: ${status}`)
+            })
+            return &lt;div className='c-center'>&lt;i className='fg fg-loading-2 fg-spin' />&lt;/div>
+        }
+        return &lt;div>
+            {_.map(initialProgress, ({text, status}, id) => {
+                return &lt;div key={id} className="aligned c-form">
+                    &lt;div className="row">&lt;label className="">{text}&lt;/label>
+                        &lt;div>{status}&lt;/div>
+                    &lt;/div>
+                &lt;/div>
+            })}
+        &lt;/div>
+    }
+
+
+    handleStatusChange(widgetId, status) {
+        const {widgetStatus} = this.state
+        widgetStatus[widgetId] = status
+        this.setState({widgetStatus})
+    }
+
+    render() {
+        const {HOC} = this.props
+        const {widgets, layoutCfg, initialProgress, $store, $widget, initialled, widgetStatus} = this.state
+        if (!initialled// once initialled wont enter again
+            // &amp;&amp;_.find(initialProgress, (o) => o.status !== PROGRESS_STATUS.DONE) !== undefined
+        ) {
+            return this.renderProgress(initialProgress)
+        }
+        return &lt;RectUIDashboard className="layout-hoc" layoutCfg={layoutCfg} onLayoutChange={()=>{}}>
+            {_.map(widgets, ({widgetConfig, eventListenerConfig, boxTitle, storeRef}, widgetId) => {
+                let newWidgetConfig = _.cloneDeep(widgetConfig)
+                if (_.has($widget, widgetId)) {
+                    const toMerge = $widget[widgetId]
+                    newWidgetConfig = _.merge(newWidgetConfig, toMerge)
+                    //log.info(newWidgetConfig)//TODO 只取代data這件事跟取代整個widget這件事
+                }
+                if (!_.isNil(storeRef)) {//if need store data
+                    _.forEach(storeRef, (storePaths, targetPath) => {
+                        _.forEach(storePaths, (storePath) => {
+                            if (_.has($store, storePath)) {
+                                _.set(newWidgetConfig, targetPath, _.get($store, storePath))
+                                // log.info(storePath,'=>',targetPath,$store)
+                                return false//stop loop
+                            }
+                        })
+                    })
+                }
+                // if (widgetStatus[widgetId] === STATUS.LOADING) {
+                //     return &lt;i className='fg fg-loading-2 fg-spin'/>
+                // }
+                return &lt;div key={widgetId} className={cx({'c-box': boxTitle}, 'dashboard-item')}>
+                    {boxTitle &amp;&amp; &lt;header>{boxTitle}&lt;/header>}
+                    &lt;div className={cx({"content": boxTitle})}>
+                        {
+                            _.get(widgetStatus, widgetId) === PROGRESS_STATUS.LOADING ?
+                                &lt;div className='c-center'>
+                                    &lt;i className='fg fg-loading-2 fg-spin'/>
+                                &lt;/div>
+                                :
+                                &lt;HOC {...newWidgetConfig}
+                                     onStatusChange={(status) => {
+                                         this.handleStatusChange(widgetId, status)
+                                     }}
+                                />
+                        }
+                    &lt;/div>
+                &lt;/div>
+            })}
+        &lt;/RectUIDashboard>
+    }
+}
+
+export default Dashboard</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alarm.html">Alarm</a></li><li><a href="Dashboard.html">Dashboard</a></li></ul><h3>Global</h3><ul><li><a href="global.html#loadConfigById">loadConfigById</a></li><li><a href="global.html#loadDataWithQueryConfig">loadDataWithQueryConfig</a></li><li><a href="global.html#loadSource">loadSource</a></li><li><a href="global.html#loadWidgetConfigByUrl">loadWidgetConfigByUrl</a></li><li><a href="global.html#parseOldConfigToStoreConfig">parseOldConfigToStoreConfig</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Apr 26 2019 10:14:37 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

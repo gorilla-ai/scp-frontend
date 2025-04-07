@@ -1,0 +1,41 @@
+[
+    {
+        "type": "node",
+        "match": {
+            "labels":["phone"]
+        },
+        "render": {
+            "sh": "circle",
+            "u": "/images/mobile.png",
+            "tKey": "number",
+            "b": "#ff00ff",
+            "e": 11,
+            "c": "#9a5d60"
+        }
+    },
+    {
+        "type": "node",
+        "match": {
+            "labels":["ip"]
+        },
+        "render": {
+            "sh": "circle",
+            "u": "/images/ip.png",
+            "tKey": "ipv4",
+            "b": "#cccccc",
+            "e": 11,
+            "c": "#9a5d6f"
+        }
+    },
+    {
+        "type": "link",
+        "match": {
+            "type":"connect"
+        },
+        "render": {
+            "tKey": "time",
+            "w": 3,
+            "c": "#aea8a4"
+        }
+    }
+]

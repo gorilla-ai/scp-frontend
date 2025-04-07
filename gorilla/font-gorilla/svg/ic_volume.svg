@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/volume</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M3,8.8 L3,14.8 L7,14.8 L12,19.8 L12,3.8 L7,8.8 L3,8.8 L3,8.8 Z M16.5,11.8 C16.5,10 15.5,8.5 14,7.8 L14,15.8 C15.5,15.1 16.5,13.6 16.5,11.8 L16.5,11.8 Z M14,3 L14,5.1 C16.9,6 19,8.6 19,11.8 C19,15 16.9,17.6 14,18.5 L14,20.6 C18,19.7 21,16.1 21,11.8 C21,7.5 18,3.9 14,3 L14,3 Z" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/volume">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Shape" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

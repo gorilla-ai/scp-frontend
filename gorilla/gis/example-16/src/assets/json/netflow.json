@@ -1,0 +1,2268 @@
+[
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYDBk0ufnIoj4ZPy",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 2,
+        "ipv4_dst_addr": "192.168.20.98",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 50049,
+        "version": 9,
+        "flow_seq_num": 1515831129,
+        "ipv4_src_addr": "192.168.21.55",
+        "in_bytes": 144,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 161
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYDBk0ufnIoj4ZP1",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 2,
+        "ipv4_dst_addr": "192.168.10.78",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 514,
+        "version": 9,
+        "flow_seq_num": 1515831131,
+        "ipv4_src_addr": "192.168.0.2",
+        "in_bytes": 388,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 5544
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYDBk0ufnIoj4ZP4",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 32,
+        "ipv4_dst_addr": "203.66.182.80",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 56341,
+        "version": 9,
+        "flow_seq_num": 1515831134,
+        "ipv4_src_addr": "192.168.4.111",
+        "in_bytes": 2211,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 443
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "Asia/Taipei",
+        "ip": "203.66.182.80",
+        "latitude": 23.5,
+        "country_code2": "TW",
+        "country_name": "Taiwan",
+        "continent_code": "AS",
+        "country_code3": "TW",
+        "location": [
+          121,
+          23.5
+        ],
+        "longitude": 121
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYDBk0ufnIoj4ZP5",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 65,
+        "ipv4_dst_addr": "192.168.4.111",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 443,
+        "version": 9,
+        "flow_seq_num": 1515831134,
+        "ipv4_src_addr": "203.66.182.80",
+        "in_bytes": 86364,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 56341
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "Asia/Taipei",
+        "ip": "203.66.182.80",
+        "latitude": 23.5,
+        "country_code2": "TW",
+        "country_name": "Taiwan",
+        "continent_code": "AS",
+        "country_code3": "TW",
+        "location": [
+          121,
+          23.5
+        ],
+        "longitude": 121
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYDBk0ufnIoj4ZQA",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.20.10",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 50115,
+        "version": 9,
+        "flow_seq_num": 1515831138,
+        "ipv4_src_addr": "192.168.1.78",
+        "in_bytes": 70,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 53
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYDM7YnmBQjB86Jv",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "74.125.203.189",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 51561,
+        "version": 9,
+        "flow_seq_num": 1515831141,
+        "ipv4_src_addr": "192.168.3.32",
+        "in_bytes": 70,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 443
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "America/Los_Angeles",
+        "ip": "74.125.203.189",
+        "latitude": 37.419200000000004,
+        "continent_code": "NA",
+        "city_name": "Mountain View",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 807,
+        "country_code3": "US",
+        "region_name": "California",
+        "location": [
+          -122.0574,
+          37.419200000000004
+        ],
+        "postal_code": "94043",
+        "longitude": -122.0574,
+        "region_code": "CA"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYEHalmrrksvALxM",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "203.66.182.80",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 56341,
+        "version": 9,
+        "flow_seq_num": 1515831149,
+        "ipv4_src_addr": "192.168.4.111",
+        "in_bytes": 654,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 443
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "Asia/Taipei",
+        "ip": "203.66.182.80",
+        "latitude": 23.5,
+        "country_code2": "TW",
+        "country_name": "Taiwan",
+        "continent_code": "AS",
+        "country_code3": "TW",
+        "location": [
+          121,
+          23.5
+        ],
+        "longitude": 121
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYEHalmrrksvALxN",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 2,
+        "ipv4_dst_addr": "192.168.4.111",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 443,
+        "version": 9,
+        "flow_seq_num": 1515831149,
+        "ipv4_src_addr": "203.66.182.80",
+        "in_bytes": 109,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 56341
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "Asia/Taipei",
+        "ip": "203.66.182.80",
+        "latitude": 23.5,
+        "country_code2": "TW",
+        "country_name": "Taiwan",
+        "continent_code": "AS",
+        "country_code3": "TW",
+        "location": [
+          121,
+          23.5
+        ],
+        "longitude": 121
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYEVk0ufnIoj4ZQE",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.3.55",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 41598,
+        "version": 9,
+        "flow_seq_num": 1515831155,
+        "ipv4_src_addr": "61.228.224.237",
+        "in_bytes": 48,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 61097
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "city_name": "Taipei",
+        "timezone": "Asia/Taipei",
+        "ip": "61.228.224.237",
+        "latitude": 25.0418,
+        "country_code2": "TW",
+        "country_name": "Taiwan",
+        "continent_code": "AS",
+        "country_code3": "TW",
+        "location": [
+          121.4966,
+          25.0418
+        ],
+        "longitude": 121.4966
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYEwalmrrksvALxT",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 2,
+        "ipv4_dst_addr": "192.168.20.115",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 50001,
+        "version": 9,
+        "flow_seq_num": 1515831159,
+        "ipv4_src_addr": "192.168.21.55",
+        "in_bytes": 140,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 161
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYFZk0ufnIoj4ZQN",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.20.115",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 33106,
+        "version": 9,
+        "flow_seq_num": 1515831164,
+        "ipv4_src_addr": "192.168.21.55",
+        "in_bytes": 73,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 161
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYFZk0ufnIoj4ZQV",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.20.115",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 53952,
+        "version": 9,
+        "flow_seq_num": 1515831170,
+        "ipv4_src_addr": "192.168.21.55",
+        "in_bytes": 73,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 161
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYFZk0ufnIoj4ZQX",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.20.115",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 33896,
+        "version": 9,
+        "flow_seq_num": 1515831172,
+        "ipv4_src_addr": "192.168.21.55",
+        "in_bytes": 73,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 161
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYGC7YnmBQjB86J1",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 9,
+        "ipv4_dst_addr": "203.208.31.11",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T17:58:58.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 56525,
+        "version": 9,
+        "flow_seq_num": 1515831171,
+        "ipv4_src_addr": "192.168.4.155",
+        "in_bytes": 621,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 31,
+        "l4_dst_port": 80
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "Asia/Manila",
+        "ip": "203.208.31.11",
+        "latitude": 14.5501,
+        "continent_code": "AS",
+        "city_name": "Makati City",
+        "country_code2": "PH",
+        "country_name": "Philippines",
+        "country_code3": "PH",
+        "region_name": "National Capital Region",
+        "location": [
+          121.036,
+          14.5501
+        ],
+        "postal_code": "1214",
+        "longitude": 121.036,
+        "region_code": "00"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYGRk0ufnIoj4ZQY",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 8,
+        "ipv4_dst_addr": "203.208.31.11",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T17:58:58.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 56529,
+        "version": 9,
+        "flow_seq_num": 1515831179,
+        "ipv4_src_addr": "192.168.4.155",
+        "in_bytes": 584,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 30,
+        "l4_dst_port": 80
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "Asia/Manila",
+        "ip": "203.208.31.11",
+        "latitude": 14.5501,
+        "continent_code": "AS",
+        "city_name": "Makati City",
+        "country_code2": "PH",
+        "country_name": "Philippines",
+        "country_code3": "PH",
+        "region_name": "National Capital Region",
+        "location": [
+          121.036,
+          14.5501
+        ],
+        "postal_code": "1214",
+        "longitude": 121.036,
+        "region_code": "00"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYGnalmrrksvALxc",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 3,
+        "ipv4_dst_addr": "173.48.169.195",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 7018,
+        "version": 9,
+        "flow_seq_num": 1515831182,
+        "ipv4_src_addr": "192.168.3.123",
+        "in_bytes": 3048,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 8004
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "America/New_York",
+        "ip": "173.48.169.195",
+        "latitude": 42.3888,
+        "continent_code": "NA",
+        "city_name": "Sudbury",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 506,
+        "country_code3": "US",
+        "region_name": "Massachusetts",
+        "location": [
+          -71.4225,
+          42.3888
+        ],
+        "postal_code": "01776",
+        "longitude": -71.4225,
+        "region_code": "MA"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYGnalmrrksvALxe",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.20.115",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 35847,
+        "version": 9,
+        "flow_seq_num": 1515831183,
+        "ipv4_src_addr": "192.168.21.55",
+        "in_bytes": 73,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 161
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYG2k0ufnIoj4ZQa",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.21.55",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 161,
+        "version": 9,
+        "flow_seq_num": 1515831184,
+        "ipv4_src_addr": "192.168.20.115",
+        "in_bytes": 178,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 33728
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYG2k0ufnIoj4ZQc",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "178.167.20.207",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 7275,
+        "version": 9,
+        "flow_seq_num": 1515831185,
+        "ipv4_src_addr": "172.18.0.128",
+        "in_bytes": 132,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 30780
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "Europe/Moscow",
+        "ip": "178.167.20.207",
+        "latitude": 55.8536,
+        "continent_code": "EU",
+        "city_name": "Noginsk",
+        "country_code2": "RU",
+        "country_name": "Russia",
+        "country_code3": "RU",
+        "region_name": "Moscow Oblast",
+        "location": [
+          38.4411,
+          55.8536
+        ],
+        "postal_code": "142402",
+        "longitude": 38.4411,
+        "region_code": "MOS"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYG37YnmBQjB86KE",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 8,
+        "ipv4_dst_addr": "203.208.31.11",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T17:58:58.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 56532,
+        "version": 9,
+        "flow_seq_num": 1515831190,
+        "ipv4_src_addr": "192.168.4.155",
+        "in_bytes": 575,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 30,
+        "l4_dst_port": 80
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "Asia/Manila",
+        "ip": "203.208.31.11",
+        "latitude": 14.5501,
+        "continent_code": "AS",
+        "city_name": "Makati City",
+        "country_code2": "PH",
+        "country_name": "Philippines",
+        "country_code3": "PH",
+        "region_name": "National Capital Region",
+        "location": [
+          121.036,
+          14.5501
+        ],
+        "postal_code": "1214",
+        "longitude": 121.036,
+        "region_code": "00"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYG37YnmBQjB86KF",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 6,
+        "ipv4_dst_addr": "192.168.4.155",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T17:58:58.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 80,
+        "version": 9,
+        "flow_seq_num": 1515831190,
+        "ipv4_src_addr": "203.208.31.11",
+        "in_bytes": 1067,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 27,
+        "l4_dst_port": 56532
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "Asia/Manila",
+        "ip": "203.208.31.11",
+        "latitude": 14.5501,
+        "continent_code": "AS",
+        "city_name": "Makati City",
+        "country_code2": "PH",
+        "country_name": "Philippines",
+        "country_code3": "PH",
+        "region_name": "National Capital Region",
+        "location": [
+          121.036,
+          14.5501
+        ],
+        "postal_code": "1214",
+        "longitude": 121.036,
+        "region_code": "00"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYG-almrrksvALxg",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "10.8.1.59",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 8000,
+        "version": 9,
+        "flow_seq_num": 1515831186,
+        "ipv4_src_addr": "203.205.142.202",
+        "in_bytes": 294,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 51540
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "city_name": "Shanghai",
+        "timezone": "Asia/Shanghai",
+        "ip": "203.205.142.202",
+        "latitude": 31.0456,
+        "country_code2": "CN",
+        "country_name": "China",
+        "continent_code": "AS",
+        "country_code3": "CN",
+        "region_name": "Shanghai",
+        "location": [
+          121.3997,
+          31.0456
+        ],
+        "longitude": 121.3997,
+        "region_code": "31"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYHGk0ufnIoj4ZQe",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 6,
+        "ipv4_dst_addr": "192.168.4.155",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T17:58:58.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 80,
+        "version": 9,
+        "flow_seq_num": 1515831187,
+        "ipv4_src_addr": "203.208.31.11",
+        "in_bytes": 1491,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 27,
+        "l4_dst_port": 56533
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "Asia/Manila",
+        "ip": "203.208.31.11",
+        "latitude": 14.5501,
+        "continent_code": "AS",
+        "city_name": "Makati City",
+        "country_code2": "PH",
+        "country_name": "Philippines",
+        "country_code3": "PH",
+        "region_name": "National Capital Region",
+        "location": [
+          121.036,
+          14.5501
+        ],
+        "postal_code": "1214",
+        "longitude": 121.036,
+        "region_code": "00"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYHO7YnmBQjB86KH",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 6,
+        "ipv4_dst_addr": "192.168.4.155",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T17:58:58.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 80,
+        "version": 9,
+        "flow_seq_num": 1515831188,
+        "ipv4_src_addr": "203.208.31.11",
+        "in_bytes": 1247,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:00:38.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 27,
+        "l4_dst_port": 56530
+      },
+      "@timestamp": "2017-03-22T18:00:38.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "Asia/Manila",
+        "ip": "203.208.31.11",
+        "latitude": 14.5501,
+        "continent_code": "AS",
+        "city_name": "Makati City",
+        "country_code2": "PH",
+        "country_name": "Philippines",
+        "country_code3": "PH",
+        "region_name": "National Capital Region",
+        "location": [
+          121.036,
+          14.5501
+        ],
+        "postal_code": "1214",
+        "longitude": 121.036,
+        "region_code": "00"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYHjk0ufnIoj4ZQh",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.11.116",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 3544,
+        "version": 9,
+        "flow_seq_num": 1515831192,
+        "ipv4_src_addr": "157.56.106.189",
+        "in_bytes": 137,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 64480
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "America/New_York",
+        "ip": "157.56.106.189",
+        "latitude": 36.6648,
+        "continent_code": "NA",
+        "city_name": "Boydton",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 560,
+        "country_code3": "US",
+        "region_name": "Virginia",
+        "location": [
+          -78.3715,
+          36.6648
+        ],
+        "postal_code": "23917",
+        "longitude": -78.3715,
+        "region_code": "VA"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYH3almrrksvALxj",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.11.167",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 0,
+        "version": 9,
+        "flow_seq_num": 1515831195,
+        "ipv4_src_addr": "192.168.20.10",
+        "in_bytes": 124,
+        "protocol": 1,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 771
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYLa7YnmBQjB86KM",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 20,
+        "ipv4_dst_addr": "192.168.11.205",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:38.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 587,
+        "version": 9,
+        "flow_seq_num": 1515831198,
+        "ipv4_src_addr": "64.233.188.108",
+        "in_bytes": 1765,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 31,
+        "l4_dst_port": 58054
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "America/Los_Angeles",
+        "ip": "64.233.188.108",
+        "latitude": 37.419200000000004,
+        "continent_code": "NA",
+        "city_name": "Mountain View",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 807,
+        "country_code3": "US",
+        "region_name": "California",
+        "location": [
+          -122.0574,
+          37.419200000000004
+        ],
+        "postal_code": "94043",
+        "longitude": -122.0574,
+        "region_code": "CA"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYLa7YnmBQjB86KR",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "172.217.24.3",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 57728,
+        "version": 9,
+        "flow_seq_num": 1515831198,
+        "ipv4_src_addr": "192.168.205.77",
+        "in_bytes": 51,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 443
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "America/Los_Angeles",
+        "ip": "172.217.24.3",
+        "latitude": 37.419200000000004,
+        "continent_code": "NA",
+        "city_name": "Mountain View",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 807,
+        "country_code3": "US",
+        "region_name": "California",
+        "location": [
+          -122.0574,
+          37.419200000000004
+        ],
+        "postal_code": "94043",
+        "longitude": -122.0574,
+        "region_code": "CA"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYLa7YnmBQjB86KV",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "8.8.8.8",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 60152,
+        "version": 9,
+        "flow_seq_num": 1515831198,
+        "ipv4_src_addr": "192.168.2.84",
+        "in_bytes": 61,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 53
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "America/Los_Angeles",
+        "ip": "8.8.8.8",
+        "latitude": 37.386,
+        "continent_code": "NA",
+        "city_name": "Mountain View",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 807,
+        "country_code3": "US",
+        "region_name": "California",
+        "location": [
+          -122.0838,
+          37.386
+        ],
+        "postal_code": "94035",
+        "longitude": -122.0838,
+        "region_code": "CA"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYLealmrrksvALxl",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 11,
+        "ipv4_dst_addr": "192.168.3.123",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 22600,
+        "version": 9,
+        "flow_seq_num": 1515831211,
+        "ipv4_src_addr": "124.197.78.193",
+        "in_bytes": 537,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 7018
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "city_name": "Singapore",
+        "timezone": "Asia/Singapore",
+        "ip": "124.197.78.193",
+        "latitude": 1.2854999999999999,
+        "country_code2": "SG",
+        "country_name": "Singapore",
+        "continent_code": "AS",
+        "country_code3": "SG",
+        "region_name": "Central Singapore Community Development Council",
+        "location": [
+          103.8565,
+          1.2854999999999999
+        ],
+        "longitude": 103.8565,
+        "region_code": "01"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYLealmrrksvALxm",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 12,
+        "ipv4_dst_addr": "124.197.78.193",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 7018,
+        "version": 9,
+        "flow_seq_num": 1515831211,
+        "ipv4_src_addr": "192.168.3.123",
+        "in_bytes": 15521,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 22600
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "city_name": "Singapore",
+        "timezone": "Asia/Singapore",
+        "ip": "124.197.78.193",
+        "latitude": 1.2854999999999999,
+        "country_code2": "SG",
+        "country_name": "Singapore",
+        "continent_code": "AS",
+        "country_code3": "SG",
+        "region_name": "Central Singapore Community Development Council",
+        "location": [
+          103.8565,
+          1.2854999999999999
+        ],
+        "longitude": 103.8565,
+        "region_code": "01"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYLqk0ufnIoj4ZQk",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 3,
+        "ipv4_dst_addr": "192.168.3.37",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 443,
+        "version": 9,
+        "flow_seq_num": 1515831221,
+        "ipv4_src_addr": "64.233.187.189",
+        "in_bytes": 2814,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 61088
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "America/Los_Angeles",
+        "ip": "64.233.187.189",
+        "latitude": 37.419200000000004,
+        "continent_code": "NA",
+        "city_name": "Mountain View",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 807,
+        "country_code3": "US",
+        "region_name": "California",
+        "location": [
+          -122.0574,
+          37.419200000000004
+        ],
+        "postal_code": "94043",
+        "longitude": -122.0574,
+        "region_code": "CA"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYLqk0ufnIoj4ZQl",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 4,
+        "ipv4_dst_addr": "64.233.187.189",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 61088,
+        "version": 9,
+        "flow_seq_num": 1515831221,
+        "ipv4_src_addr": "192.168.3.37",
+        "in_bytes": 2268,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 443
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "America/Los_Angeles",
+        "ip": "64.233.187.189",
+        "latitude": 37.419200000000004,
+        "continent_code": "NA",
+        "city_name": "Mountain View",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 807,
+        "country_code3": "US",
+        "region_name": "California",
+        "location": [
+          -122.0574,
+          37.419200000000004
+        ],
+        "postal_code": "94043",
+        "longitude": -122.0574,
+        "region_code": "CA"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYNCalmrrksvALxn",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.3.123",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 1269,
+        "version": 9,
+        "flow_seq_num": 1515831222,
+        "ipv4_src_addr": "36.231.114.169",
+        "in_bytes": 46,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 20,
+        "l4_dst_port": 8970
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "Asia/Taipei",
+        "ip": "36.231.114.169",
+        "latitude": 23.5,
+        "country_code2": "TW",
+        "country_name": "Taiwan",
+        "continent_code": "AS",
+        "country_code3": "TW",
+        "location": [
+          121,
+          23.5
+        ],
+        "longitude": 121
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYNwalmrrksvALxp",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.3.55",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 41598,
+        "version": 9,
+        "flow_seq_num": 1515831231,
+        "ipv4_src_addr": "61.228.224.237",
+        "in_bytes": 48,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 61097
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "city_name": "Taipei",
+        "timezone": "Asia/Taipei",
+        "ip": "61.228.224.237",
+        "latitude": 25.0418,
+        "country_code2": "TW",
+        "country_name": "Taiwan",
+        "continent_code": "AS",
+        "country_code3": "TW",
+        "location": [
+          121.4966,
+          25.0418
+        ],
+        "longitude": 121.4966
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYONalmrrksvALxw",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.1.97",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 1203,
+        "version": 9,
+        "flow_seq_num": 1515831235,
+        "ipv4_src_addr": "192.168.43.1",
+        "in_bytes": 46,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 20,
+        "l4_dst_port": 139
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYOSk0ufnIoj4ZQs",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "157.56.106.189",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 56214,
+        "version": 9,
+        "flow_seq_num": 1515831236,
+        "ipv4_src_addr": "192.168.11.172",
+        "in_bytes": 89,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 3544
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "America/New_York",
+        "ip": "157.56.106.189",
+        "latitude": 36.6648,
+        "continent_code": "NA",
+        "city_name": "Boydton",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 560,
+        "country_code3": "US",
+        "region_name": "Virginia",
+        "location": [
+          -78.3715,
+          36.6648
+        ],
+        "postal_code": "23917",
+        "longitude": -78.3715,
+        "region_code": "VA"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYOi7YnmBQjB86Kv",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 11,
+        "ipv4_dst_addr": "192.168.3.123",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 8004,
+        "version": 9,
+        "flow_seq_num": 1515831238,
+        "ipv4_src_addr": "173.48.169.195",
+        "in_bytes": 546,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 7018
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "America/New_York",
+        "ip": "173.48.169.195",
+        "latitude": 42.3888,
+        "continent_code": "NA",
+        "city_name": "Sudbury",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 506,
+        "country_code3": "US",
+        "region_name": "Massachusetts",
+        "location": [
+          -71.4225,
+          42.3888
+        ],
+        "postal_code": "01776",
+        "longitude": -71.4225,
+        "region_code": "MA"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYOi7YnmBQjB86Ky",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 5,
+        "ipv4_dst_addr": "192.168.3.123",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 9865,
+        "version": 9,
+        "flow_seq_num": 1515831237,
+        "ipv4_src_addr": "218.166.131.86",
+        "in_bytes": 378,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 7018
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "city_name": "Tainan City",
+        "timezone": "Asia/Taipei",
+        "ip": "218.166.131.86",
+        "latitude": 22.9933,
+        "country_code2": "TW",
+        "country_name": "Taiwan",
+        "continent_code": "AS",
+        "country_code3": "TW",
+        "region_name": "Tainan",
+        "location": [
+          120.2036,
+          22.9933
+        ],
+        "longitude": 120.2036,
+        "region_code": "TNN"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYPwalmrrksvALx1",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 4,
+        "ipv4_dst_addr": "192.168.0.247",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 21073,
+        "version": 9,
+        "flow_seq_num": 1515831245,
+        "ipv4_src_addr": "60.248.161.30",
+        "in_bytes": 495,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 27,
+        "l4_dst_port": 88
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "city_name": "Taipei",
+        "timezone": "Asia/Taipei",
+        "ip": "60.248.161.30",
+        "latitude": 25.0418,
+        "country_code2": "TW",
+        "country_name": "Taiwan",
+        "continent_code": "AS",
+        "country_code3": "TW",
+        "location": [
+          121.4966,
+          25.0418
+        ],
+        "longitude": 121.4966
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYQrk0ufnIoj4ZQw",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.4.160",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 443,
+        "version": 9,
+        "flow_seq_num": 1515831246,
+        "ipv4_src_addr": "216.58.200.238",
+        "in_bytes": 133,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 59909
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "America/Los_Angeles",
+        "ip": "216.58.200.238",
+        "latitude": 37.419200000000004,
+        "continent_code": "NA",
+        "city_name": "Mountain View",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 807,
+        "country_code3": "US",
+        "region_name": "California",
+        "location": [
+          -122.0574,
+          37.419200000000004
+        ],
+        "postal_code": "94043",
+        "longitude": -122.0574,
+        "region_code": "CA"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYQ37YnmBQjB86K2",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "61.228.224.237",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 61097,
+        "version": 9,
+        "flow_seq_num": 1515831248,
+        "ipv4_src_addr": "192.168.3.55",
+        "in_bytes": 48,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 41598
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "city_name": "Taipei",
+        "timezone": "Asia/Taipei",
+        "ip": "61.228.224.237",
+        "latitude": 25.0418,
+        "country_code2": "TW",
+        "country_name": "Taiwan",
+        "continent_code": "AS",
+        "country_code3": "TW",
+        "location": [
+          121.4966,
+          25.0418
+        ],
+        "longitude": 121.4966
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYRMalmrrksvALx3",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.20.201",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 137,
+        "version": 9,
+        "flow_seq_num": 1515831249,
+        "ipv4_src_addr": "192.168.1.199",
+        "in_bytes": 78,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 137
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYSBalmrrksvALx4",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.10.78",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 0,
+        "version": 9,
+        "flow_seq_num": 1515831251,
+        "ipv4_src_addr": "192.168.20.220",
+        "in_bytes": 60,
+        "protocol": 1,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 2048
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYVi7YnmBQjB86LD",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.4.60",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 0,
+        "version": 9,
+        "flow_seq_num": 1515831263,
+        "ipv4_src_addr": "220.128.11.182",
+        "in_bytes": 60,
+        "protocol": 1,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 0
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "Asia/Taipei",
+        "ip": "220.128.11.182",
+        "latitude": 23.5,
+        "country_code2": "TW",
+        "country_name": "Taiwan",
+        "continent_code": "AS",
+        "country_code3": "TW",
+        "location": [
+          121,
+          23.5
+        ],
+        "longitude": 121
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYVi7YnmBQjB86LG",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.20.10",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 53409,
+        "version": 9,
+        "flow_seq_num": 1515831267,
+        "ipv4_src_addr": "192.168.1.156",
+        "in_bytes": 66,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 53
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYVi7YnmBQjB86LH",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "192.168.1.156",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 53,
+        "version": 9,
+        "flow_seq_num": 1515831267,
+        "ipv4_src_addr": "192.168.20.10",
+        "in_bytes": 66,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:39.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 53409
+      },
+      "@timestamp": "2017-03-22T18:00:39.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYW5almrrksvALyE",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "157.55.235.169",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:40.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 60003,
+        "version": 9,
+        "flow_seq_num": 1515831275,
+        "ipv4_src_addr": "172.18.0.100",
+        "in_bytes": 62,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:40.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 40030
+      },
+      "@timestamp": "2017-03-22T18:00:40.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "city_name": "Dublin",
+        "timezone": "Europe/Dublin",
+        "ip": "157.55.235.169",
+        "latitude": 53.3389,
+        "country_code2": "IE",
+        "country_name": "Ireland",
+        "continent_code": "EU",
+        "country_code3": "IE",
+        "region_name": "Leinster",
+        "location": [
+          -6.2595,
+          53.3389
+        ],
+        "longitude": -6.2595,
+        "region_code": "L"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYaRk0ufnIoj4ZRB",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 18,
+        "ipv4_dst_addr": "192.168.11.205",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:39.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 587,
+        "version": 9,
+        "flow_seq_num": 1515831292,
+        "ipv4_src_addr": "64.233.188.108",
+        "in_bytes": 1674,
+        "protocol": 6,
+        "last_switched": "2017-03-22T18:00:40.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 27,
+        "l4_dst_port": 58055
+      },
+      "@timestamp": "2017-03-22T18:00:40.000Z",
+      "geoip_src_ipv4_dst_addr": {},
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {
+        "timezone": "America/Los_Angeles",
+        "ip": "64.233.188.108",
+        "latitude": 37.419200000000004,
+        "continent_code": "NA",
+        "city_name": "Mountain View",
+        "country_code2": "US",
+        "country_name": "United States",
+        "dma_code": 807,
+        "country_code3": "US",
+        "region_name": "California",
+        "location": [
+          -122.0574,
+          37.419200000000004
+        ],
+        "postal_code": "94043",
+        "longitude": -122.0574,
+        "region_code": "CA"
+      },
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  },
+  {
+    "_index": "netflow-out-2017.03.22.18",
+    "_type": "logs",
+    "_id": "AVr3LYaw7YnmBQjB86LO",
+    "_score": 2,
+    "_source": {
+      "netflow": {
+        "output_snmp": 0,
+        "in_pkts": 1,
+        "ipv4_dst_addr": "203.212.62.168",
+        "ip_protocol_version": 4,
+        "first_switched": "2017-03-22T18:00:40.999Z",
+        "flowset_id": 1024,
+        "l4_src_port": 18590,
+        "version": 9,
+        "flow_seq_num": 1515831295,
+        "ipv4_src_addr": "192.168.4.60",
+        "in_bytes": 46,
+        "protocol": 17,
+        "last_switched": "2017-03-22T18:00:40.999Z",
+        "input_snmp": 0,
+        "tcp_flags": 0,
+        "l4_dst_port": 4672
+      },
+      "@timestamp": "2017-03-22T18:00:40.000Z",
+      "geoip_src_ipv4_dst_addr": {
+        "timezone": "Asia/Tokyo",
+        "ip": "203.212.62.168",
+        "latitude": 35.6427,
+        "continent_code": "AS",
+        "city_name": "Tokyo",
+        "country_code2": "JP",
+        "country_name": "Japan",
+        "country_code3": "JP",
+        "region_name": "Tokyo",
+        "location": [
+          139.7677,
+          35.6427
+        ],
+        "postal_code": "100-0001",
+        "longitude": 139.7677,
+        "region_code": "13"
+      },
+      "@version": "1",
+      "host": "192.168.10.114",
+      "geoip_src_ipv4_src_addr": {},
+      "tags": [
+        "_geoip_lookup_failure"
+      ]
+    }
+  }
+]

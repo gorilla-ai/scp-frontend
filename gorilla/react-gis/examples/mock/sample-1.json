@@ -1,0 +1,491 @@
+[
+  {
+    "type": "spot",
+    "id": "spot-1",
+    "latlng": [
+      25.141415,122.607715
+    ],
+    "heatmap": {
+      "radius":1.5
+    },
+    "width":20,
+    "height":20,
+    "track": "mobile_0912345678",
+    "ts": 1496400780300,
+    "label": "xxx",
+    "popup": "<i>0912345678</i> detected at 2017/06/02 10:53am",
+    "tooltip": "<i>0912345678</i> detected at 2017/06/02 10:53am"
+  },
+  {
+    "type": "spot",
+    "id": "spot-2",
+    "latlng": [
+      25.161415,122.607715
+    ],
+    "heatmap": {
+      "radius":1.5
+    },
+    "track": "mobile_0912345678",
+    "ts": 1496400780400,
+    "label": "xxx",
+    "popup": "<i>0912345678</i> detected at 2017/06/02 10:53am"
+  },
+  {
+    "type": "marker",
+    "id": "set1-mobile_0912345678_0602",
+    "latlng": [
+      25.041415,121.607715
+    ],
+    "icon":{ 
+      "iconUrl":"/images/ic_mobile.png"
+    },
+    "heatmap": {
+      "radius":1.5
+    },
+    "track": "mobile_0912345678",
+    "ts": 1496400780000,
+    "label": "2017/06/02",
+    "popup": "<i>0912345678</i> detected at 2017/06/02 10:53am",
+    "tooltip": "test tooltip",
+    "selected": true,
+    "selectedProps": {
+      "label": "<b style='font-size:16pt'>2017/06/02 10:53am</b>"
+    }
+  },
+  {
+    "type": "marker",
+    "id": "set1-mobile_0912345678_0603",
+    "latlng": [
+      25.042102,121.551001
+    ],
+    "icon":{ 
+      "iconUrl":"/images/ic_mobile.png"
+    },
+    "heatmap": {
+      "intensity": 0.75
+    },
+    "track": "mobile_0912345678",
+    "ts": 1496499720000,
+    "label": "2017/06/03 2:22pm",
+    "selectedProps": {
+      "label": {
+        "className":"selectedLabel"
+      }
+    }
+  },
+  {
+    "type": "marker",
+    "id": "set1-mobile_0912345678_0604",
+    "latlng": [
+      24.987371,121.502034
+    ],
+    "icon":{ 
+      "iconUrl":"/images/ic_mobile.png"
+    },
+    "heatmap": {
+      "intensity": 0.1,
+      "radius": 0.5
+    },
+    "track": "mobile_0912345678",
+    "ts": 1496569260000,
+    "label": "2017/06/04 9:41am"
+  },
+  {
+    "type": "marker",
+    "id": "set1-marker_1",
+    "latlng": [
+      47.608,
+      109.235
+    ],
+    "heatmap": {
+      "intensity": 0.75,
+      "radius": 0.5
+    },
+    "track": "robbery_track_2",
+    "ts": 1495676997283,
+    "label": "marker_1",
+    "selected": false,
+    "selectedProps": {
+      "label": "<b>marker_1</b>",
+      "icon": {
+        "className": "selected"
+      }
+    }
+  },
+  {
+    "type": "marker",
+    "id": "set1-marker_2",
+    "latlng": [
+      42.429,
+      81.453
+    ],
+    "track": "robbery_track_1",
+    "ts": 1495676997283,
+    "heatmap": {
+      "intensity": 0.2,
+      "radius": 0.5
+    },
+    "label": "marker_2",
+    "selected": false,
+    "selectedProps": {
+      "label": {
+        "className":"selectedLabel"
+      }
+    }
+  },
+  {
+    "type": "marker",
+    "id": "set1-marker_3",
+    "latlng": [
+      40.419,
+      110.34
+    ],
+    "heatmap": {
+      "intensity": 0.77,
+      "radius": 0.5
+    },
+    "label": "marker_3",
+    "track": "robbery_track_2",
+    "ts": 1495676998283
+  },
+  {
+    "type": "marker",
+    "id": "set1-marker_4",
+    "latlng": [
+      27.642,
+      113.446
+    ],
+    "heatmap": {
+      "intensity": 0.18,
+      "radius": 0.5
+    },
+    "track": "robbery_track_1",
+    "ts": 1495676997292,
+    "label": "marker_4"
+  },
+  {
+    "type": "marker",
+    "id": "set1-marker_5",
+    "latlng": [
+      48.513,
+      102.528
+    ],
+    "heatmap": false,
+    "label": "marker_5"
+  },
+  {
+    "type": "marker",
+    "id": "set1-bs_1",
+    "icon":{ 
+      "iconUrl":"/images/ic_bs.png"
+    },
+    "latlng": [
+      42.392,
+      107.91
+    ],
+    "heatmap": {
+      "intensity": 0.19,
+      "radius": 0.5
+    },
+    "track": "robbery_track_2",
+    "ts": [1495676997292, 1502000000000],
+    "label": "marker_6"
+  },
+  {
+    "type": "marker",
+    "id": "set1-camera_1",
+    "latlng": [
+      38.08,
+      95.717
+    ],
+    "icon":{ 
+      "iconUrl":"/images/ic_camera.png"
+    },
+    "heatmap": {
+      "intensity": 0.33,
+      "radius": 0.5
+    },
+    "track": "robbery_track_1",
+    "ts": [1495676997285, 1495676997295],
+    "label": "marker_7"
+  },
+  {
+    "type": "circle",
+    "id": "set1-circle_1",
+    "latlng": [
+      35.034,
+      100.64
+    ],
+    "heatmap": {
+      "intensity": 0.99
+    },
+    "radius": 305520,
+    "startAngle": -344,
+    "stopAngle": 323,
+    "selected": true,
+    "popup": "Partial Circle with styles",
+    "tooltip": "Start: -344; Stop: 323",
+    "weight":1,
+    "color":"#b58484",
+    "fillColor":"#eadfdf",
+    "fillOpacity":0.5,
+    "selectedProps": {
+      "color": "red",
+      "weight":3,
+      "tooltip": {"content": "-344 / 323"}
+    }
+  },
+  {
+    "type": "circle",
+    "id": "set1-circle_2",
+    "latlng": [
+      33.302,
+      85.498
+    ],
+    "heatmap": {
+      "intensity": 0.1
+    },
+    "radius": 454482,
+    "popup": "Full Circle",
+    "fill":false,
+    "selectedProps": {
+      "color": "#D0104C"
+    }
+  },
+  {
+    "type": "circle",
+    "id": "set1-circle_3",
+    "latlng": [
+      38.649,
+      109.46
+    ],
+    "heatmap": {
+      "intensity": 0.88
+    },
+    "radius": 243239,
+    "startAngle": -181,
+    "stopAngle": 206,
+    "popup": "Explosive Circle",
+    "tooltip": "Start: -181; Stop: 206",
+    "selectedProps": {
+      "color": "#D0104C"
+    }
+  },
+  {
+    "type": "rectangle",
+    "id": "set1-rectangle_1",
+    "latlng": [
+      [
+        51.459303,
+        86.378263
+      ],
+      [
+        47.669148,
+        83.893
+      ]
+    ],
+    "heatmap": {
+      "intensity": 0.67
+    },
+    "popup": "Rectangle - dashed, fill",
+    "dashArray":"5,5",
+    "color":"#588a4f",
+    "fill":false,
+    "fillColor":"#000000"
+  },
+  {
+    "type": "polygon",
+    "id": "set1-polygon_1",
+    "latlng": [
+      [
+        46.846,
+        89.89189
+      ],
+      [
+        47.583704,
+        88.629657
+      ],
+      [
+        49.314006,
+        87.370291
+      ],
+      [
+        48.48201,
+        90.818487
+      ]
+    ],
+    "heatmap": {
+      "intensity": 0.6
+    },
+    "tooltip": "Polygon",
+    "color":"#D0104C",
+    "weight":2,
+    "opacity":0.8,
+    "fill":true,
+    "fillColor":"#000000",
+    "fillOpacity":1
+  },
+  {
+    "type": "polyline",
+    "id": "set1-polyline_1",
+    "latlng": [
+      [
+        23.454291,
+        109.248728
+      ],
+      [
+        25.272292,
+        110.117654
+      ],
+      [
+        25.904642,
+        109.78005
+      ],
+      [
+        24.707217,
+        111.641694
+      ]
+    ],
+    "heatmap": {
+      "intensity": 0.65
+    },
+    "directed": true,
+    "patterns": [
+      {
+        "offset": "100%",
+        "repeat": 0,
+        "sign": {
+          "type": "arrow",
+          "pixelSize": 15,
+          "polygon": false
+        }
+      }
+    ],
+    "popup": "Polyline, directed, arrow at the end of path",
+    "selectedProps": {
+      "color": "#D0104C",
+      "latlng": [
+        [
+          23.454291,
+          109.248728
+        ],
+        [
+          25.272292,
+          110.117654
+        ],
+        [
+          25.904642,
+          109.78005
+        ]
+      ]
+    }
+  },
+  {
+    "type": "polyline",
+    "id": "set1-polyline_2",
+    "latlng": [
+      [
+        31.685,
+        114.42357
+      ],
+      [
+        30.624626,
+        113.987
+      ],
+      [
+        30.213373,
+        113.199886
+      ],
+      [
+        29.455069,
+        112.863199
+      ]
+    ],
+    "heatmap": {
+      "intensity": 0.68
+    },
+    "directed": true,
+    "popup": "Polyline, directed, with repeated arrow pattern",
+    "patterns": [
+      {
+        "offset": "0",
+        "repeat": 50,
+        "sign": {
+          "type": "arrow",
+          "pixelSize": 15,
+          "polygon": false
+        }
+      }
+    ],
+    "popup": "This is polyline: flee_24275",
+    "selectedProps": {
+      "color": "#D0104C"
+    }
+  },
+  {
+    "type": "geojson",
+    "id": "set1-geojson_1",
+    "geojson": {
+      "type": "GeometryCollection",
+      "properties": {
+        "id": "set1-plan_75541",
+        "type": "call",
+        "start": 1495676997283,
+        "end": 1495677001053,
+        "from": {
+          "id": "set1-plan_75541_1",
+          "location": [
+            84.586,
+            44.376136
+          ]
+        },
+        "to": {
+          "id": "set1-plan_75541_2",
+          "location": [
+            85.416708,
+            44.561
+          ]
+        }
+      },
+      "geometries": [
+        {
+          "type": "Point",
+          "coordinates": [
+            84.586,
+            44.376136
+          ]
+        },
+        {
+          "type": "Point",
+          "coordinates": [
+            85.416708,
+            44.561
+          ]
+        },
+        {
+          "type": "LineString",
+          "coordinates": [
+            [
+              84.586,
+              44.376136
+            ],
+            [
+              85.416708,
+              44.561
+            ]
+          ]
+        }
+      ]
+    },
+    "heatmap": {
+      "intensity": 0.17
+    },
+    "popup": "Geojson - two circles connected by a line",
+    "fillColor":"#FFFFFF",
+    "fillOpacity":0.7,
+    "color": "#2CA1C1",
+    "selectedProps": {
+      "color": "#D0104C"
+    }
+  }
+]

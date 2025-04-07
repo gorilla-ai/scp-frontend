@@ -1,0 +1,66 @@
+{
+	"time":"Time",
+	"lbl-keyword":"Keyword",
+	"name":"User",
+	"username":"Username",
+	"module":"Module",
+	"action-type":"Action Type",
+	"action":"Action",
+	"content":"Content",
+	"result":"Result",
+	"txt-all":"All",
+
+	"modules": {
+	  "session": "Session",
+	  "projects": "Projects",
+	  "system": "System",
+	  "user": "Users"
+	},
+
+	"result-types": {
+		"success": "Success",
+		"failed": "Failed"
+	},
+
+	"action-types": {
+	  "session": "Login / Logout",
+	  "search": "Search",
+	  "create": "Create",
+	  "update": "Update",
+	  "delete": "Delete",
+	  "view": "View details",
+	  "upload": "Import / Upload",
+	  "download": "Export / Download"
+	},
+
+	"actions": {
+	  "login": "Login",
+	  "logout": "Logout",
+	  "project-search": "Project Search",
+	  "project-create": "Create Project",
+	  "project-update": "Edit Project",
+	  "project-delete": "Delete Project",
+	  "project-view": "View Project",
+	  "project-pcap": "View Packet Analysis",
+	  "project-cdr": "View Call Detail Records",
+	  "project-ipdr": "View IP Detail Records",
+	  "project-la-analysis": "Project LA Analysis",
+	  "project-gis-analysis": "Project Gis Analysis",
+	  "sys-config-view": "View System Profiles",
+	  "sys-config-edit": "Edit System Profile",
+	  "audit-search": "Audit Search",
+	  "audit-download": "Download Audit Logs",
+	  "account-search": "Account Search",
+	  "account-create": "Create Account",
+	  "account-update": "Edit Account",
+	  "account-delete": "Delete Account",
+	  "role-search": "Role Search",
+	  "role-create": "Create Role",
+	  "role-update": "Edit Role",
+	  "role-delete": "Delete Role",
+	  "group-search": "Group Search",
+	  "group-create": "Create Group",
+	  "group-update": "Edit Group",
+	  "group-delete": "Delete Group"
+	}
+}

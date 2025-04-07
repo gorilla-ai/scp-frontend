@@ -1,0 +1,47 @@
+{
+  "searches": {
+    "fulltext": {
+      "template": "{'query':{'match':{'_all': '{query}'}}}",
+      "locales": {},
+      "query_type": "multi_match_query",
+      "display_name": "全文檢索",
+      "fields": {
+        "query": {
+          "title": "query",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "renders": {
+    "Render": {
+      "locales": {},
+      "type": "table",
+      "fields": {
+        "_id": {
+          "title": "_id"
+        },
+        "EncData": {
+          "title": "EncData"
+        },
+        "Source": {
+          "title": "Source"
+        }
+      }
+    }
+  },
+  "data_source": "etag",
+  "data_types": {
+    "etag": {
+      "searches": [
+        "fulltext"
+      ],
+      "renderDetails": "Render",
+      "fulltext_search": "fulltext",
+      "renderSummary": "Render",
+      "renderSerp": [
+        "Render"
+      ]
+    }
+  }
+}

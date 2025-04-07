@@ -1,0 +1,39 @@
+{
+	"dlg-edit":"Edit Account",
+	"dlg-add":"New Account",
+	"dlg-delete":"Delete Account",
+	"txt-delete":"Are you sure you would like to delete the selected account?",
+	"name":"Name",
+	"username":"Username",
+	"id-no":"National ID",
+	"sex":"Gender",
+	"phone":"Phone",
+	"email":"Email",
+	"unit":"Unit",
+	"rank":"Rank",
+	"group":"Group",
+	"locked":"Locked",
+	"roles":"Roles",
+	"rights":"Rights",
+	"status":"Account Status",
+	"sex-types": {
+		"unknown": "Unknown",
+		"male": "Male",
+		"female": "Female"
+	},
+	"fields":{
+		"name":"$t(name)",
+		"username":"$t(username)",
+		"idNo":"$t(id-no)",
+		"group":"$t(group)",
+		"roles":"$t(roles)",
+		"rights":"$t(rights)",
+		"locked":"$t(locked)"
+	},
+	"lbl-locked":"$t(locked)",
+	"lbl-role":"$t(roles)",
+	"ph-all-roles":"All",
+	"ph-name":"Enter $t(name)",
+	"ph-username":"Enter $t(username)",
+	"ph-id-no":"Enter $t(id-no)"
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_up</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M18.6920174,9.29964265 L12.7437327,3.31049543 C12.3325634,2.89650152 11.6674366,2.89650152 11.2562673,3.31049543 L5.30798265,9.29964265 C4.89733912,9.71310716 4.89733912,10.383862 5.30798265,10.7967971 C5.71810039,11.2102616 6.38427882,11.2102616 6.79492235,10.7967971 L11.4739451,6.08563109 L11.4739451,21 L12.5255291,21 L12.5255291,6.08563109 L17.2050776,10.7967971 C17.6157212,11.2102616 18.2818996,11.2102616 18.6920174,10.7967971 C19.1026609,10.383862 19.1026609,9.71310716 18.6920174,9.29964265" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_up">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Fill-1" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

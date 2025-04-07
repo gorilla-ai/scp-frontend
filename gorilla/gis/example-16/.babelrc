@@ -1,0 +1,10 @@
+{
+  "presets": [
+    "@babel/preset-env",  // 基本必要加載項目
+    "@babel/preset-react" // 解析 React 特殊語法用
+  ],
+  "plugins": [
+    "@babel/plugin-transform-runtime",
+    "@babel/plugin-proposal-class-properties"
+  ]
+}

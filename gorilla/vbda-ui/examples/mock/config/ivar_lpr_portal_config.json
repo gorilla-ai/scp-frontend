@@ -1,0 +1,331 @@
+{
+  "data_source": "ivar",
+  "display_name": "ivar_顯示名稱",
+  "description": "ivar_description",
+  "data_types": {
+    "lpr": {
+      "display_name": "dt_LPR",
+      "description": "dt_LPR_Description",
+      "renderSerp": [
+        "t1"
+      ],
+      "renderSummary": "d1",
+      "renderDetails": "d1",
+      "fulltext_search": "fulltext",
+      "searches": [
+        "basic_query",
+        "gis_query"
+      ],
+      "default_locale": "en_us",
+      "locales": {
+        "en_us": {
+          "display_name": "dt_LPR_en"
+        }
+      }
+    }
+  },
+  "searches": {
+    "fulltext": {
+      "query_type": "multi_match_query",
+      "display_name": "全文檢索",
+      "fields": {
+        "query": {
+          "type": "string"
+        }
+      },
+      "template": "{'query':{'match':{'_all': '{query}'}}}"
+    },
+    "basic_query": {
+      "query_type": "bool_query",
+      "display_name": "一般查詢",
+      "fields": {
+        "host": {
+          "title": "主機",
+          "type": "string"
+        },
+        "source.ivarId": {
+          "title": "IVAR Id",
+          "type": "string"
+        },
+        "source.channel": {
+          "title": "通道號碼",
+          "type": "short"
+        },
+        "lpr.licensePlate": {
+          "title": "車牌",
+          "type": "string"
+        },
+        "common.time": {
+          "title": "事件時間",
+          "type": "timespan",
+          "format": "yyyy-MM-ddTHH:mm:ss.fffZ"
+        }
+      },
+      "template": "{'query':{'bool':{'must':{'bool':{'should':[{'match':{'host':'{host}'}},{'match':{'ivarId':'{source.ivarId}'}},{'match':{'channel':'{source.channel}'}},{'range':{'common.time':{'gte':'{common.time.start}','lte':'{common.time.end}'}}}]}}}}}",
+      "locales": {
+        "en_us": {
+          "display_name": "Basic Search",
+          "fields": {
+            "host": {
+              "title": "Host"
+            },
+            "source.ivarId": {
+              "title": "IVAR Id"
+            },
+            "source.channel": {
+              "title": "Channel"
+            },
+            "lpr.licensePlate": {
+              "title": "License Plate",
+              "type": "string"
+            },
+            "common.time": {
+              "title": "Event Time"
+            }
+          }
+        }
+      }
+    },
+    "gis_query": {
+      "query_type": "bool_query",
+      "display_name": "一般查詢",
+      "fields": {
+        "common.type": {
+          "title": "類型",
+          "type": "string"
+        },
+        "lpr.licensePlate": {
+          "title": "車牌",
+          "type": "string"
+        },
+        "gps.__location": {
+          "title": "依範圍搜尋",
+          "type": "gis_bounding_box"
+        }
+      },
+      "template": "{'query':{'bool':{'must':[{'match':{'common.type':'{common.type}'}}],'filter':{'geo_bounding_box':{'gps.__location':{'top_left':{'lat':'{top_left.lat}','lon':'{top_left.lon}'},'bottom_right': {'lat':'{bottom_right.lat}','lon':'{bottom_right.lon}'}}}}}}}",
+      "locales": {
+        "en_us": {
+          "display_name": "GIS Search",
+          "fields": {
+            "common.type": {
+              "title": "Type"
+            },
+            "lpr.licensePlate": {
+              "title": "License Plate",
+              "type": "string"
+            },
+            "gps.__location": {
+              "title": "Locaiton Range"
+            }
+          }
+        }
+      }
+    }
+  },
+  "renders": {
+    "t1": {
+      "type": "table",
+      "style": {
+        "font": {
+          "name": "PMingLiU",
+          "size": 10
+        },
+        "back_color": "blue"
+      },
+      "fields": {
+        "_id": {
+          "hidden": true
+        },
+        "common.type": {
+          "title": "類型"
+        },
+        "common.time": {
+          "title": "事件時間"
+        },
+        "lpr.licensePlate": {
+          "title": "車牌"
+        },
+        "host": {
+          "title": "主機"
+        },
+        "gps.latitude": {
+          "title": "緯度"
+        },
+        "gps.longitude": {
+          "title": "經度"
+        },
+        "source.ivarId": {
+          "title": "IVAR Id"
+        },
+        "source.channel": {
+          "title": "通道"
+        },
+        "source.bacId": {
+          "title": "攝影機 Id"
+        },
+        "source.taskId": {
+          "title": "工作編號"
+        }
+      },
+      "data_mappings": {
+        "common.type": {
+          "lpr": "車牌辨識",
+          "fr": "人臉辨識"
+        }
+      },
+      "locales": {
+        "en_us": {
+          "fields": {
+            "common.type": {
+              "title": "Type"
+            },
+            "common.time": {
+              "title": "Time"
+            },
+            "lpr.licensePlate": {
+              "title": "License Plate"
+            },
+            "host": {
+              "title": "Host"
+            },
+            "gps.latitude": {
+              "title": "Latitude"
+            },
+            "gps.longitude": {
+              "title": "Longitude"
+            },
+            "source.ivarId": {
+              "title": "IVAR Id"
+            },
+            "source.channel": {
+              "title": "Channel"
+            },
+            "source.bacId": {
+              "title": "Camera Id"
+            },
+            "source.taskId": {
+              "title": "Task Id"
+            }
+          },
+          "data_mappings": {
+            "common.type": {
+              "lpr": "License Plate Recognition",
+              "fr": "Facial Recognition"
+            }
+          }
+        }
+      },
+      "page_size": {
+        "value": 25
+      }
+    },
+    "d1": {
+      "type": "detail_table",
+      "style": {
+        "font": {
+          "name": "PMingLiU",
+          "size": 10
+        },
+        "back_color": "blue"
+      },
+      "fields": {
+        "_id": {
+          "hidden": true
+        },
+        "common.type": {
+          "title": "類型"
+        },
+        "common.time": {
+          "title": "事件時間"
+        },
+        "lpr.licensePlate": {
+          "title": "車牌"
+        },
+        "host": {
+          "title": "主機"
+        },
+        "gps.latitude": {
+          "title": "緯度"
+        },
+        "gps.longitude": {
+          "title": "經度"
+        },
+        "source.ivarId": {
+          "title": "IVAR Id"
+        },
+        "source.channel": {
+          "title": "通道"
+        },
+        "source.bacId": {
+          "title": "攝影機 Id"
+        },
+        "source.taskId": {
+          "title": "工作編號"
+        }
+      },
+      "data_mappings": {
+        "common.type": {
+          "lpr": "車牌辨識",
+          "fr": "人臉辨識"
+        }
+      },
+      "locales": {
+        "en_us": {
+          "fields": {
+            "common.type": {
+              "title": "Type"
+            },
+            "common.time": {
+              "title": "Time"
+            },
+            "lpr.licensePlate": {
+              "title": "License Plate"
+            },
+            "host": {
+              "title": "Host"
+            },
+            "gps.latitude": {
+              "title": "Latitude"
+            },
+            "gps.longitude": {
+              "title": "Longitude"
+            },
+            "source.ivarId": {
+              "title": "IVAR Id"
+            },
+            "source.channel": {
+              "title": "Channel"
+            },
+            "source.bacId": {
+              "title": "Camera Id"
+            },
+            "source.taskId": {
+              "title": "Task Id"
+            }
+          },
+          "data_mappings": {
+            "common.type": {
+              "lpr": "License Plate Recognition",
+              "fr": "Facial Recognition"
+            }
+          }
+        }
+      }
+    }
+  },
+  "icon_sources": {
+    "person": "/*URI*/",
+    "cellphone": "/*URI*/",
+    "email": "/*URI*/",
+    "line": "/*URI*/",
+    "facebook": "/*URI*/",
+    "twitter": "/*URI*/",
+    "plunk": "/*URI*/"
+  },
+  "locales": {
+    "en_us": {
+      "display_name": "ivar_displayname"
+    }
+  }
+}

@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: index.bak.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: index.bak.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react'
+import cx from 'classnames'
+import _ from 'lodash'
+import moment from 'moment'
+import im from 'object-path-immutable'
+import ReactDOMServer from 'react-dom/server'
+
+import {
+    Progress, RadioGroup, PopupDialog, Dropdown as DropDownList,
+    CheckboxGroup, Popover, Contextmenu, Form
+} from 'react-ui'
+import {wireSet} from 'react-ui/build/src/hoc/prop-wire'
+import {downloadDataUrl} from 'react-ui/build/src/utils/download'
+
+
+import toI2 from '../utils/i2-exporter'
+import localize from '../hoc/locale-provider'
+
+const log = require('loglevel').getLogger('react-la/components')
+
+const lt = global.laI18n.getFixedT(null, 'la')
+const gt = global.laI18n.getFixedT(null, 'global')
+
+const LAYOUTS = ['standard', 'hierarchy', 'radial', 'structural', 'lens']
+const DOWNLOAD_TYPES = ['i2', 'img']
+const SNA_TYPES = ['same', 'degree', 'closeness', 'betweenness', 'pagerank', 'eigenvector']
+const LA_POPUP_ID = 'c-react-la-popup'
+
+let selectedItemId = null
+let selectedItemOffset = null
+
+/**
+ * A wrapper React LA Component for [la]{@link http://ivs.duckdns.org:10080/web-ui/la/tree/develop} library.
+ * @constructor
+ * @param {string} [id] - La element #id
+ * @param {function} [_ref] - Reference to the underlying component
+ * @param {'en'|'zh'} [lng] - lang to use
+ * @param {renderable} [title] - La title
+ * @param {string} [className] - Classname for the container
+ * @param {renderable} [actions] - Self defined actions to be appended to the actions panel
+ * @param {object} [mapOptions] - global map options to be supplied to [leaflet]{@link https://leafletjs.com/reference-1.3.0.html#map-option}
+ * @param {object} [truncateLabels] - whether to truncate symbol label content
+ * @param {number} [truncateLabels.maxLength=13] - max # of characters to show in label
+ * @param {boolean} [truncateLabels.shownOnHover] - show complete label text when hover over symbol?
+ * @param {array.&lt;object>} [items] - array of symbols to show on map, see [la symbol]{@link http://ivs.duckdns.org:10080/web-ui/la/blob/develop/docs/symbol.md}
+ * @param {array.&lt;string>} [show] - ids of symbols to show on map, if not specified, all symbols will be shown
+ * @param {array.&lt;string>} [defaultSelected] - default ids of symbols to be selected on map
+ * @param {array.&lt;string>} [selected] - ids of symbols to be selected on map
+ * @param {function} [onSelectionChange] - Callback function when symbol is selected/deselected. &lt;br> Required when *selected* prop is supplied
+ * @param {string|array.&lt;string>} onSelectionChange.id - selected id(s)
+ * @param {object} onSelectionChange.eventInfo - event related info
+ * @param {string|array.&lt;string>} onSelectionChange.eventInfo.before - previously selected id(s)
+ * @param {array.&lt;object>} [baseLayers] - list of filters to be switched between, note at any time at most one layer can be shown
+ * @param {string} baseLayers.id - layer id
+ * @param {string} [baseLayers.label=id] - layer label
+ * @param {string|object|array.&lt;Layer>} baseLayers.layer -
+ * * url for the tile server
+ * * tile layer object to be supplied to leaflet
+ * * array of leaflet [filters]{@link https://leafletjs.com/reference-1.3.0.html#map-filters}
+ * @param {string} [defaultBaseLayer] - default base layer id to be shown
+ * @param {string} [baseLayer] - base layer id to be shown
+ * @param {function} [onBaseLayerChange] - Callback function when bae layer is changed. &lt;br> Required when baseLayer prop is supplied
+ * @param {string} onBaseLayerChange.value - current selected base layer id
+ * @param {object} onBaseLayerChange.eventInfo - event related info
+ * @param {string} onBaseLayerChange.eventInfo.before - previous selected base layer id
+ * @param {string|object|array.&lt;Layer>} [baseMap] - base map layer
+ * * url for the tile server
+ * * tile layer object to be supplied to leaflet
+ * * array of leaflet [filters]{@link https://leafletjs.com/reference-1.3.0.html#map-filters}
+ * @param {array.&lt;'standard'|'track'|'heatmap'|'contour'>} [layouts=['standard', 'track', 'heatmap', 'contour']] - list of layouts for the user the choose between
+ * @param {'standard'|'track'|'heatmap'|'contour'} [defaultLayout=first of layouts] - default layout id to show
+ * @param {'standard'|'track'|'heatmap'|'contour'} [layout] - current layout id to show
+ * @param {function} [onLayoutChange] - Callback function when layout is changed. &lt;br> Required when *layout* prop is supplied
+ * @param {string} onLayoutChange.value - current selected layout id
+ * @param {object} onLayoutChange.eventInfo - event related info
+ * @param {string} onLayoutChange.eventInfo.before - previous selected layout id
+ * @param {array.&lt;'pan'|'measure'|'region'>} [dragModes=['pan', 'measure', 'region']] - list of drag modes for the user the choose between
+ * @param {'pan'|'measure'|'region'} [defaultDragMode=first of dragModes] - default drag mode id to show
+ * @param {'pan'|'measure'|'region'} [dragMode] - current drag mode id to show
+ * @param {function} [onDragModeChange] - Callback function when drag mode is changed. &lt;br> Required when *dragMode* prop is supplied
+ * @param {string} onDragModeChange.value - current selected drag mode id
+ * @param {object} onDragModeChange.eventInfo - event related info
+ * @param {string} onDragModeChange.eventInfo.before - previous selected drag mode id
+ * @param {array.&lt;'circle'|'rectangle'>} [regionTypes=['circle', 'rectangle']] - when dragMode='region', list of selection region types for the user the choose between
+ * @param {'circle'|'rectangle'} [defaultRegionType=first of regionTypes] - default region type id to show
+ * @param {'circle'|'rectangle'} [dragMode] - current region type id to show
+ * @param {function} [onRegionTypeChange] - Callback function when region type is changed. &lt;br> Required when *regionType* prop is supplied
+ * @param {string} onRegionTypeChange.value - current selected region type id
+ * @param {object} onRegionTypeChange.eventInfo - event related info
+ * @param {string} onRegionTypeChange.eventInfo.before - previous selected region type id
+ * @param {array.&lt;object>} [itemOptions] - additional style and behaviour to append to symbols, see [la symbol doc]{@link http://ivs.duckdns.org:10080/web-ui/la/blob/develop/docs/symbol.md}
+ * @param {array.&lt;object>} [trackOptions] - style and behaviour to apply to tracks when symbol has *track* defined, see [la symbol doc]{@link http://ivs.duckdns.org:10080/web-ui/la/blob/develop/docs/symbol.md}
+ * @param {object} [heatmapOptions] - configuration options for heatmap mode, see [la heatmap doc]{@link http://ivs.duckdns.org:10080/web-ui/la/blob/develop/docs/la.md#heatmap-options}
+ * @param {object} [measureOptions] - configuration options for measure mode, see [la measure doc]{@link http://ivs.duckdns.org:10080/web-ui/la/blob/develop/docs/la.md#measure-options}
+ * @param {object} [contourOptions] - configuration options for contour mode, see [la contour doc]{@link http://ivs.duckdns.org:10080/web-ui/la/blob/develop/docs/la.md#contour-options}
+ * @param {array.&lt;object>} [clusterOptions] - style and behaviour to apply to clusters when symbol has *cluster* defined, see [la cluster doc]{@link http://ivs.duckdns.org:10080/web-ui/la/blob/develop/docs/la.md#cluster-options}
+ * @param {array.&lt;object>} [filters] - list of filters to be appended/toggled, note at any time multiple filters can co-exist
+ * @param {string} filters.id - layer id
+ * @param {string} [filters.label=id] - layer label
+ * @param {array.&lt;object>} [filters.items] - same as items props
+ * @param {array.&lt;string>} [defaultActiveLayers] - default layer ids to be shown
+ * @param {array.&lt;string>} [activeFilters] - layer ids to be shown
+ * @param {function} [onFilter] - Callback function when filters are changed. &lt;br> Required when *activeFilters* prop is supplied
+ * @param {array.&lt;string>} onFilter.value - current active layer ids
+ * @param {object} onFilter.eventInfo - event related info
+ * @param {string} onFilter.eventInfo.before - previous active layer ids
+ * @param {string} onFilter.eventInfo.value - which layer triggered change?
+ * @param {boolean} onFilter.eventInfo.checked - activate or deactivate?
+ * @param {array.&lt;array.&lt;number>>} onFilter.eventInfo.bound - current view bound
+ * @param {object} [search] - Configuration for searching on map
+ * @param {boolean} [search.enabled=false] - allow searching on map?
+ * @param {number} [search.minZoom=0] - when zoom level is >= minZoom, the search textbox will start to show
+ * @param {function} search.onSearch - function to call when search is triggered
+ * @param {object} search.onSearch.params - search parameters
+ * @param {string} search.onSearch.params.searchText - search text
+ * @param {object} search.onSearch.params.center - center of the map in {lat, lng} format
+ * @param {number} search.onSearch.params.radius - radius of the visible map view from center, in meters
+ * @param {object} search.onSearch.params.ne - northeast corner the map view in {lat, lng} format
+ * @param {object} search.onSearch.params.sw - northeast corner the map view in {lat, lng} format
+ * @param {function} search.onSearch.onSearchDone - callback function for passing back result items
+ * @param {object} [scale] - Configuration for showing scales on map
+ * @param {boolean} [scale.enabled=true] - show scale on map?
+ * @param {object} [download] - Configuration for downloading la map as png image
+ * @param {boolean} [download.enabled=true] - allow download?
+ * @param {function} [download.afterDownload] - function to call after download
+ * @param {function} [onViewChange] - Callback function when map bounds is changed
+ * @param {array.&lt;array.&lt;number>>} onViewChange.bounds - current map bounds
+ * @param {function} [onClick] - Callback function when map is clicked
+ * @param {string|array.&lt;string>} onClick.id - clicked symbol id(s)
+ * @param {object} onClick.eventInfo - event related info
+ * @param {function} [onDoubleClick] - Callback function when map is double-clicked
+ * @param {string|array.&lt;string>} onDoubleClick.id - clicked symbol id(s)
+ * @param {object} onDoubleClick.eventInfo - event related info
+ * @param {function} [onMouseOver] - Callback function when map is hovered
+ * @param {string|array.&lt;string>} onMouseOver.id - hovered symbol id(s)
+ * @param {object} onMouseOver.eventInfo - event related info
+ * @param {function} [onContextMenu] - Callback function when map is right-clicked
+ * @param {string|array.&lt;string>} onContextMenu.id - clicked symbol id(s)
+ * @param {object} onContextMenu.eventInfo - event related info
+ *
+ *
+ *
+ * @example
+// See [basic example]{@link http://ivs.duckdns.org:10080/web-ui/react-la/blob/master/examples/src/basic.js}
+// See [advanced example]{@link http://ivs.duckdns.org:10080/web-ui/react-la/blob/master/examples/src/advanced.js}
+ */
+const ReactLa = React.createClass({
+    propTypes: {
+        id: React.PropTypes.string,
+        _ref: React.PropTypes.func,
+        title: React.PropTypes.node,
+        className: React.PropTypes.string,
+        actions: React.PropTypes.node,
+        assetsPath: React.PropTypes.string,
+        chartOptions: React.PropTypes.object,
+        items: React.PropTypes.arrayOf(React.PropTypes.object),
+        show: React.PropTypes.arrayOf(React.PropTypes.string),
+        selected: React.PropTypes.arrayOf(React.PropTypes.string),
+        layouts: React.PropTypes.arrayOf(React.PropTypes.oneOf(LAYOUTS)),
+        layout: React.PropTypes.oneOf(LAYOUTS),
+        onLayoutChange: React.PropTypes.func,
+        snaTypes: React.PropTypes.arrayOf(React.PropTypes.oneOf(SNA_TYPES)),
+        snaType: React.PropTypes.oneOf(SNA_TYPES),
+        onSnaTypeChange: React.PropTypes.func,
+        itemOptions: React.PropTypes.array,
+        searchForms: React.PropTypes.arrayOf(React.PropTypes.shape({
+            id: React.PropTypes.string,
+            label: React.PropTypes.string,
+            form: React.PropTypes.oneOfType([React.PropTypes.node, React.PropTypes.object]),
+            filter: React.PropTypes.oneOfType([
+                React.PropTypes.bool,
+                React.PropTypes.object,
+                React.PropTypes.func
+            ])
+        })),
+        search: React.PropTypes.objectOf(React.PropTypes.shape({
+            isActive: React.PropTypes.bool,
+            value: React.PropTypes.object
+        })),
+        onSearch: React.PropTypes.func,
+        download: React.PropTypes.shape({
+            enabled: React.PropTypes.bool,
+            types: React.PropTypes.arrayOf(React.PropTypes.oneOf(DOWNLOAD_TYPES)),
+            afterDownload: React.PropTypes.func,
+            i2: React.PropTypes.shape({
+                resolveDescription: React.PropTypes.func,
+                resolveIcon: React.PropTypes.func
+            })
+        }),
+        onViewChange: React.PropTypes.func,
+        onClick: React.PropTypes.func,
+        onDoubleClick: React.PropTypes.func,
+        onMouseOver: React.PropTypes.func,
+        onContextMenu: React.PropTypes.func,
+        onSelectionChange: React.PropTypes.func
+    },
+    getDefaultProps() {
+        return {
+            assetsPath: '/lib/keylines/assets/',
+            chartOptions: {},
+            items: [],
+            selected: [],
+            layouts: LAYOUTS,
+            snaTypes: SNA_TYPES,
+            itemOptions: [],
+            searchForms: [],
+            download: {
+                enabled: true
+            }
+        }
+    },
+    getInitialState() {
+        const {search} = this.props
+        return {
+            showSearch: false,
+            _search: search
+        }
+    },
+    componentDidMount() {
+        if (!window.KeyLines) {
+            log.error('KeyLines not found')
+            return
+        }
+
+        const {_ref} = this.props
+        if (_ref) {
+            _ref(this)
+        }
+
+        window.addEventListener('resize', this.resize)
+
+        this.init(()=>{
+            this.load(true)
+        })
+    },
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.search !== this.props.search) {
+            this.setState({_search:nextProps.search})
+        }
+    },
+    componentDidUpdate(prevProps) {
+        const {
+            items, selected, show,
+            layout, snaType, search
+        } = this.props
+        const {
+            items: prevItems, selected: prevSelected, show: prevShow,
+            layout: prevLayout, snaType: prevSnaType, search: prevSearch
+        } = prevProps
+
+        if (items !== prevItems) {
+            log.info('componentDidUpdate::items changed', prevItems, items)
+            this.load(true)
+        }
+        if (show !== prevShow) {
+            log.info('componentDidUpdate::show changed', prevShow, show)
+            this.applyFilter()
+        }
+        if (selected !== prevSelected) {
+            log.info('componentDidUpdate::selected changed', prevSelected, selected)
+            this.la.selection(selected)
+        }
+        if (layout !== prevLayout) {
+            log.info('componentDidUpdate::layout changed', prevLayout, layout)
+            this.animateLayout(layout)
+        }
+        if (snaType !== prevSnaType) {
+            log.info('componentDidUpdate::snaType changed', prevSnaType, snaType)
+            this.animateSna(snaType)
+        }
+        if (search !== prevSearch) {
+            log.info('componentDidUpdate::search changed', {search, prevSearch})
+            this.applyFilter()
+        }
+    },
+    componentWillUnmount() {
+        this.la.clear()
+        window.removeEventListener('resize', this.resize)
+    },
+    init(onDone) {
+        const {
+            chartOptions
+        } = this.props
+
+        const g = window.KeyLines
+        const {assetsPath} = this.props
+
+        g.paths({
+            assets: assetsPath
+        })
+
+        log.info('creating instance of LA module', this.laNode)
+
+        g.create({
+            element: this.laNode,
+            type: 'chart',
+            options: {
+                handMode: true,
+                selfLinks: true,
+                truncateLabels: {
+                    minZoom: 0.01,
+                    maxLength: 20
+                },
+                ...chartOptions
+            }
+        },
+            (err, la) => {
+                this.la = la
+                log.info('la chart created', la)
+                this.setupLaEvents()
+                onDone &amp;&amp; onDone()
+            }
+        )
+    },
+    handleMouseDrag(evt) {
+        if (selectedItemId) {
+            const item = this.la.getItem(selectedItemId)
+            this.drawPopup(
+                {
+                    left: evt.pageX+selectedItemOffset.left,
+                    right: evt.pageX+selectedItemOffset.right,
+                    top: evt.pageY+selectedItemOffset.top,
+                    bottom: evt.pageY+selectedItemOffset.bottom
+                },
+                &lt;div dangerouslySetInnerHTML={{__html:item.popup}} />
+            )
+        }
+    },
+    setupLaEvents() {
+        const {
+            onViewChange,
+            onClick,
+            onDoubleClick,
+            onMouseOver,
+            onContextMenu,
+            onSelectionChange
+        } = this.props
+
+        const la = this.la
+
+/*
+        la.bind('selectionchange', ()=>{
+            const selected = la.getItem(la.selection())
+        })
+*/
+
+        la.bind('dragend', ()=>{
+            window.removeEventListener('mousemove', this.handleMouseDrag)
+        })
+        la.bind('dragstart', (type, id, x, y)=>{
+            if (id) {
+                const item = la.getItem(id)
+                if (item.popup) {
+                    selectedItemId = id
+                    const {x1, x2, y1, y2} = la.labelPosition(id)
+                    selectedItemOffset = {
+                        left: x1-x,
+                        right: x2-x,
+                        top: y1-y,
+                        bottom: y2-y
+                    }
+                    window.addEventListener('mousemove', this.handleMouseDrag)
+                }
+            }
+        })
+        la.bind('hover', (id, x, y)=>{
+            if (id &amp;&amp; !Contextmenu.isOpen()) {
+                const item = la.getItem(id)
+                if (item.tooltip) {
+                    const bb = this.getBoundingBox()
+                    this.drawPopup(
+                        {x:x+(bb.x||bb.left), y:y+(bb.y||bb.top)},
+                        &lt;div dangerouslySetInnerHTML={{__html:item.tooltip}} />
+                    )
+                    return
+                }
+            }
+
+            Popover.closeId(LA_POPUP_ID)
+        })
+
+        la.bind('click', (id, x, y)=>{
+            if (id) {
+                const item = la.getItem(id)
+                if (item.popup) {
+                    const bb = this.getBoundingBox()
+                    this.drawPopup(
+                        {x:x+(bb.x||bb.left), y:y+(bb.y||bb.top)},
+                        &lt;div dangerouslySetInnerHTML={{__html:item.popup}} />
+                    )
+                    return
+                }
+            }
+
+            Popover.closeId(LA_POPUP_ID)
+        })
+
+        if (onContextMenu) {
+            la.bind('contextmenu', (id, x, y)=>{
+                if (id) {
+                    const item = la.getItem(id)
+                    if (item.contextmenu) {
+                        const bb = this.getBoundingBox()
+                        Popover.closeId(LA_POPUP_ID)
+                        Contextmenu.open(
+                            {pageX:x+(bb.x||bb.left), pageY:y+(bb.y||bb.top)},
+                            _.map(item.contextmenu, menuItem=>({
+                                ...menuItem,
+                                action: ()=>{ onContextMenu(id, {x, y, action:menuItem.id}) }
+                            }))
+                        )
+                        return
+                    }
+                }
+                Contextmenu.close()
+
+                onContextMenu(id, {x, y})
+            })
+        }
+
+        if (onViewChange) {
+            la.bind('viewchange', onViewChange)
+        }
+
+        if (onClick) {
+            la.bind('click', (id, ...args)=>{
+                const [x, y] = args
+                onClick(id, {x, y})
+            })
+        }
+        if (onDoubleClick) {
+            la.bind('dblclick', (id, ...args)=>{
+                const [x, y] = args
+                onDoubleClick(id, {x, y})
+            })
+        }
+        if (onMouseOver) {
+            la.bind('hover', (id, ...args)=>{
+                const [x, y] = args
+                onMouseOver(id, {x, y})
+            })
+        }
+        if (onSelectionChange) {
+            la.bind('selectionchange', ()=>{
+                const selected = la.selection()
+                onSelectionChange(selected)
+            })
+        }
+    },
+    drawPopup(location, content) {
+        if (content) {
+            Popover.openId(
+                LA_POPUP_ID,
+                location,
+                &lt;div>{content}&lt;/div>,
+                {
+                    //draggable: true,
+                    pointy: true,
+                    boundBy: this.laContainerNode,
+                    className: ''
+                }
+            )
+        }
+    },
+    resetView() {
+        //this.la.zoom('fit')
+        const {layout} = this.props
+        this.animateLayout(layout)
+    },
+    load() {
+        const {items, itemOptions, selected, snaType} = this.props
+        log.info('load::start')
+        const la = this.la
+
+        const curChartItems = this.getChartItems()
+        const curChartItemIds = _.map(curChartItems, 'id')
+        const curChartNodeIds = _(curChartItems).filter({type:'node'}).map('id').value()
+
+        Progress.startSpin()
+        setTimeout(()=>{
+            const itemsToCreate = _(items)
+                .map(item=>{
+                    const matchedOptions = _.reduce(itemOptions, (acc, opt)=>{
+                        const {match, props} = opt
+                        if (!_.isMatch(item, match)) {
+                            return acc
+                        }
+
+                        return {
+                            ...acc,
+                            ...props
+                        }
+                    }, {})
+
+                    if (_.isEmpty(matchedOptions)) {
+                        return {
+                            ...item
+                        }
+                    }
+
+                    const computedProps = _.mapValues(matchedOptions, (v, k)=>{
+                        if (_.isFunction(v)) {
+                            const result = v(item)
+                            if (_.includes(['tooltip', 'popup'], k)) {
+                                return ReactDOMServer.renderToStaticMarkup(result)
+                            }
+                            return result
+                        }
+                        return v
+                    })
+
+                    return {
+                        ...computedProps,
+                        ...item
+                    }
+                })
+                .value()
+
+            const newChartItemIds = _.map(itemsToCreate, 'id')
+            const newChartNodeIds = _(itemsToCreate).filter({type:'node'}).map('id').value()
+            const idsToRemove = _.difference(curChartItemIds, newChartItemIds)
+            const positionsToKeep = _.intersection(newChartNodeIds, curChartNodeIds)
+            la.removeItem(idsToRemove)
+            la.merge(itemsToCreate, ()=>{
+                if (!_.isEmpty(selected)) {
+                    la.selection(selected)
+                }
+
+                this.animateSna(snaType, positionsToKeep, ()=>{
+                    this.applyFilter()
+                })
+
+                log.info('load::done', {itemsToCreate, items:this.getChartItems()})
+                Progress.done()
+            })
+        })
+    },
+    handleLayoutChange(layout) {
+        const {onLayoutChange} = this.props
+        onLayoutChange(layout)
+    },
+    handleSnaTypeChange(snaType) {
+        const {onSnaTypeChange} = this.props
+        onSnaTypeChange(snaType)
+    },
+    getChartItems() {
+        return this.la.serialize().items
+    },
+    getBoundingBox() {
+        return this.laContainerNode.getBoundingClientRect()
+    },
+    handleDownload() {
+        const {download:{types:downloadTypes=DOWNLOAD_TYPES}} = this.props
+        let downloadType = _.first(downloadTypes)
+
+        if (downloadTypes.length>1) {
+            PopupDialog.prompt({
+                title: lt('dlg-download'),
+                display: &lt;div>
+                    &lt;RadioGroup
+                        list={_.map(downloadTypes, option=>({text:lt(`download-types.${option}`), value:option}))}
+                        onChange={(type)=>{ downloadType=type }}
+                        defaultValue={downloadType} />
+                &lt;/div>,
+                cancelText: gt('btn-cancel'),
+                confirmText: gt('btn-confirm'),
+                act: (confirmed) => {
+                    if (confirmed) {
+                        this.download(downloadType)
+                    }
+                }
+            })
+        }
+        else {
+            this.download(downloadType)
+        }
+    },
+    download(type) {
+        if (type === 'i2') {
+            this.downloadAsI2()
+        }
+        else {
+            this.downloadAsImg()
+        }
+    },
+    downloadAsI2() {
+        const {download:{afterDownload, resolveDescription, resolveIcon}} = this.props
+        const items = this.getChartItems()
+        log.info('downloadAsI2', items)
+
+        const xml = toI2(items, {resolveDescription, resolveIcon})
+        downloadDataUrl('data:text/plain;charset=utf-8,'+encodeURIComponent(xml), 'i2', 'xml')
+        afterDownload &amp;&amp; afterDownload('i2')
+    },
+    downloadAsImg() {
+        const {download:{afterDownload}} = this.props
+        let filename = `la_${moment().format('YYYY-MM-DD-HH-mm')}`
+
+        this.la.toDataURL(2000, 2000, {fit:'oneToOne'}, (dataUrl)=>{
+            downloadDataUrl(dataUrl, filename, 'jpg')
+            afterDownload &amp;&amp; afterDownload('image')
+        })
+    },
+    resize() {
+        const laBb = this.getBoundingBox()
+        window.KeyLines.setSize(this.laNode, laBb.width, laBb.height)
+        this.animateLayout('tweak')
+    },
+    applyFilter() {
+        const {show, searchForms} = this.props
+        const {_search} = this.state
+
+        const isSingleFilter = searchForms.length&lt;=1
+        let filterNodes = false
+        let filterLinks = false
+        const filtersToApply = _.reduce(_search, (acc, v, filterId)=>{
+            if (!isSingleFilter &amp;&amp; !v.isActive) {
+                return acc
+            }
+
+            const filterItem = _.find(searchForms, {id:filterId})
+            if (!filterItem || filterItem.filter===false) {
+                return acc
+            }
+
+            let {filterType, filter} = filterItem
+            if (!filterType &amp;&amp; filter &amp;&amp; _.isPlainObject(filter)) {
+                filterType = filter.type
+            }
+            if (!filterType) {
+                filterNodes = true
+                filterLinks = true
+            }
+            else if (filterType==='node') {
+                filterNodes = true
+            }
+            else if (filterType==='link') {
+                filterLinks = true
+            }
+            return [
+                ...acc,
+                filterItem
+            ]
+        }, [])
+
+        log.info('applyFilter', {filtersToApply})
+
+        if (_.isEmpty(filtersToApply)) {
+            this.animateFilter(show)
+            return
+        }
+
+        this.animateFilter(
+            (item)=>{
+                if (show &amp;&amp; !_.includes(show, item.id)) {
+                    return false
+                }
+                const toShow = _.some(filtersToApply, ({id:filterId, filter:filterToApply})=>{
+                    const formData = _search[filterId].value
+                    if (_.isFunction(filterToApply)) {
+                        return filterToApply(item, formData, this.la)
+                    }
+                    else {
+                        return _.isMatchWith(
+                            item,
+                            filterToApply || {d:formData},
+                            (itemVal, filterVal)=>{
+                                log.info({itemVal, filterVal})
+                                if (_.isString(filterVal) &amp;&amp; _.trim(filterVal)==='') {
+                                    return true
+                                }
+                                if (_.isString(itemVal) &amp;&amp; _.isString(filterVal)) {
+                                    return (itemVal+'').toLowerCase().indexOf(filterVal.toLowerCase())>=0
+                                }
+                                return undefined
+                            }
+                        )
+                    }
+                })
+                return toShow
+            },
+            {type:(filterNodes&amp;&amp;filterLinks?'all':(filterNodes?'node':'link'))}
+        )
+    },
+    animateFilter(params, options={}, onDone) {
+        let filterFn
+        if (params==null) {
+            filterFn = ()=>true
+        }
+        else if (_.isFunction(params)) {
+            filterFn = params
+        }
+        else if (_.isString(params)) {
+            filterFn = (item) => item.id === params
+        }
+        else if (_.isArray(params)) {
+            filterFn = (item) => _.includes(params, item.id)
+        }
+        else if (_.isPlainObject(params)) {
+            filterFn = (item) => _.isMatch(params, item)
+        }
+        this.la.filter(filterFn, options, onDone)
+    },
+    animateLayout(newLayout, idsToFix, onDone) {
+        const la = this.la
+        let options = {fit:true, fixed:idsToFix, animate:true, tidy:true}
+
+        if (newLayout === 'radial' || newLayout === 'hierarchy') {
+            let selected = la.selection()
+            let top = []
+            _.forEach(selected, s=>{
+                let item = la.getItem(s)
+                if (item.type==='node') {
+                    top.push(s)
+                }
+            })
+            options = {...options, flatten:true, top}
+        }
+        la.layout(newLayout, options, onDone)
+    },
+    animateSna(newSnaType, fixed, onDone) {
+        const {layout:curLayout} = this.props
+        const la = this.la
+        let fn = la.graph()[{degree:'degrees', eigenvector:'eigenCentrality', pagerank:'pageRank'}[newSnaType]||newSnaType]
+
+        if (newSnaType!=='same' &amp;&amp; !fn) {
+            log.error(`sna::analysis type '${newSnaType}' unavailable`)
+            return
+        }
+
+        let wrappedFn = fn
+        if (newSnaType==='same') {
+            let sizes = {}
+            la.each({type:'node'}, (node)=>{
+                sizes[node.id] = 0
+            })
+            wrappedFn = (options, cb) => {
+                cb(sizes)
+            }
+        }
+        else if (_.includes(['degree', 'pagerank', 'eigenvector'], newSnaType)) {
+            wrappedFn = (options, cb) => {
+                cb(fn(options))
+            }
+        }
+
+
+        wrappedFn({}, (nodeSizes)=>{
+            log.info('sna done', nodeSizes)
+            const sizes = _.values(nodeSizes)
+            const maxSize = Math.max(...sizes)
+            const minSize = Math.min(...sizes)
+            const props = _.map(nodeSizes, (v, k)=>{
+                const normalizedSize = (maxSize===minSize ? minSize : (v-minSize)/(maxSize-minSize))
+                /*let color = undefined
+                if (normalizedSize &lt; 0.25) {
+                    color = 'rgb(254, 217, 118)'
+                }
+                else if (normalizedSize &lt; 0.5) {
+                    color = 'rgb(253, 141, 60)'
+                }
+                else if (normalizedSize &lt; 0.75) {
+                    color = 'rgb(252, 78, 42)'
+                }
+                else {
+                    color = 'rgb(177, 0, 38)'
+                }*/
+                return {
+                    id: k,
+                    e: (normalizedSize*6)+1/*,
+                    c: color*/
+                }
+            })
+            log.info('sna props', {maxSize, minSize, props})
+            la.animateProperties(props, {time:500}, ()=>{
+                this.animateLayout(curLayout, fixed)
+            })
+            if (onDone) {
+                onDone()
+            }
+        })
+    },
+    toggleSearchPanel() {
+        this.setState(({showSearch})=>{
+            return {
+                showSearch: !showSearch
+            }
+        })
+    },
+    handleToggleSearchForm(newActiveSearches, {checked, value}) {
+        const {_search} = this.state
+        this.setState({
+            _search: im.set(_search, [value, 'isActive'], checked)
+        })
+    },
+    handleSearchFormChange(searchId, formData) {
+        const {_search} = this.state
+        this.setState({
+            _search: im.set(_search, [searchId, 'value'], formData)
+        })
+    },
+    handleSearch() {
+        const {onSearch} = this.props
+        const {_search} = this.state
+        onSearch(_search)
+    },
+    renderSearchForm(searchForm) {
+        const {_search} = this.state
+        const {id:searchId, form} = searchForm
+        return &lt;Form
+            {...form}
+            value={_.get(_search, [searchId, 'value'], {})}
+            onChange={this.handleSearchFormChange.bind(this, searchId)} />
+    },
+    render() {
+        const {
+            id, title, className, actions,
+            download: {enabled:enableDownload},
+            snaTypes, snaType, layouts, layout, searchForms
+        } = this.props
+
+        const isSingleSearch = searchForms.length&lt;=1
+
+        const {_search, showSearch} = this.state
+        const activeSearchIds = _.reduce(_search, (acc, v, k)=>{
+            if (v.isActive) {
+                return [...acc, k]
+            }
+            return acc
+        }, [])
+
+        return &lt;div id={id} ref={ref=>{ this.node=ref }} className={cx('c-box c-la', className)}>
+            {title &amp;&amp; &lt;header className='c-flex aic'>
+                {title}
+            &lt;/header>}
+            &lt;div className='actions end c-flex'>
+                {layouts.length > 1 &amp;&amp; &lt;DropDownList required list={layouts.map(l=>({text:lt(`layout-types.${l}`), value:l}))} value={layout} onChange={this.handleLayoutChange} />}
+                {snaTypes.length > 1 &amp;&amp; &lt;DropDownList required list={snaTypes.map(m=>({text:lt(`sna-types.${m}`), value:m}))} value={snaType} onChange={this.handleSnaTypeChange} />}
+                {enableDownload &amp;&amp; &lt;button className='standard fg fg-data-download' title={lt('tt-download')} onClick={this.handleDownload} />}
+                {&lt;button className='standard fg fg-update' title={lt('tt-reset')} onClick={()=>{ this.resetView() }} />}
+                {!_.isEmpty(searchForms) &amp;&amp; &lt;button onClick={this.toggleSearchPanel} className={cx('standard filters', {active:showSearch})}>{lt('search')}&lt;/button>}
+                {actions}
+            &lt;/div>
+            &lt;div className='content c-fill nopad full' ref={ref=>{ this.laContainerNode=ref }}>
+                &lt;div ref={ref=>{ this.laNode=ref }} />
+                {showSearch &amp;&amp; &lt;div className='search c-box'>
+                    &lt;header className='c-flex'>
+                        {lt('search')}
+                        &lt;i className='c-link fg fg-close end' onClick={this.toggleSearchPanel} />
+                    &lt;/header>
+                    &lt;div className='content'>
+                        {isSingleSearch ?
+                            this.renderSearchForm(_.first(searchForms)) :
+                            &lt;CheckboxGroup
+                                onChange={this.handleToggleSearchForm}
+                                value={activeSearchIds}
+                                list={_.map(searchForms, (searchForm)=>({
+                                    value: searchForm.id,
+                                    text: searchForm.label,
+                                    children: this.renderSearchForm(searchForm)
+                                }))} />
+                        }
+                    &lt;/div>
+                    &lt;footer>&lt;button onClick={this.handleSearch}>{lt('btn-apply')}&lt;/button>&lt;/footer>
+                &lt;/div>}
+            &lt;/div>
+        &lt;/div>
+    }
+})
+
+export default localize(
+    wireSet(ReactLa, {
+        layout: {defaultValue:({layouts})=>_.first(layouts || LAYOUTS), changeHandlerName:'onLayoutChange'},
+        snaType: {defaultValue:({snaTypes})=>_.first(snaTypes || SNA_TYPES), changeHandlerName:'onSnaTypeChange'},
+        search: {defaultValue:{}, changeHandlerName:'onSearch'},
+        selected: {defaultValue:[], changeHandlerName:'onSelectionChange'}
+    })
+)</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ReactLa.html">ReactLa</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Mon Jun 11 2018 15:25:48 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

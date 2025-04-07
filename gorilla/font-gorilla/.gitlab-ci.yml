@@ -1,0 +1,104 @@
+stages:
+  - stage-build
+  - deploy-example-dev
+  - production-build
+  - deploy-example
+
+variables:
+  TARGET_DIR: /usr/local/openresty/nginx/html/default/projects/font-gorilla
+
+deploy-example-dev:
+  stage: deploy-example-dev
+  script:
+     - sudo rm -rf "$TARGET_DIR"/example-dev
+     - sudo mkdir "$TARGET_DIR"/example-dev
+     - sudo cp -r demo.html fonts demo-files css "$TARGET_DIR"/example-dev
+     - sudo chown -R www-data:gorillard "$TARGET_DIR"/example-dev
+     # if previous unit-test passed, do auto merge to "master" branch for production-build
+     - git checkout master
+     - git pull
+     - git merge origin/develop
+     - git push
+  tags:
+    - font-gorilla
+  only:
+    - develop
+  except:
+    changes:
+      - dist/**/* # dist folder changes, do not run this stage
+
+deploy-example:
+  stage: deploy-example
+  script:
+     - sudo rm -rf "$TARGET_DIR"/example
+     - sudo mkdir "$TARGET_DIR"/example
+     - sudo cp -r demo.html fonts demo-files css "$TARGET_DIR"/example
+     - sudo chown -R www-data:gorillard "$TARGET_DIR"/example
+  tags:
+    - font-gorilla
+  only:
+    - master
+  except:
+    refs:
+      - tags
+    changes:
+      - CHANGELOG.md
+      #- dist/**/* # dist folder changes, do not run this stage
+
+
+stage-build:
+  stage: stage-build
+  script:
+    - rm -rf dist
+    - echo "When unit-test or QA test ready, modify below to run unit-test & deploy to QA test server"
+    #- echo "CI_PROJECT_URL \"$CI_PROJECT_URL\" & CI_REPOSITORY_URL \"$CI_REPOSITORY_URL\" & CI_PROJECT_NAMESPACE \"$CI_SERVER_HOST\" & CI_PROJECT_PATH \"$CI_PROJECT_PATH\""
+    #- npm ci # install from package-lock.json, you should update npm packages by yourself and push package.json & package-loc.json.
+    #- npm run build
+    # Do not add commit & push, just do unit-test & deploy to QA environment
+    #- git add --force -- dist # force adding dist folder
+    #- git commit -m "BUILD BY RUNNER with \"$CI_COMMIT_REF_NAME\" branch" || echo "No changes, nothing to commit!"
+    #- git remote set-url --push origin git@git.gorilla-technology.com:$CI_PROJECT_PATH
+    #- git push origin HEAD:$CI_COMMIT_REF_NAME
+  tags:
+    - font-gorilla
+  only:
+    refs:
+      - develop
+      #- branches
+    #changes:
+    #  - src/**/*
+    #  - package.json
+  except:
+    changes:
+      #- "package-lock.json" # package-lock.json changes, do not run this stage
+      - dist/**/* # dist folder changes, do not run this stage
+
+production-build:
+  stage: production-build
+  script:
+    - rm -rf dist
+    - npm ci # install from package-lock.json, you should update npm packages by yourself and push package.json & package-loc.json.
+    - npm run build
+    - git add --force -- dist # force adding dist folder
+    - git commit -m "BUILD BY RUNNER with \"$CI_COMMIT_REF_NAME\" branch" || echo "No changes, nothing to commit!"
+    - npm run release
+    #- git remote show origin
+    - git remote set-url --push origin git@git.gorilla-technology.com:$CI_PROJECT_PATH
+    #- git remote show origin
+    - git push --follow-tags origin HEAD:$CI_COMMIT_REF_NAME
+    - npm publish # publish to Gorilla Nexus
+  tags:
+    - font-gorilla
+  only:
+    refs:
+      - master
+  except:
+    refs:
+      - tags
+    changes:
+      - "CHANGELOG.md"
+      #- dist/**/* # dist folder changes, do not run this stage
+
+#git@git.gorilla-technology.com:gorilla/font-gorilla.git
+#https://git.gorilla-technology.com/gorilla/font-gorilla
+#https://git.gorilla-technology.com/gorilla/font-gorilla.git

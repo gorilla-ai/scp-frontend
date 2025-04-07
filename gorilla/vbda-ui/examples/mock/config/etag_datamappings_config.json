@@ -1,0 +1,138 @@
+{
+  "data_source": "etag",
+  "data_types": [
+    {
+      "relationships": [
+        {
+          "directions": [
+            {
+              "value": 1
+            }
+          ],
+          "node_a": "etag",
+          "node_b": "image",
+          "name": "etag_image",
+          "type": "own"
+        },
+        {
+          "node_a": "etag",
+          "directions": [
+            {
+              "value": 1
+            }
+          ],
+          "node_b": "camera",
+          "name": "etag_camera",
+          "type": "own"
+        }
+      ],
+      "partition": "day",
+      "active_image_processing": "false",
+      "nodes": [
+        {
+          "name": "etag",
+          "properties": [
+            {
+              "reference": "RecordTime",
+              "name": "time"
+            },
+            {
+              "reference": "EncData",
+              "name": "Data"
+            },
+            {
+              "reference": "_version_",
+              "name": "version"
+            },
+            {
+              "reference": "Source",
+              "name": "source"
+            }
+          ],
+          "labels": [
+            {
+              "label_name": "etag",
+              "properties": [
+                {
+                  "reference": "ID",
+                  "name": "id"
+                },
+                {
+                  "reference": "Type",
+                  "name": "type"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "images": [
+            "ImgPath"
+          ],
+          "name": "image"
+        },
+        {
+          "name": "camera",
+          "locations": [
+            "Location_geopoint"
+          ],
+          "properties": [
+            {
+              "reference": "CameraID",
+              "name": "id"
+            },
+            {
+              "reference": "Latitude",
+              "name": "latitude"
+            },
+            {
+              "reference": "Longitude",
+              "name": "longitude"
+            }
+          ]
+        }
+      ],
+      "representative_time": "RecordTime",
+      "name": "etag",
+      "properties": {
+        "ImgPath": {
+          "format": "path",
+          "type": "image"
+        },
+        "RecordTime": {
+          "type": "date"
+        },
+        "Type": {
+          "type": "short"
+        },
+        "EncData": {
+          "type": "keyword"
+        },
+        "_version_": {
+          "type": "long"
+        },
+        "Location_geopoint": {
+          "type": "geo_point"
+        },
+        "Latitude": {
+          "type": "double"
+        },
+        "ID": {
+          "type": "keyword"
+        },
+        "Longitude": {
+          "type": "double"
+        },
+        "Location_geoshape": {
+          "type": "geo_shape"
+        },
+        "Source": {
+          "type": "short"
+        },
+        "CameraID": {
+          "type": "keyword"
+        }
+      }
+    }
+  ]
+}

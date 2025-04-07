@@ -1,0 +1,100 @@
+.c-chart-metric {
+    .chart-title {
+        text-align: center;
+        font-size: 20px;
+        margin: 10px 0;
+    }
+    .content {
+        text-align: center;
+        header {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .main-container {
+            margin: 10px 0;
+            header {
+                font-size: 18px;
+            }
+            .group-parent {
+                .item {
+                    span {
+                        &.value {
+                            font-size: 25px;
+                        }
+                        &.label {
+                            margin-top: 6px;
+                        }
+                    }
+                }
+            }
+        }
+        .sub-container {
+            margin-top: 15px;
+            .group-parent {
+                .item {
+                    span {
+                        &.value {
+                            font-size: 20px;
+                        }
+                        &.label {
+                            margin-top: 3px;
+                        }
+                    }
+                }
+            }
+            .sub-title {
+                border-top: 1px solid #ccc;
+                border-left: 1px solid #ccc;
+                border-right: 1px solid #ccc;
+                padding: 5px;
+            }
+            .sub-content {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                padding: 15px;
+                border: 1px solid #ccc;
+                header {
+                    font-size: 16px;
+                }
+            }
+        }
+        .group-parent {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 30px;
+            .group {
+                display: table;
+                .item {
+                    display: table-row;
+                    margin: 0 5px;
+                    padding: 2px;
+                    span {
+                        display: table-cell;
+                        padding: 0 10px;
+                        &.value {
+                            text-align: right;
+                        }
+                        &.label {
+                            text-align: left;
+                        }
+                    }
+                }
+            }
+            &.vertical {
+                margin: 0 20px;
+                .group {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: center;
+                    .item,
+                    .item span {
+                        display: block;
+                        text-align: center;
+                    }
+                }
+            }
+        }
+    }
+}

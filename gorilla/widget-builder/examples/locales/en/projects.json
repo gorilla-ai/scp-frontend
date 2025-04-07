@@ -1,0 +1,28 @@
+{
+	"views":{
+		"project":"Project",
+		"summary":"Summary",
+		"la":"Link Analysis",
+		"gis":"GIS",
+		"cdr":"Call Detail Records",
+		"ipdr":"IP Detail Records",
+		"pcap":"Packet Capture"
+	},
+	"statuses":{
+		"investigating":"Investigating",
+		"closed":"Closed"
+	},
+	"txt-back-to-projects":"Back to Projects",
+	"dlg-edit":"Edit Project",
+	"dlg-add":"New Project",
+	"dlg-delete":"Delete Project",
+	"txt-delete":"Are you sure you would like to delete the selected project?",
+	"name":"Name",
+	"description":"Description",
+	"ph-name":"Enter $t(name)",
+	"ph-description":"Enter $t(description)",
+	"fields":{
+	    "name":"$t(name)",
+	    "description":"$t(description)"
+	}
+}

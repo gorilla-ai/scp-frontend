@@ -1,0 +1,23 @@
+{
+  "envCfg":
+  {
+    "env":"development",
+    "contextRoot":"",
+    "port":8095,
+    "lng":"zh",
+    "log":{
+      "level":{
+        "production":{
+          "server":"info",
+          "client":"warn"
+        },
+        "development":"info"
+      },
+      "persist":{
+        "client":"error",
+        "server":true
+      },
+      "max":2
+    }
+  }
+}

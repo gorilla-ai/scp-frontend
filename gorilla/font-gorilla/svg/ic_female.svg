@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_female</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M8,9 C8,6.7945 9.7945,5 12,5 C14.2055,5 16,6.7945 16,9 C16,11.2055 14.2055,13 12,13 C9.7945,13 8,11.2055 8,9 M18,9 C18,5.6915 15.3085,3 12,3 C8.6915,3 6,5.6915 6,9 C6,12.1395 8.425,14.719 11.5,14.9745 L11.5,15.8 L8.8,15.8 C8.2475,15.8 7.8,16.2475 7.8,16.8 C7.8,17.352 8.2475,17.8 8.8,17.8 L11.5,17.8 L11.5,20 L12.5,20 L12.5,17.8 L15.2,17.8 C15.7525,17.8 16.2,17.352 16.2,16.8 C16.2,16.2475 15.7525,15.8 15.2,15.8 L12.5,15.8 L12.5,14.9745 C15.575,14.719 18,12.1395 18,9" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_female">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Page-1" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

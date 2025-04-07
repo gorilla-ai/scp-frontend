@@ -1,0 +1,15 @@
+{
+  "exclude": ["node_modules", "build"],
+  "include": ["src/**/*"],
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "baseUrl": "./src",
+    "jsx": "react",
+    "paths": {
+      "css/*": ["assets/less/*"],
+      "services/*": ["services/*"],
+      "components/*": ["components/*"]
+    }
+  }
+}

@@ -1,0 +1,70 @@
+@charset"utf-8";
+
+html, body, #app-container {
+	position: absolute;
+    width: 100%;
+    height: 100%;
+
+    min-width: 720px;
+    //min-height: 800px;
+}
+
+#g-app {
+    width: 100%;
+    height: 100%;
+
+	display:flex;
+	flex-direction:column;
+	
+	#g-header {
+
+		position:relative;
+		flex-grow:0;
+		flex-shrink:0;
+
+		#g-menu {
+			a {
+				padding: 5px 28px;
+			}
+		}
+	}
+	// main pages
+	#g-header + div {
+		flex-grow:1;
+		margin: 7px 0px 5px 10px;
+		overflow-y:auto;
+	}
+}
+
+
+
+.example {
+	display: flex;
+	justify-content: space-between;
+	> .demo {
+		flex-grow:1;
+		flex-shrink:1;
+	}
+	> .state {
+		width:300px;
+		max-height:750px;
+		font-size:0.9em;
+	    flex-grow: 0;
+	    flex-shrink: 0;
+	}
+}
+
+.gis-divIcon.gis-marker.assault img {
+	background-color: #aa0000;
+}
+.c-gis {
+	width: 100%;
+}
+#gis {
+	> .sample {
+		margin-bottom:5px;
+		>.c-radio-group {
+			margin-right: 10px;
+		}
+	}
+}

@@ -1,0 +1,12 @@
+{
+    presets: ['env', 'react'],
+    plugins: ["transform-object-rest-spread"],
+    env: {
+        "production": {
+            "plugins": ["transform-react-remove-prop-types"]
+        },
+        "test": {
+            "presets": ["env", "react"]
+        }
+    }
+}

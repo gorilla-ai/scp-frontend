@@ -1,0 +1,43 @@
+[
+  {
+    "type": "feature",
+    "product": "A",
+    "name": "A",
+    "id": "601"
+  },
+  {
+    "type": "feature",
+    "product": "B",
+    "name": "B",
+    "id": "602"
+  },
+  {
+    "type": "piece",
+    "name": "C",
+    "description": "C",
+    "id": "603"
+  },
+  {
+    "type": "piece",
+    "name": "D",
+    "description": "D",
+    "id": "604"
+  },
+  {
+    "end": "601",
+    "type": "OUTPUT",
+    "item": "test3"
+  },
+  {
+    "end": "602",
+    "type": "OUTPUT"
+  },
+  {
+    "end": "603",
+    "type": "OUTPUT"
+  },
+  {
+    "end": "604",
+    "type": "OUTPUT"
+  }
+]

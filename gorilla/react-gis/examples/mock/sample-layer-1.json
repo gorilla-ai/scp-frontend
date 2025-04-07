@@ -1,0 +1,51 @@
+[
+  {
+    "id": "set2-marker_1",
+    "type": "marker",
+    "latlng": [
+      44.5,
+      134.4
+    ],
+    "heatmap":{
+      "intensity": 0.44
+    },
+    "tooltip": "New marker 1",
+    "selected":true,
+    "selectedProps":{
+      "label":"test"
+    },
+    "data": {
+      "thing":"person"
+    }
+  },
+  {
+    "id": "set2-marker_2",
+    "type": "marker",
+    "latlng": [
+      43.89,
+      132.0
+    ],
+    "tooltip": "New marker 2",
+    "heatmap":{
+      "intensity": 0.63
+    },
+    "data": {
+      "thing":"person"
+    }
+  },
+  {
+    "id": "set2-marker_3",
+    "type": "marker",
+    "latlng": [
+      50.6,
+      140.4
+    ],
+    "tooltip": "New marker 3",
+    "heatmap":{
+      "intensity": 0.72
+    },
+    "data": {
+      "thing":"person"
+    }
+  }
+]

@@ -1,0 +1,55 @@
+.c-la {
+    @active-color: #cccccc;
+    min-width: 700px;
+    min-height: 700px;
+    > .actions {
+        padding: 5px 5px;
+        background-color: #f5f5f5;
+        
+        > .left {
+            > * {
+                margin-right: 5px;
+            }
+        }
+        > .right {
+            > * {
+                margin-left: 5px;
+            }
+        }
+        button.active {
+            background-color: @active-color;
+        }
+        button, select {
+            height: 31px;
+        }
+        select {
+            padding: 0 0.5em;
+        }
+        button.fg {
+            width: 31px;
+            padding: 0;
+        }
+        .c-button-group {
+            font-size: 0.95em;
+        }
+    }
+    > .content {
+        overflow: hidden;
+    }
+}
+
+#c-react-la-popup > .c-popover {
+    max-height: 400px;
+    overflow: auto;
+    font-size: 0.8em;
+    z-index: 999;
+}
+
+.c-search-provider-container {
+    font-size: 0.8rem;
+    .c-form {
+        input, select, textarea, label {
+            font-size: 0.8rem;
+        }
+    } 
+}

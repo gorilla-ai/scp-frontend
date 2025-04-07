@@ -1,0 +1,14 @@
+{
+	"dlg-edit":"Edit Role",
+	"dlg-add":"New Role",
+	"dlg-delete":"Delete Role",
+	"txt-delete":"Are you sure you would like to delete the selected role?",
+	"name":"Name",
+	"apply":"Apply Role",
+	"rights":"Rights",
+	"open-to-group-owners":"Open to Group Owners",
+    "fields":{
+        "name":"$t(name)",
+        "rights":"$t(rights)"
+    }
+}

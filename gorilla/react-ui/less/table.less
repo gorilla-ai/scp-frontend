@@ -1,0 +1,263 @@
+@import (reference) 'base.less';
+
+@c-table-border-color:@g-border-color;
+@c-table-header-text-color: @g-standard-font-color;
+@c-table-body-text-color: @g-standard-font-color;
+@c-table-alternate-row-background-color: @g-standard-alternate-color;
+@c-table-hover-row-background-color: @g-standard-hover-color;
+@c-table-selected-row-background-color: @g-tertiary-color;
+@c-table-cell-border-color: @g-border-color;
+@c-table-input-background-color: @g-border-color;
+
+.c-table {
+  
+    &:not(.nohover) tbody {
+        tr:hover:not(.selected) {
+            background-color:@c-table-hover-row-background-color !important;
+        }
+    }
+    &:not(.bland):not(.c-grid) tbody {
+        tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+        tr:nth-child(odd) {
+            background-color: @c-table-alternate-row-background-color;
+        }
+    }
+
+    caption {
+        padding:5px;
+    }
+    thead {
+        border-color: @c-table-border-color;
+        border-width: 0 0 1px 0;
+        border-style: solid;
+        color: @c-table-header-text-color;
+    }
+    tbody {
+        color: @c-table-body-text-color;
+
+        tr.selected {
+            background-color:@c-table-selected-row-background-color !important; 
+        }
+    }
+
+    thead th, tbody td {
+        border-color: @c-table-cell-border-color;
+        border-style: solid;
+        border-width: 0;
+
+        &.selector, &.actions {
+            text-align:center;
+        }
+        &.actions {
+            > span > * {
+                margin:0 5px;
+            }
+            .disabled {
+                visibility:hidden;
+            }
+        }
+    }
+
+    thead th { 
+        padding: 10px 7px;
+        text-align:center;
+
+        &.sortable {
+            cursor:pointer;
+          
+            span.dir {
+                margin-left:5px;
+                &.selected {
+                    color: @g-standard-hilite-color;
+                }
+            }
+        }
+    }
+    tbody td {
+        padding: 5px 7px;
+        text-align: left;
+        &.right {
+            text-align:right;
+        }
+        &.center {
+            text-align:center;
+        }
+    }
+}
+.c-table.selectable {
+    tbody tr {
+        cursor:pointer;
+    }
+}
+
+
+.c-table.fixed-header {
+    position:absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    display:flex;
+    flex-direction:column;
+    align-items: stretch;
+
+    caption, thead, tbody, tfoot {
+        width:100%; // for firefox
+    }
+    caption, thead, tbody, tfoot, td, th {
+        display:block;
+    }
+    tr {
+        display:flex;
+    }
+    thead, tbody {
+        overflow-y:auto;
+        overflow-x: hidden;
+    }
+    caption, thead, tfoot {
+        flex-grow:0;
+        flex-shrink:0;
+    }
+    thead th, tbody td {
+        flex-grow: 0;
+        flex-shrink: 0;
+    }
+
+    tbody td {
+        // vertically align text in center
+        display: flex;
+        align-items: center;
+
+        &.selector, &.actions {
+            justify-content: center;
+        }
+        &.right {
+            justify-content:flex-end;
+        }
+        &.center {
+            justify-content:center;
+        }
+    }
+
+    tfoot tr td {
+        width:100%;
+    }
+}
+
+.c-table.column {
+
+    display: flex;
+    flex-direction:row;
+
+    tbody, thead, tr, td, th {
+        display: flex;
+    }
+    thead {
+        flex-grow: 0;
+        flex-shrink: 0;
+        border-width: 0px 1px 0 0;
+    }
+    thead, tbody {
+        tr {
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+    }
+    thead th, tbody td {
+        padding: 7px;
+        height: 25px;
+        // border collapse does not work on flex styled tables
+        align-items:center; // vertically align cell content
+    }
+}
+.c-table.column.fixed-header {
+
+    caption, thead, tbody {
+        width:auto;
+        height:100%;
+    }
+    thead, tbody {
+        overflow-x:scroll;
+        overflow-y:auto;
+    }
+}
+// border related settings
+.c-table.border-inner-vertical {
+    &:not(.column) {
+        td, th {
+            &:not(:last-child) {
+                border-right-width:1px;
+            }
+        }
+    }
+    &.column {
+        tbody tr:not(:last-child) td {
+            border-right-width:1px;
+        }
+    }
+}
+.c-table.border-inner-horizontal {
+    &:not(.column) {
+        tbody tr:not(:last-child) td {
+            border-bottom-width: 1px;
+        }
+    }
+    &.column {
+        td,th {
+            &:not(:last-child) {
+                border-bottom-width: 1px;
+            }   
+        } 
+    }
+}
+.c-table.border-inner {
+    .c-table.border-inner-vertical;
+    .c-table.border-inner-horizontal;
+}
+
+.c-table.border-outer {
+    border: 1px solid @c-table-border-color;
+    &.rounded {
+        border-radius: 5px;
+    }
+}
+
+.c-table.border-all {
+    .c-table.border-outer;
+    .c-table.border-inner;
+}
+
+// grid related settings
+.c-grid.c-table, .c-grid-row.c-table {
+    //.c-table.border-inner;
+    tbody {
+        tr.selected, tr.selected td>* {
+          background-color:@c-table-selected-row-background-color !important; 
+        }
+    }
+}
+.c-grid.c-table, .c-grid-row.c-table tr.selected {
+    *[contenteditable] {
+        font: small -moz-fixed;
+        font: -webkit-small-control;
+        //overflow: auto;
+        height:100%;
+        background-color:@c-table-input-background-color;
+        text-align: start;
+        white-space:pre-wrap;
+    }
+    select[disabled] {
+        color:inherit;
+    }
+    *[contenteditable],
+    input[type='text'],
+    input[type='number'],
+    select {
+        width:100%;
+        &:not(:focus) {
+            border-color:@c-table-input-background-color;
+        }
+    }
+}

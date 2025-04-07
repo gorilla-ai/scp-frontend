@@ -1,0 +1,121 @@
+{
+  "data": [
+    {
+      "director": "martin",
+      "tom": 2,
+      "nicole": 5,
+      "year": 1990
+    },
+    {
+      "director": "martin",
+      "tom": 3,
+      "nicole": 4,
+      "year": 1991
+    },
+    {
+      "director": "martin",
+      "tom": 2,
+      "nicole": 3,
+      "year": 1992
+    },
+    {
+      "director": "martin",
+      "nicole": 6,
+      "year": 1993
+    },
+    {
+      "director": "martin",
+      "nicole": 1,
+      "year": 1994
+    },
+    {
+      "director": "martin",
+      "tom": 10,
+      "year": 1996
+    },
+    {
+      "director": "martin",
+      "tom": 2,
+      "nicole": 0,
+      "year": 1997
+    },
+    {
+      "director": "martin",
+      "tom": 5,
+      "nicole": 1,
+      "year": 2000
+    },
+    {
+      "director": "francis",
+      "tom": 4,
+      "nicole": 1,
+      "year": 1990
+    },
+    {
+      "director": "francis",
+      "tom": 2,
+      "nicole": 3,
+      "year": 1991
+    },
+    {
+      "director": "francis",
+      "tom": 7,
+      "nicole": 4,
+      "year": 1992
+    },
+    {
+      "director": "francis",
+      "nicole": 1,
+      "year": 1993
+    },
+    {
+      "director": "francis",
+      "nicole": 2,
+      "year": 1994
+    },
+    {
+      "director": "francis",
+      "tom": 2,
+      "year": 1996
+    },
+    {
+      "director": "francis",
+      "tom": 1,
+      "nicole": 0,
+      "year": 1997
+    },
+    {
+      "director": "francis",
+      "tom": 1,
+      "nicole": 2,
+      "year": 2000
+    },
+    {
+      "tom": 1,
+      "nicole": 2,
+      "year": 2000
+    }
+  ],
+  "dataCfg": {
+    "splitChart": "director",
+    "x": "year",
+    "splitLine": [
+      "tom",
+      "nicole"
+    ]
+  },
+  "keyLabels": {
+    "director": "Director",
+    "actor": "Actor",
+    "movies": "# movies",
+    "year": "Year",
+    "tom": "Tom Cruise",
+    "nicole": "Nicole Kidman"
+  },
+  "valueLabels": {
+    "director": {
+      "martin": "Martin Scorses",
+      "francis": "Francis Copola"
+    }
+  }
+}

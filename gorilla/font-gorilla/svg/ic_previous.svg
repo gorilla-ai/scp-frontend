@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/ic_previous</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M9.29964265,5.30798265 C9.71310716,4.89733912 10.383862,4.89733912 10.7967971,5.30798265 C11.2102616,5.71810039 11.2102616,6.38427882 10.7967971,6.79492235 L6.08563109,11.4744709 L21,11.4744709 L21,12.5260549 L6.08563109,12.5260549 L10.7967971,17.2050776 C11.2102616,17.6157212 11.2102616,18.2818996 10.7967971,18.6920174 C10.383862,19.1026609 9.71310716,19.1026609 9.29964265,18.6920174 L3.31049543,12.7437327 C2.89650152,12.3325634 2.89650152,11.6674366 3.31049543,11.2562673 L9.29964265,5.30798265 Z" id="path-1"></path>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/ic_previous">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Fill-1" fill="#000000" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

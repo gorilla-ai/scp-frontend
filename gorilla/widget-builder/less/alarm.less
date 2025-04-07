@@ -1,0 +1,36 @@
+.notifications-br{
+  width: 400px !important;
+}
+.notification-content {
+  width: 100%;
+  display: flex;
+  .notification-custom-icon {
+    flex-basis: 20%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 3%;
+    .fg {
+      font-size: 2.5rem;
+    }
+  }
+  .notification-custom-content {
+    flex-basis: 80%;
+    display: inline-block;
+  }
+  .title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+  .message{
+    max-width: calc(100% - 15px);
+    font-size: 14px;
+    line-height: 150%;
+    word-wrap: break-word;
+    margin-bottom: 0;
+    margin-top: 0;
+  }
+}
