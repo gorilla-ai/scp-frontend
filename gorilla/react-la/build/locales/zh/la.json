@@ -1,0 +1,31 @@
+{
+	"tt-download":"下載關聯分析",
+	"tt-reset":"重置圖層",
+	"dlg-download":"下載",
+	"btn-apply":"套用",
+	"search":"搜尋",
+	"layout-types":{
+		"standard":"標準",
+		"hierarchy":"階層",
+		"radial":"放射",
+		"structural":"結構",
+		"tweak":"微調",
+		"lens":"鏡片"
+	},
+	"sna-types":{
+		"same":"無",
+		"degree":"連結強度",
+		"betweenness":"中介強度",
+		"closeness":"緊密強度",
+		"eigenvector":"特徵強度",
+		"pagerank":"有向特徵強度"
+	},
+	"search":{
+		"title":"搜尋",
+		"btn-apply":"套用"
+	},
+	"download-types":{
+		"img":"下載至JPG圖檔",
+		"i2":"匯出至I2格式"
+	}
+}

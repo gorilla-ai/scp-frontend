@@ -1,0 +1,27 @@
+{
+	"tt-download":"下載地理分析",
+	"tt-reset":"重置圖層",
+	"tt-zoomin":"放大",
+	"tt-zoomout":"縮小",
+	"layout-types":{
+		"standard":"標準",
+		"track":"軌跡",
+		"heatmap":"熱區",
+		"contour":"等高線"
+	},
+	"drag-modes":{
+		"pan":"平移",
+		"measure":"量距",
+		"region":"區域"
+	},
+	"region-types":{
+		"circle":"圓形",
+		"rectangle":"矩形"
+	},
+	"layers":"圖層",
+	"meters":"公尺",
+	"measure-hint":"連點滑鼠完成測量",
+	"txt-no-places":"無符合符搜尋之地點",
+	"btn-clear": "全部清除",
+	"ph-search": "輸入關鍵字"
+}

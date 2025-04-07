@@ -1,0 +1,46 @@
+{
+	"btn-ok": "OK",
+	"btn-confirm": "OK",
+	"btn-cancel": "Cancel",
+	"btn-close": "Close",
+	"btn-search": "Search",
+	"btn-save": "Save",
+	"btn-export": "Export",
+	"btn-import": "Import",
+	"btn-reload": "Reload",
+	"btn-now": "Now",
+	"btn-back": "Back",
+
+	"btn-new": "New",
+	"btn-edit": "Edit",
+	"btn-delete": "Delete",
+	"btn-file": "Select File",
+
+	"tt-download": "Download",
+	"tt-delete": "Delete",
+	"tt-edit": "Edit",
+
+	"txt-loading":"Loading...",
+	"txt-saving":"Saving...",
+	"txt-uploading":"Uploading...",
+	"txt-uploaded":"Done",
+	"txt-no-data":"No results matching search criteria",
+	"txt-time":"Time",
+	"dlg-confirm":"Please Confirm",
+	"dlg-error":"Error",
+
+	"hdr-search":"Search",
+	
+	"lbl-select-file":"Please select file to upload",
+
+    "ph-search":"Enter keyword here",
+    "ph-all":"All",
+
+    "yesno":{
+    	"true":"Yes",
+    	"yes":"Yes",
+    	"false":"No",
+    	"no":"No",
+		"na":"NA"
+    }
+}

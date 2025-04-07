@@ -1,0 +1,49 @@
+.c-la {
+  min-width: 700px;
+  min-height: 700px;
+}
+.c-la > .actions {
+  padding: 5px 5px;
+  background-color: #f5f5f5;
+}
+.c-la > .actions > .left > * {
+  margin-right: 5px;
+}
+.c-la > .actions > .right > * {
+  margin-left: 5px;
+}
+.c-la > .actions button.active {
+  background-color: #cccccc;
+}
+.c-la > .actions button,
+.c-la > .actions select {
+  height: 31px;
+}
+.c-la > .actions select {
+  padding: 0 0.5em;
+}
+.c-la > .actions button.fg {
+  width: 31px;
+  padding: 0;
+}
+.c-la > .actions .c-button-group {
+  font-size: 0.95em;
+}
+.c-la > .content {
+  overflow: hidden;
+}
+#c-react-la-popup > .c-popover {
+  max-height: 400px;
+  overflow: auto;
+  font-size: 0.8em;
+  z-index: 999;
+}
+.c-search-provider-container {
+  font-size: 0.8rem;
+}
+.c-search-provider-container .c-form input,
+.c-search-provider-container .c-form select,
+.c-search-provider-container .c-form textarea,
+.c-search-provider-container .c-form label {
+  font-size: 0.8rem;
+}

@@ -1,0 +1,32 @@
+{
+	"btn-search": "Search",
+	"btn-advanceSearch": "Search",
+	"btn-add-intel":"Add Selected To Project",
+	"btn-add-all-intel":"Add All To Project",
+	"txt-search": "Search",
+	"txt-advanceSearch": "Search",
+	"txt-select-database":"Please Search Database",
+	"txt-search-no-match-result":"no match result",
+
+	"hdr-search":"Search",
+    "lbl-all-dt":"Select All",
+    "lbl-type":"Type",
+	"lbl-database":"Database",
+
+    "tt-edit":"Edit Record",
+    "tt-create":"Create Record",
+    "tt-delete":"Delete Record",
+    "tt-view-details":"View Details",
+
+	"form-fulltext":"Keyword",
+	"form-event-time":"Time",
+	"form-label-type":"Type",
+
+	"type-person":"Person",
+	"type-car":"Car",
+	"type-case":"Case",
+	"type-phone":"Phone",
+	"type-others":"Others",
+
+	"txt-back-to-search":"Back to Search"
+}

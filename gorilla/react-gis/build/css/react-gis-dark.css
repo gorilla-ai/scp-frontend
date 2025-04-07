@@ -1,0 +1,153 @@
+.gis-point {
+  fill: #FF7800;
+  color: #000;
+  weight: 1;
+  opacity: 1;
+}
+.gis-vertex {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 10px solid #3388FF;
+  border-radius: 50%;
+}
+.gis-measure-hint {
+  background: rgba(0, 0, 0, 0.7);
+  color: #FFFFFF;
+  left: 0;
+  margin: 0 auto;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  width: 20%;
+  z-index: 800;
+}
+.leaflet-marker-icon.gis-divIcon {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+.leaflet-marker-icon.gis-divIcon > img {
+  flex-grow: 1;
+  max-height: 100% !important;
+  max-width: 100% !important;
+  position: initial;
+}
+.leaflet-marker-icon.gis-divIcon > div.gis-spot {
+  background-color: #008FCF;
+  border-radius: 50%;
+  display: block;
+  margin-bottom: 5px;
+  position: initial;
+}
+.leaflet-marker-icon.gis-divIcon > div.gis-spot:after {
+  content: ' ';
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+.leaflet-marker-icon.gis-divIcon > span.gis-label {
+  flex-grow: 0;
+  position: initial;
+  text-align: center;
+  width: 60px !important;
+  word-break: break-word;
+}
+.leaflet-pane.leaflet-track-pane {
+  z-index: 601;
+}
+.js-top-layer {
+  z-index: 2147483647 !important;
+}
+.c-gis {
+  min-width: 700px;
+  min-height: 700px;
+}
+.c-gis > .actions {
+  padding: 5px 10px;
+}
+.c-gis > .actions > * {
+  margin-left: 5px;
+}
+.c-gis > .actions .layers.active,
+.c-gis > .actions .fg-search.active {
+  background-color: #bcbcbc;
+}
+.c-gis > .actions button,
+.c-gis > .actions select {
+  height: 31px;
+}
+.c-gis > .actions select {
+  padding: 0 0.5em;
+}
+.c-gis > .actions button.fg {
+  width: 31px;
+  padding: 0;
+}
+.c-gis > .actions .c-button-group {
+  font-size: 0.95em;
+}
+.c-gis .gis-divIcon.gis-marker {
+  border-radius: 50%;
+  border: 3px solid transparent;
+  box-sizing: content-box;
+  left: -3px;
+  top: -3px;
+}
+.c-gis .gis-divIcon.gis-marker > span {
+  background-color: #ffffff;
+  color: #4a4a4a;
+}
+.c-gis .gis-divIcon.gis-marker img {
+  border-radius: 50%;
+  max-height: 100% !important;
+  max-width: 100% !important;
+}
+.c-gis .gis-divIcon.gis-marker.selected {
+  border-color: #72b300;
+}
+.c-gis .gis-divIcon.gis-marker.selected > span {
+  background-color: #72b300;
+  color: #ffffff;
+}
+.c-gis .gis-divIcon.gis-spot > span {
+  background-color: #ffffff;
+  color: #4a4a4a;
+}
+.c-gis .gis-divIcon.gis-spot > .gis-spot {
+  border: 2px solid #ffffff;
+}
+.c-gis .gis-divIcon.gis-spot.selected > .gis-spot {
+  border-color: #494949;
+}
+.c-gis .gis-divIcon.gis-spot.selected > span {
+  background-color: #494949;
+  color: #ffffff;
+}
+.c-gis > .content {
+  overflow: hidden;
+}
+.c-gis > .content > .layers,
+.c-gis > .content > .base-layers {
+  position: absolute;
+  z-index: 401;
+}
+.c-gis > .content > .base-layers {
+  top: 5px;
+  right: 5px;
+  bottom: auto;
+  left: auto;
+}
+.c-gis > .content > .layers {
+  top: auto;
+  left: 5px;
+  bottom: 5px;
+  right: auto;
+  min-width: 150px;
+}
+.c-gis > .search {
+  position: absolute;
+  z-index: 401;
+  top: 5px;
+  left: 5px;
+  right: auto;
+  bottom: auto;
+}

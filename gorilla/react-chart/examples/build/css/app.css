@@ -1,0 +1,233 @@
+@charset "utf-8";
+html,
+body,
+#app-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #FFFFFF;
+  color: #333333;
+  font-family: "Segoe UI", "微軟正黑體", "新細明體";
+  font-size: 1em;
+  min-width: 720px;
+}
+#g-app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+#g-app #g-header {
+  position: relative;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+#g-app #g-header #g-menu {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 5px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+#g-app #g-header #g-menu a {
+  padding: 5px 28px;
+  background-color: #f5dbb9;
+  margin: 0 5px;
+  margin-bottom: 10px;
+  border: 1px solid #999999;
+  border-radius: 5px;
+}
+#g-app #g-header #g-menu a.current {
+  background-color: #e8f6fd;
+}
+#g-app #g-header + div {
+  flex-grow: 1;
+  margin: 7px 0px 5px 10px;
+  overflow-y: auto;
+}
+.example {
+  display: flex;
+  justify-content: space-between;
+}
+.example > .demo {
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+.example > .state {
+  width: 300px;
+  max-height: 350px;
+  font-size: 0.9em;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.c-chart .c-chart-table {
+  position: relative;
+}
+.c-chart .c-chart-table th,
+.c-chart .c-chart-table td {
+  flex-basis: 0;
+}
+.c-chart-dashboard {
+  background-color: #3e2f2f;
+}
+.c-chart-dashboard > .widgets .c-chart {
+  height: 100%;
+  width: 100%;
+  background-color: #ffffff;
+}
+.c-chart-dashboard > .filter > span {
+  margin-right: 3px;
+  padding: 0 5px;
+  background-color: #eef4f7;
+  border: 1px solid #46b6ef;
+  border-radius: 4px;
+}
+.c-chart-dashboard > .filter > span > .value {
+  margin-left: 3px;
+}
+.c-chart-dashboard > .filter > span.active {
+  background-color: #686a6b;
+  color: #ffffff;
+  border-color: #53585f;
+}
+.c-chart .c-chart-timeline {
+  margin-top: .5em;
+}
+.c-chart .c-chart-timeline > .vis-timeline {
+  border: 1px solid #D9D9D9;
+  border-radius: 6px;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-center {
+  background-color: #FFFFFF;
+  border: none;
+  border-left: .5px solid #D2D2D2;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-center > .vis-shadow.vis-top,
+.c-chart .c-chart-timeline .vis-panel.vis-center .vis-shadow.vis-bottom {
+  display: none !important;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-center::-webkit-scrollbar {
+  background-color: #BCBCBC;
+  border-radius: 4px;
+  width: 8px;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-center::-webkit-scrollbar-thumb {
+  background-color: #001B34;
+  border-radius: 4px;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-left,
+.c-chart .c-chart-timeline .vis-panel.vis-right,
+.c-chart .c-chart-timeline .vis-panel.vis-top,
+.c-chart .c-chart-timeline .vis-panel.vis-bottom {
+  border: none;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-left,
+.c-chart .c-chart-timeline .vis-panel.vis-right,
+.c-chart .c-chart-timeline .vis-panel.vis-top,
+.c-chart .c-chart-timeline .vis-panel.vis-bottom {
+  border: none;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-background {
+  background: #9B9B9B;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-background.vis-vertical .vis-time-axis.vis-background .vis-grid.vis-minor {
+  border: none;
+}
+.c-chart .c-chart-timeline .vis-labelset .vis-label:nth-child(odd),
+.c-chart .c-chart-timeline .vis-foreground .vis-group:nth-child(odd) {
+  background-color: #FFFFFF;
+}
+.c-chart .c-chart-timeline .vis-labelset .vis-label:nth-child(even),
+.c-chart .c-chart-timeline .vis-foreground .vis-group:nth-child(even) {
+  background-color: #F5F5F5;
+}
+.c-chart .c-chart-timeline .vis-labelset .vis-label.js-hovered,
+.c-chart .c-chart-timeline .vis-foreground .vis-group.js-hovered {
+  background-color: #E2ECFD;
+}
+.c-chart .c-chart-timeline .vis-foreground .vis-group {
+  border-bottom: none;
+}
+.c-chart .c-chart-timeline .vis-label {
+  border-bottom: none;
+}
+.c-chart .c-chart-timeline .vis-label .vis-inner {
+  align-items: center;
+  display: flex;
+  height: 2.5em;
+  padding: 0;
+}
+.c-chart .c-chart-timeline .vis-background .vis-group:nth-child(even) {
+  background-color: #FFFFFF;
+}
+.c-chart .c-chart-timeline .vis-background .vis-group:nth-child(odd) {
+  background-color: #F5F5F5;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-bottom > .vis-time-axis.vis-foreground {
+  background: #9B9B9B;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-bottom > .vis-time-axis.vis-foreground > .vis-text.vis-minor,
+.c-chart .c-chart-timeline .vis-panel.vis-bottom > .vis-time-axis.vis-foreground .vis-text.vis-major {
+  color: #EFEFEF;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-bottom > .vis-time-axis.vis-foreground > .vis-text.vis-minor:nth-child(even),
+.c-chart .c-chart-timeline .vis-panel.vis-bottom > .vis-time-axis.vis-foreground .vis-text.vis-major:nth-child(even) {
+  border-left: 1px solid #BBBBBB;
+  border-right: 1px solid #BBBBBB;
+}
+.c-chart .c-chart-timeline .vis-item.vis-range {
+  border: none;
+  height: 2.5em;
+}
+.c-chart .c-chart-timeline .vis-item.vis-range .vis-item-content {
+  padding: 0;
+}
+.c-chart .c-chart-timeline .vis-tooltip {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 2px;
+  box-shadow: 2px 1px 8px -2px #b0b0b0;
+  font-size: .7em;
+}
+.c-chart .c-chart-timeline .tl-group-label {
+  margin: 0 .5em;
+  width: 7em;
+}
+.c-chart .c-chart-timeline .tl-group-sum {
+  align-items: center;
+  border-radius: 50%;
+  color: #FFFFFF;
+  display: flex;
+  height: 2em;
+  justify-content: center;
+  margin: .5em;
+  width: 2em;
+}
+.c-chart {
+  display: flex;
+  flex-direction: column;
+}
+.c-chart > header {
+  border-bottom: 1px solid #ada4a4;
+  padding: 3px 6px;
+}
+.c-chart > .c-chart-split {
+  display: flex;
+  flex-grow: 1;
+}
+.c-chart > .c-chart-split > * {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0;
+  overflow: hidden;
+}
+.c-chart > :not(header):not(.c-chart-split) {
+  flex-grow: 1;
+  flex-shrink: 1;
+  overflow: hidden;
+}
+.c-chart.column > .c-chart-split {
+  flex-direction: column;
+}

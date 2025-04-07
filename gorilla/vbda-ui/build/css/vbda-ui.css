@@ -1,0 +1,603 @@
+.c-vbda-search .c-box.search {
+  width: 450px;
+}
+.c-vbda-search .detail {
+  width: 500px;
+}
+.c-vbda-search .c-vbda-dt-list .c-button-group > .thumb {
+  padding: 0.3em 1em;
+}
+.c-vbda-events {
+  display: flex;
+  flex-wrap: wrap;
+}
+.c-vbda-events > * {
+  margin: 2px;
+  padding: 5px;
+  border: 1px solid #3399cc;
+  border-radius: 5px;
+}
+.c-vbda-events.content.h0 {
+  height: 0;
+}
+.c-vbda-events.content.h0 > fieldset {
+  display: block;
+  width: 100%;
+}
+.c-vbda-events.content.h0 .event:not(.full) {
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+.c-box.grow.source {
+  width: 0;
+}
+.c-la {
+  min-width: 700px;
+  min-height: 700px;
+}
+.c-la > .actions {
+  padding: 5px 5px;
+  background-color: #f5f5f5;
+}
+.c-la > .actions > .left > * {
+  margin-right: 5px;
+}
+.c-la > .actions > .right > * {
+  margin-left: 5px;
+}
+.c-la > .actions button.active {
+  background-color: #cccccc;
+}
+.c-la > .actions button,
+.c-la > .actions select {
+  height: 31px;
+}
+.c-la > .actions select {
+  padding: 0 0.5em;
+}
+.c-la > .actions button.fg {
+  width: 31px;
+  padding: 0;
+}
+.c-la > .actions .c-button-group {
+  font-size: 0.95em;
+}
+.c-la > .content {
+  overflow: hidden;
+}
+#c-react-la-popup > .c-popover {
+  max-height: 400px;
+  overflow: auto;
+  font-size: 0.8em;
+  z-index: 999;
+}
+.c-search-provider-container {
+  font-size: 0.8rem;
+}
+.c-search-provider-container .c-form input,
+.c-search-provider-container .c-form select,
+.c-search-provider-container .c-form textarea,
+.c-search-provider-container .c-form label {
+  font-size: 0.8rem;
+}
+.gis-point {
+  fill: #FF7800;
+  color: #000;
+  weight: 1;
+  opacity: 1;
+}
+.gis-vertex {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 10px solid #3388FF;
+  border-radius: 50%;
+}
+.gis-measure-hint {
+  background: rgba(0, 0, 0, 0.7);
+  color: #FFFFFF;
+  left: 0;
+  margin: 0 auto;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  width: 20%;
+  z-index: 800;
+}
+.leaflet-marker-icon.gis-divIcon {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+.leaflet-marker-icon.gis-divIcon > img {
+  flex-grow: 1;
+  max-height: 100% !important;
+  max-width: 100% !important;
+  position: initial;
+}
+.leaflet-marker-icon.gis-divIcon > div.gis-spot {
+  background-color: #008FCF;
+  border-radius: 50%;
+  display: block;
+  margin-bottom: 5px;
+  position: initial;
+}
+.leaflet-marker-icon.gis-divIcon > div.gis-spot:after {
+  content: ' ';
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+.leaflet-marker-icon.gis-divIcon > span.gis-label {
+  flex-grow: 0;
+  position: initial;
+  text-align: center;
+  width: 60px !important;
+  word-break: break-word;
+}
+.leaflet-pane.leaflet-track-pane {
+  z-index: 601;
+}
+.js-top-layer {
+  z-index: 2147483647 !important;
+}
+.c-gis {
+  min-width: 700px;
+  min-height: 700px;
+}
+.c-gis > .actions {
+  padding: 5px 10px;
+}
+.c-gis > .actions > * {
+  margin-left: 5px;
+}
+.c-gis > .actions .layers.active,
+.c-gis > .actions .fg-search.active {
+  background-color: #bcbcbc;
+}
+.c-gis > .actions button,
+.c-gis > .actions select {
+  height: 31px;
+}
+.c-gis > .actions select {
+  padding: 0 0.5em;
+}
+.c-gis > .actions button.fg {
+  width: 31px;
+  padding: 0;
+}
+.c-gis > .actions .c-button-group {
+  font-size: 0.95em;
+}
+.c-gis .gis-divIcon.gis-marker {
+  border-radius: 50%;
+  border: 3px solid transparent;
+  box-sizing: content-box;
+  left: -3px;
+  top: -3px;
+}
+.c-gis .gis-divIcon.gis-marker > span {
+  background-color: #ffffff;
+  color: #4a4a4a;
+}
+.c-gis .gis-divIcon.gis-marker img {
+  border-radius: 50%;
+  max-height: 100% !important;
+  max-width: 100% !important;
+}
+.c-gis .gis-divIcon.gis-marker.selected {
+  border-color: #72b300;
+}
+.c-gis .gis-divIcon.gis-marker.selected > span {
+  background-color: #72b300;
+  color: #ffffff;
+}
+.c-gis .gis-divIcon.gis-spot > span {
+  background-color: #ffffff;
+  color: #4a4a4a;
+}
+.c-gis .gis-divIcon.gis-spot > .gis-spot {
+  border: 2px solid #ffffff;
+}
+.c-gis .gis-divIcon.gis-spot.selected > .gis-spot {
+  border-color: #494949;
+}
+.c-gis .gis-divIcon.gis-spot.selected > span {
+  background-color: #494949;
+  color: #ffffff;
+}
+.c-gis > .content {
+  overflow: hidden;
+}
+.c-gis > .content > .layers,
+.c-gis > .content > .base-layers {
+  position: absolute;
+  z-index: 401;
+}
+.c-gis > .content > .base-layers {
+  top: 5px;
+  right: 5px;
+  bottom: auto;
+  left: auto;
+}
+.c-gis > .content > .layers {
+  top: auto;
+  left: 5px;
+  bottom: 5px;
+  right: auto;
+  min-width: 150px;
+}
+.c-gis > .search {
+  position: absolute;
+  z-index: 401;
+  top: 5px;
+  left: 5px;
+  right: auto;
+  bottom: auto;
+}
+.c-timebar {
+  height: 150px;
+}
+.c-timebar > * {
+  height: 100%;
+  width: 100%;
+}
+.c-vbda-analysis .c-timebar {
+  height: 100px;
+}
+.c-vbda-analysis .labels > header .actions,
+.c-vbda-source .labels > header .actions,
+.c-vbda-source .source > header .actions {
+  color: #4a4a4a;
+}
+.c-vbda-analysis .labels > header button,
+.c-vbda-source .labels > header button,
+.c-vbda-source .source > header button,
+.c-vbda-analysis .labels > header select,
+.c-vbda-source .labels > header select,
+.c-vbda-source .source > header select {
+  height: 31px;
+}
+.c-vbda-analysis .labels > header select,
+.c-vbda-source .labels > header select,
+.c-vbda-source .source > header select {
+  border-width: 0;
+}
+.c-vbda-analysis .labels > header button.fg,
+.c-vbda-source .labels > header button.fg,
+.c-vbda-source .source > header button.fg {
+  padding: 0 0.2em;
+}
+.c-vbda-analysis > .labels,
+.c-vbda-source > .labels {
+  width: 320px;
+}
+.c-vbda-analysis > .labels footer button.standard,
+.c-vbda-source > .labels footer button.standard {
+  margin-left: 0;
+}
+.c-vbda-analysis > .labels footer button,
+.c-vbda-source > .labels footer button {
+  flex-grow: 1;
+}
+.c-vbda-events .event {
+  margin-right: 10px;
+  margin-bottom: 10px;
+  overflow: auto;
+}
+.c-vbda-events .event.full {
+  max-width: 98%;
+}
+.c-vbda-events .event:not(.full) {
+  width: 48%;
+  height: 300px;
+}
+.c-vbda-events .event .c-box {
+  border: none;
+}
+/* 
+.c-vbda-analysis .timebar {
+	height: 100px;
+} */
+.c-vbda-labels .header,
+.c-vbda-labels .search {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.c-vbda-labels .search {
+  display: flex;
+  display: inline-flex;
+}
+.c-vbda-labels .search.inline {
+  display: inline-flex;
+}
+.c-vbda-labels .search.fdr {
+  flex-direction: row;
+}
+.c-vbda-labels .search.fdc {
+  flex-direction: column;
+}
+.c-vbda-labels .search.aic {
+  align-items: center;
+}
+.c-vbda-labels .search.ais {
+  align-items: stretch;
+}
+.c-vbda-labels .search.aifs {
+  align-items: flex-start;
+}
+.c-vbda-labels .search.aife {
+  align-items: flex-end;
+}
+.c-vbda-labels .search.acfs {
+  align-content: flex-start;
+}
+.c-vbda-labels .search.acc {
+  align-content: center;
+}
+.c-vbda-labels .search.acs {
+  align-content: stretch;
+}
+.c-vbda-labels .search.jcc {
+  justify-content: center;
+}
+.c-vbda-labels .search.jcsa {
+  justify-content: space-around;
+}
+.c-vbda-labels .search.jcsb {
+  justify-content: space-between;
+}
+.c-vbda-labels .search.jcfs {
+  justify-content: flex-start;
+}
+.c-vbda-labels .search.jcfe {
+  justify-content: flex-end;
+}
+.c-vbda-labels .search > .asc {
+  align-self: center;
+}
+.c-vbda-labels .search > .asfe {
+  align-self: flex-end;
+}
+.c-vbda-labels .search > .fba {
+  flex-basis: auto !important;
+}
+.c-vbda-labels .search.fww {
+  flex-wrap: wrap;
+}
+.c-vbda-labels .search > .grow {
+  flex-grow: 1;
+}
+.c-vbda-labels .search > .fixed {
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+.c-vbda-labels .search > .end {
+  margin-left: auto;
+}
+.c-vbda-labels .search > .center {
+  margin-left: auto;
+}
+.c-vbda-labels .search > .center:last-child {
+  margin-right: auto;
+}
+.c-vbda-labels .search > input[type='text'] {
+  padding-right: 25px;
+}
+.c-vbda-labels .search > input[type='text'] + * {
+  position: relative;
+  left: -25px;
+  margin-left: 0;
+  margin-right: -25px;
+}
+.c-vbda-labels .search > input[type='text'] + .fg,
+.c-vbda-labels .search > input[type='text'] + * > .fg {
+  display: flex;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d9d9d9;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 32px;
+  padding: 0;
+  border: none;
+  width: 25px;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.inline,
+.c-vbda-labels .search > input[type='text'] + * > .fg.inline {
+  display: inline-flex;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.fdr,
+.c-vbda-labels .search > input[type='text'] + * > .fg.fdr {
+  flex-direction: row;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.fdc,
+.c-vbda-labels .search > input[type='text'] + * > .fg.fdc {
+  flex-direction: column;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.aic,
+.c-vbda-labels .search > input[type='text'] + * > .fg.aic {
+  align-items: center;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.ais,
+.c-vbda-labels .search > input[type='text'] + * > .fg.ais {
+  align-items: stretch;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.aifs,
+.c-vbda-labels .search > input[type='text'] + * > .fg.aifs {
+  align-items: flex-start;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.aife,
+.c-vbda-labels .search > input[type='text'] + * > .fg.aife {
+  align-items: flex-end;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.acfs,
+.c-vbda-labels .search > input[type='text'] + * > .fg.acfs {
+  align-content: flex-start;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.acc,
+.c-vbda-labels .search > input[type='text'] + * > .fg.acc {
+  align-content: center;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.acs,
+.c-vbda-labels .search > input[type='text'] + * > .fg.acs {
+  align-content: stretch;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.jcc,
+.c-vbda-labels .search > input[type='text'] + * > .fg.jcc {
+  justify-content: center;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.jcsa,
+.c-vbda-labels .search > input[type='text'] + * > .fg.jcsa {
+  justify-content: space-around;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.jcsb,
+.c-vbda-labels .search > input[type='text'] + * > .fg.jcsb {
+  justify-content: space-between;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.jcfs,
+.c-vbda-labels .search > input[type='text'] + * > .fg.jcfs {
+  justify-content: flex-start;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.jcfe,
+.c-vbda-labels .search > input[type='text'] + * > .fg.jcfe {
+  justify-content: flex-end;
+}
+.c-vbda-labels .search > input[type='text'] + .fg > .asc,
+.c-vbda-labels .search > input[type='text'] + * > .fg > .asc {
+  align-self: center;
+}
+.c-vbda-labels .search > input[type='text'] + .fg > .asfe,
+.c-vbda-labels .search > input[type='text'] + * > .fg > .asfe {
+  align-self: flex-end;
+}
+.c-vbda-labels .search > input[type='text'] + .fg > .fba,
+.c-vbda-labels .search > input[type='text'] + * > .fg > .fba {
+  flex-basis: auto !important;
+}
+.c-vbda-labels .search > input[type='text'] + .fg.fww,
+.c-vbda-labels .search > input[type='text'] + * > .fg.fww {
+  flex-wrap: wrap;
+}
+.c-vbda-labels .search > input[type='text'] + .fg > .grow,
+.c-vbda-labels .search > input[type='text'] + * > .fg > .grow {
+  flex-grow: 1;
+}
+.c-vbda-labels .search > input[type='text'] + .fg > .fixed,
+.c-vbda-labels .search > input[type='text'] + * > .fg > .fixed {
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+.c-vbda-labels .search > input[type='text'] + .fg > .end,
+.c-vbda-labels .search > input[type='text'] + * > .fg > .end {
+  margin-left: auto;
+}
+.c-vbda-labels .search > input[type='text'] + .fg > .center,
+.c-vbda-labels .search > input[type='text'] + * > .fg > .center {
+  margin-left: auto;
+}
+.c-vbda-labels .search > input[type='text'] + .fg > .center:last-child,
+.c-vbda-labels .search > input[type='text'] + * > .fg > .center:last-child {
+  margin-right: auto;
+}
+.c-vbda-labels .search button {
+  margin-left: 5px;
+}
+.c-vbda-labels .header {
+  border-top: 1px solid #d9d9d9;
+  border-bottom: 1px solid #d9d9d9;
+  cursor: pointer;
+}
+.c-vbda-labels .header .icon {
+  height: 20px;
+}
+.c-vbda-labels .header > *:not(:last-child) {
+  margin-right: 5px;
+}
+.c-vbda-labels .group.selected {
+  min-height: 400px;
+}
+.c-vbda-labels .group.selected .header > .title {
+  color: #004d93;
+}
+.c-vbda-labels .group.selected .list {
+  background-color: #E4ECFC;
+  overflow-y: auto;
+  align-content: start;
+}
+.c-vbda-labels .c-checkbox {
+  margin-right: 5px;
+}
+.c-vbda-labels .c-bullet {
+  background-color: #004d93;
+  color: #ffffff;
+  width: 100px;
+}
+.c-vbda-labels .c-bullet.small {
+  width: 50px;
+}
+.c-vbda-label {
+  position: relative;
+  padding: 5px;
+  margin: 5px;
+  border-radius: 3px;
+  border: 1px solid #d9d9d9;
+  background-color: #ffffff;
+  width: 300px;
+  overflow: auto;
+  display: flex;
+  cursor: pointer;
+}
+.c-vbda-label img {
+  max-height: 150px;
+  max-width: 100%;
+}
+.c-vbda-label .info > div {
+  word-break: break-all;
+}
+.c-vbda-label.hilite {
+  border-color: #004d93;
+  background-color: #e5e5e5;
+}
+.c-vbda-label .c-bullet {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  background-color: #d0021b;
+  width: auto;
+  padding: 0 7px;
+}
+.c-vbda-node img {
+  max-height: 200px;
+}
+#g-selected-intel-dialog .dialog > .content {
+  margin: 0;
+  width: 1000px;
+  height: 800px;
+  max-height: unset;
+}
+#g-selected-intel-dialog .dialog > .content .c-vbda-labels {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+#g-vbda-gis-source-container > .c-modal > .dialog > .content,
+#g-vbda-la-source-container > .c-modal > .dialog > .content {
+  min-width: 700px;
+  min-height: 700px;
+}
+.c-vbda-analysis-gis .c-list #g-vbda-gis-source-btn {
+  width: 25px;
+  padding: 0;
+  height: 25px;
+}
+.c-vbda-analysis .c-vbda-analysis-la,
+.c-vbda-analysis .c-vbda-analysis-gis {
+  min-width: 300px;
+  flex: 1;
+}
+.c-vbda-analysis .c-vbda-analysis-la.hide,
+.c-vbda-analysis .c-vbda-analysis-gis.hide {
+  display: none;
+}

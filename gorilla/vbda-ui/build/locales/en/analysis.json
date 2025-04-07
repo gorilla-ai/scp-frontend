@@ -1,0 +1,55 @@
+{
+	"hdr-intel-list":"Intel",
+	"hdr-la":"LA",
+	"hdr-gis":"GIS",
+	"hdr-source":"Intel Source",
+	"dlg-selected-labels":"already selected",
+	"dlg-la-download":"Download",
+	"lbl-time":"Time",
+	"tt-la-download":"Download LA",
+	"tt-gis-download":"Download GIS",
+	"tt-labels-download":"Download Intel",
+	"tt-fullscreen":"Enlarge",
+	"tt-exit-fullscreen":"Exit",
+	"download-types":{
+		"img":"Download as JPG",
+		"i2":"Export to I2"
+	},
+	"label-types":{
+		"others":"Others"
+	},
+	"la-layout-types":{
+		"standard":"Standard",
+		"hierarchy":"Hierarchy",
+		"radial":"Radial",
+		"structural":"Structural",
+		"tweak":"Tweak",
+		"lens":"Lens"
+	},
+	"la-sna-types":{
+		"same":"Same",
+		"degrees":"Degree",
+		"betweenness":"Betweenness",
+		"closeness":"Closeness",
+		"eigenCentrality":"Eigen Centrality",
+		"pageRank":"Page Rank"
+	},
+	"gis-layout-types":{
+		"standard":"Standard",
+		"track":"Track",
+		"heatmap":"Heatmap"
+	},
+	"gis-modes":{
+		"pan":"Pan",
+		"measure":"Measure"
+	},
+	"gis-unit":"meters",
+	"gis-measure-hint":"Double-click to finish measure",
+	"txt-gis-no-places":"No places matching your search",
+	"btn-view-source":"View Source",
+	"btn-analyze": "Analyze",
+	"btn-clear": "Clear All",
+	"ph-search": "Enter keyword",
+	"lbl-select-all": "Select All",
+	"txt-selected": "Total Selected Intel: {{total}}"
+}

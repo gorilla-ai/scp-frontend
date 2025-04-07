@@ -1,0 +1,37 @@
+{
+	"btn-ok": "確認",
+	"btn-confirm": "確認",
+	"btn-cancel": "取消",
+	"btn-close": "關閉",
+	"btn-search": "搜尋",
+	"btn-save": "儲存",
+	"btn-export": "匯出",
+	"btn-import": "匯入",
+	"btn-reload": "重新載入",
+	"btn-now": "現在",
+	"btn-file": "檔案",
+	"btn-url": "網址",
+
+	"btn-new": "新增",
+	"btn-edit": "編輯",
+	"btn-delete": "刪除",
+
+	"tt-delete": "刪除",
+	"tt-edit": "編輯",
+	"tt-details": "查看內容",
+	"tt-print": "列印",
+
+	"txt-loading":"讀取中...",
+	"txt-saving":"儲存中...",
+	"txt-uploading":"上傳中...",
+	"txt-uploaded":"上傳成功",
+	"txt-no-data":"無符合搜尋的資料",
+	"txt-config-error": "設定檔設置錯誤",
+	"txt-error-result-window-too-large": "超出 ES [index.max_result_window] 設定限制",
+	"field-no-data":"無資料",
+	"dlg-confirm":"請確認",
+	"dlg-error":"錯誤",
+
+	"lbl-select-file":"請選擇上傳檔案",
+    "ph-search":"輸入關鍵字"
+}

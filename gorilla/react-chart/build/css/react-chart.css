@@ -1,0 +1,250 @@
+.c-chart .c-chart-table {
+  position: relative;
+}
+.c-chart-dashboard {
+  background-color: #3e2f2f;
+}
+.c-chart-dashboard > .widgets .c-chart {
+  height: 100%;
+  width: 100%;
+  background-color: #ffffff;
+}
+.c-chart-dashboard > .filter > span {
+  margin-right: 3px;
+  padding: 0 5px;
+  background-color: #eef4f7;
+  border: 1px solid #46b6ef;
+  border-radius: 4px;
+}
+.c-chart-dashboard > .filter > span > .value {
+  margin-left: 3px;
+}
+.c-chart-dashboard > .filter > span.active {
+  background-color: #686a6b;
+  color: #ffffff;
+  border-color: #53585f;
+}
+.c-chart .c-chart-timeline {
+  margin-top: 0.5em;
+}
+.c-chart .c-chart-timeline > .vis-timeline {
+  border: 1px solid #D9D9D9;
+  border-radius: 6px;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-center {
+  background-color: #FFFFFF;
+  border: none;
+  border-left: 0.5px solid #D2D2D2;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-center > .vis-shadow.vis-top,
+.c-chart .c-chart-timeline .vis-panel.vis-center .vis-shadow.vis-bottom {
+  display: none !important;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-center::-webkit-scrollbar {
+  background-color: #BCBCBC;
+  border-radius: 4px;
+  width: 8px;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-center::-webkit-scrollbar-thumb {
+  background-color: #001B34;
+  border-radius: 4px;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-left,
+.c-chart .c-chart-timeline .vis-panel.vis-right,
+.c-chart .c-chart-timeline .vis-panel.vis-top,
+.c-chart .c-chart-timeline .vis-panel.vis-bottom {
+  border: none;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-left,
+.c-chart .c-chart-timeline .vis-panel.vis-right,
+.c-chart .c-chart-timeline .vis-panel.vis-top,
+.c-chart .c-chart-timeline .vis-panel.vis-bottom {
+  border: none;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-background {
+  background: #9B9B9B;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-background.vis-vertical .vis-time-axis.vis-background .vis-grid.vis-minor {
+  border: none;
+}
+.c-chart .c-chart-timeline .vis-labelset .vis-label:nth-child(odd),
+.c-chart .c-chart-timeline .vis-foreground .vis-group:nth-child(odd) {
+  background-color: #FFFFFF;
+}
+.c-chart .c-chart-timeline .vis-labelset .vis-label:nth-child(even),
+.c-chart .c-chart-timeline .vis-foreground .vis-group:nth-child(even) {
+  background-color: #F5F5F5;
+}
+.c-chart .c-chart-timeline .vis-labelset .vis-label.js-hovered,
+.c-chart .c-chart-timeline .vis-foreground .vis-group.js-hovered {
+  background-color: #E2ECFD;
+}
+.c-chart .c-chart-timeline .vis-foreground .vis-group {
+  border-bottom: none;
+}
+.c-chart .c-chart-timeline .vis-label {
+  border-bottom: none;
+}
+.c-chart .c-chart-timeline .vis-label .vis-inner {
+  align-items: center;
+  display: flex;
+  height: 2.5em;
+  padding: 0;
+}
+.c-chart .c-chart-timeline .vis-background .vis-group:nth-child(even) {
+  background-color: #FFFFFF;
+}
+.c-chart .c-chart-timeline .vis-background .vis-group:nth-child(odd) {
+  background-color: #F5F5F5;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-bottom > .vis-time-axis.vis-foreground {
+  background: #9B9B9B;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-bottom > .vis-time-axis.vis-foreground > .vis-text.vis-minor,
+.c-chart .c-chart-timeline .vis-panel.vis-bottom > .vis-time-axis.vis-foreground .vis-text.vis-major {
+  color: #EFEFEF;
+}
+.c-chart .c-chart-timeline .vis-panel.vis-bottom > .vis-time-axis.vis-foreground > .vis-text.vis-minor:nth-child(even),
+.c-chart .c-chart-timeline .vis-panel.vis-bottom > .vis-time-axis.vis-foreground .vis-text.vis-major:nth-child(even) {
+  border-left: 1px solid #BBBBBB;
+  border-right: 1px solid #BBBBBB;
+}
+.c-chart .c-chart-timeline .vis-item.vis-range {
+  border: none;
+  height: 2.5em;
+}
+.c-chart .c-chart-timeline .vis-item.vis-range .vis-item-content {
+  padding: 0;
+}
+.c-chart .c-chart-timeline .vis-tooltip {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 2px;
+  box-shadow: 2px 1px 8px -2px #b0b0b0;
+  font-size: 0.7em;
+}
+.c-chart .c-chart-timeline .tl-group-label {
+  margin: 0 0.5em;
+  width: 7em;
+}
+.c-chart .c-chart-timeline .tl-group-sum {
+  align-items: center;
+  border-radius: 50%;
+  color: #FFFFFF;
+  display: flex;
+  height: 2em;
+  justify-content: center;
+  margin: 0.5em;
+  width: 2em;
+}
+.c-chart-metric .chart-title {
+  text-align: center;
+  font-size: 20px;
+  margin: 10px 0;
+}
+.c-chart-metric .content {
+  text-align: center;
+}
+.c-chart-metric .content header {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+.c-chart-metric .content .main-container {
+  margin: 10px 0;
+}
+.c-chart-metric .content .main-container header {
+  font-size: 18px;
+}
+.c-chart-metric .content .main-container .group-parent .item span.value {
+  font-size: 25px;
+}
+.c-chart-metric .content .main-container .group-parent .item span.label {
+  margin-top: 6px;
+}
+.c-chart-metric .content .sub-container {
+  margin-top: 15px;
+}
+.c-chart-metric .content .sub-container .group-parent .item span.value {
+  font-size: 20px;
+}
+.c-chart-metric .content .sub-container .group-parent .item span.label {
+  margin-top: 3px;
+}
+.c-chart-metric .content .sub-container .sub-title {
+  border-top: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  padding: 5px;
+}
+.c-chart-metric .content .sub-container .sub-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  padding: 15px;
+  border: 1px solid #ccc;
+}
+.c-chart-metric .content .sub-container .sub-content header {
+  font-size: 16px;
+}
+.c-chart-metric .content .group-parent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 30px;
+}
+.c-chart-metric .content .group-parent .group {
+  display: table;
+}
+.c-chart-metric .content .group-parent .group .item {
+  display: table-row;
+  margin: 0 5px;
+  padding: 2px;
+}
+.c-chart-metric .content .group-parent .group .item span {
+  display: table-cell;
+  padding: 0 10px;
+}
+.c-chart-metric .content .group-parent .group .item span.value {
+  text-align: right;
+}
+.c-chart-metric .content .group-parent .group .item span.label {
+  text-align: left;
+}
+.c-chart-metric .content .group-parent.vertical {
+  margin: 0 20px;
+}
+.c-chart-metric .content .group-parent.vertical .group {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.c-chart-metric .content .group-parent.vertical .group .item,
+.c-chart-metric .content .group-parent.vertical .group .item span {
+  display: block;
+  text-align: center;
+}
+.c-chart {
+  display: flex;
+  flex-direction: column;
+}
+.c-chart > header {
+  border-bottom: 1px solid #ada4a4;
+  padding: 3px 6px;
+}
+.c-chart > .c-chart-split {
+  display: flex;
+  flex-grow: 1;
+}
+.c-chart > .c-chart-split > * {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0;
+  overflow: hidden;
+}
+.c-chart > :not(header):not(.c-chart-split) {
+  flex-grow: 1;
+  flex-shrink: 1;
+  overflow: hidden;
+}
+.c-chart.column > .c-chart-split {
+  flex-direction: column;
+}

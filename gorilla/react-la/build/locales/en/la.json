@@ -1,0 +1,31 @@
+{
+	"tt-download":"Download LA",
+	"tt-reset":"Reset View",
+	"dlg-download":"Download LA",
+	"btn-apply":"Apply",
+	"search":"Search",
+	"download-types":{
+		"img":"Download as JPG",
+		"i2":"Export to I2"
+	},
+	"layout-types":{
+		"standard":"Standard",
+		"hierarchy":"Hierarchy",
+		"radial":"Radial",
+		"structural":"Structural",
+		"tweak":"Tweak",
+		"lens":"Lens"
+	},
+	"search":{
+		"title":"Search",
+		"btn-apply":"Apply"
+	},
+	"sna-types":{
+		"same":"None",
+		"degree":"Degree",
+		"betweenness":"Betweenness",
+		"closeness":"Closeness",
+		"eigenvector":"Eigen Centrality",
+		"pagerank":"Page Rank"
+	}
+}

@@ -1,0 +1,67 @@
+.notifications-br {
+  width: 400px !important;
+}
+.notification-content {
+  width: 100%;
+  display: flex;
+}
+.notification-content .notification-custom-icon {
+  flex-basis: 20%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 3%;
+}
+.notification-content .notification-custom-icon .fg {
+  font-size: 2.5rem;
+}
+.notification-content .notification-custom-content {
+  flex-basis: 80%;
+  display: inline-block;
+}
+.notification-content .title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.notification-content .message {
+  max-width: calc(85%);
+  font-size: 14px;
+  line-height: 150%;
+  word-wrap: break-word;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+.layout-hoc {
+  flex-grow: 1;
+  width: 100%;
+  height: 100%;
+}
+.layout-hoc .c-chart-column,
+.layout-hoc .c-chart-pie {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+.layout-hoc .dashboard-item {
+  width: 100%;
+  height: 100%;
+}
+.layout-hoc #hardCode {
+  width: 100%;
+  height: 100%;
+}
+.layout-hoc .hoc-item {
+  width: 100%;
+  height: 100%;
+}
+.w-100 {
+  width: 100%;
+}
+.h-100 {
+  height: 100%;
+}

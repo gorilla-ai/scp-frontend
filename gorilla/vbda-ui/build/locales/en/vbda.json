@@ -1,0 +1,37 @@
+{
+	"btn-ok": "OK",
+	"btn-confirm": "OK",
+	"btn-cancel": "Cancel",
+	"btn-close": "Close",
+	"btn-search": "Search",
+	"btn-save": "Save",
+	"btn-export": "Export",
+	"btn-import": "Import",
+	"btn-reload": "Reload",
+	"btn-now": "Now",
+	"btn-file": "file",
+	"btn-url": "url",
+
+	"btn-new": "New",
+	"btn-edit": "Edit",
+	"btn-delete": "Delete",
+
+	"tt-delete": "Delete",
+	"tt-edit": "Edit",
+	"tt-details": "View Details",
+	"tt-print": "print",
+
+	"txt-loading":"Loading...",
+	"txt-saving":"Saving...",
+	"txt-uploading":"Uploading...",
+	"txt-uploaded":"Done",
+	"txt-no-data":"No results matching search criteria",
+	"txt-config-error": "wrong config setting",
+	"txt-error-result-window-too-large": "Over ES [index.max_result_window] config limit",
+	"field-no-data":"No Data",
+	"dlg-confirm":"Please Confirm",
+	"dlg-error":"Error",
+
+	"lbl-select-file":"Please select file to upload",
+    "ph-search":"Enter keyword here"
+}
