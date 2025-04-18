@@ -311,7 +311,7 @@ class ReactGis extends React.Component {
         const isAreaMap = baseLayers[baseLayer] && baseLayers[baseLayer].images
 
         if (!_.isEqual(baseLayers, prevBaseLayers)) {
-            log.info('componentDidUpdate::baseLayers changed', prevBaseLayers, baseLayers)
+            log.debug('componentDidUpdate::baseLayers changed', prevBaseLayers, baseLayers)
             if (isAreaMap) {
                 this.init()
                 return
@@ -322,7 +322,7 @@ class ReactGis extends React.Component {
         }
 
         if (baseLayer !== prevBaseLayer) {
-            log.info('componentDidUpdate::baseLayer changed', prevBaseLayer, baseLayer)
+            log.debug('componentDidUpdate::baseLayer changed', prevBaseLayer, baseLayer)
 
             const wasAreaMap = !!this.areaLayer
             if (isAreaMap || wasAreaMap) {
@@ -338,7 +338,7 @@ class ReactGis extends React.Component {
         }
 
         if (data !== prevData) {
-            log.info('componentDidUpdate::data changed', prevData, data)
+            log.debug('componentDidUpdate::data changed', prevData, data)
             this.load(true)
         }
         else {
@@ -356,25 +356,25 @@ class ReactGis extends React.Component {
                 }
             }
             if (selected !== prevSelected) {
-                log.info('componentDidUpdate::selected changed', prevSelected, selected)
+                log.debug('componentDidUpdate::selected changed', prevSelected, selected)
                 this.gis.setSelection(selected)
             }
         }
 
         if (layout !== prevLayout) {
-            log.info('componentDidUpdate::layout changed', prevLayout, layout)
+            log.debug('componentDidUpdate::layout changed', prevLayout, layout)
             this.gis.setLayout(layout)
         }
         if (dragMode !== prevDragMode) {
-            log.info('componentDidUpdate::dragMode changed', prevDragMode, dragMode)
+            log.debug('componentDidUpdate::dragMode changed', prevDragMode, dragMode)
             this.gis.setDragMode(dragMode, regionType)
         }
         if (regionType !== prevRegionType) {
-            log.info('componentDidUpdate::regionType changed', prevRegionType, regionType)
+            log.debug('componentDidUpdate::regionType changed', prevRegionType, regionType)
             this.gis.setRegionType(regionType)
         }
         if (layers !== prevLayers || activeLayers !== prevActiveLayers) {
-            log.info('componentDidUpdate::layers changed', {layers, prevLayers, activeLayers, prevActiveLayers})
+            log.debug('componentDidUpdate::layers changed', {layers, prevLayers, activeLayers, prevActiveLayers})
             const layerIdsToRemove = _.difference(prevActiveLayers, activeLayers)
             _.forEach(layerIdsToRemove, layerId=>{
                 this.removeLayer(layerId)
@@ -482,7 +482,7 @@ class ReactGis extends React.Component {
             }
 
             areaClusterOptions = {disableClusteringAtZoom:0}
-            log.info('init area', {areaLayer:this.areaLayer})
+            log.debug('init area', {areaLayer:this.areaLayer})
         }
 
         const gis = this.gis = new Gis(this.gisNode, {
@@ -661,7 +661,7 @@ class ReactGis extends React.Component {
 
     load = (zoomToFit) => {
         const {data, selected, show, timeRange} = this.props
-        log.info('load::start')
+        log.debug('load::start')
         const gis = this.gis
 
         gis.clear()
@@ -681,7 +681,7 @@ class ReactGis extends React.Component {
                 gis.setSelection(selected)
             }
 
-            log.info('load::done')
+            log.debug('load::done')
             if (zoomToFit) {
                 this.zoomToFit()
             }
@@ -755,7 +755,7 @@ class ReactGis extends React.Component {
         const gis = this.gis
         const isAreaMap = !!this.areaLayer
 
-        log.info('addLayer::start', layerId)
+        log.debug('addLayer::start', layerId)
 
         gis.setSymbol(_.map(data, item=>({
             latlng: isAreaMap ? [item.xy[1], item.xy[0]] : undefined,
@@ -763,7 +763,7 @@ class ReactGis extends React.Component {
             group: layerId
         })))
 
-        log.info('addLayer::done')
+        log.debug('addLayer::done')
     };
 
     removeLayer = (layerId) => {

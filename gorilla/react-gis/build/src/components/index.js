@@ -325,7 +325,7 @@ var ReactGis = function (_React$Component) {
                 };
 
                 areaClusterOptions = { disableClusteringAtZoom: 0 };
-                log.info('init area', { areaLayer: _this.areaLayer });
+                log.debug('init area', { areaLayer: _this.areaLayer });
             }
 
             var gis = _this.gis = new _src2.default(_this.gisNode, {
@@ -495,7 +495,7 @@ var ReactGis = function (_React$Component) {
                 show = _this$props3.show,
                 timeRange = _this$props3.timeRange;
 
-            log.info('load::start');
+            log.debug('load::start');
             var gis = _this.gis;
 
             gis.clear();
@@ -516,7 +516,7 @@ var ReactGis = function (_React$Component) {
                     gis.setSelection(selected);
                 }
 
-                log.info('load::done');
+                log.debug('load::done');
                 if (zoomToFit) {
                     _this.zoomToFit();
                 }
@@ -584,7 +584,7 @@ var ReactGis = function (_React$Component) {
             var gis = _this.gis;
             var isAreaMap = !!_this.areaLayer;
 
-            log.info('addLayer::start', layerId);
+            log.debug('addLayer::start', layerId);
 
             gis.setSymbol(_lodash2.default.map(data, function (item) {
                 return _extends({
@@ -594,7 +594,7 @@ var ReactGis = function (_React$Component) {
                 });
             }));
 
-            log.info('addLayer::done');
+            log.debug('addLayer::done');
         }, _this.removeLayer = function (layerId) {
             _this.gis.removeSymbol({ group: layerId });
         }, _this.downloadAsImg = function () {
@@ -656,7 +656,7 @@ var ReactGis = function (_React$Component) {
             var isAreaMap = baseLayers[baseLayer] && baseLayers[baseLayer].images;
 
             if (!_lodash2.default.isEqual(baseLayers, prevBaseLayers)) {
-                log.info('componentDidUpdate::baseLayers changed', prevBaseLayers, baseLayers);
+                log.debug('componentDidUpdate::baseLayers changed', prevBaseLayers, baseLayers);
                 if (isAreaMap) {
                     this.init();
                     return;
@@ -666,7 +666,7 @@ var ReactGis = function (_React$Component) {
             }
 
             if (baseLayer !== prevBaseLayer) {
-                log.info('componentDidUpdate::baseLayer changed', prevBaseLayer, baseLayer);
+                log.debug('componentDidUpdate::baseLayer changed', prevBaseLayer, baseLayer);
 
                 var wasAreaMap = !!this.areaLayer;
                 if (isAreaMap || wasAreaMap) {
@@ -681,7 +681,7 @@ var ReactGis = function (_React$Component) {
             }
 
             if (data !== prevData) {
-                log.info('componentDidUpdate::data changed', prevData, data);
+                log.debug('componentDidUpdate::data changed', prevData, data);
                 this.load(true);
             } else {
                 if (show !== prevShow || timeRange !== prevTimeRange) {
@@ -699,25 +699,25 @@ var ReactGis = function (_React$Component) {
                     }
                 }
                 if (selected !== prevSelected) {
-                    log.info('componentDidUpdate::selected changed', prevSelected, selected);
+                    log.debug('componentDidUpdate::selected changed', prevSelected, selected);
                     this.gis.setSelection(selected);
                 }
             }
 
             if (layout !== prevLayout) {
-                log.info('componentDidUpdate::layout changed', prevLayout, layout);
+                log.debug('componentDidUpdate::layout changed', prevLayout, layout);
                 this.gis.setLayout(layout);
             }
             if (dragMode !== prevDragMode) {
-                log.info('componentDidUpdate::dragMode changed', prevDragMode, dragMode);
+                log.debug('componentDidUpdate::dragMode changed', prevDragMode, dragMode);
                 this.gis.setDragMode(dragMode, regionType);
             }
             if (regionType !== prevRegionType) {
-                log.info('componentDidUpdate::regionType changed', prevRegionType, regionType);
+                log.debug('componentDidUpdate::regionType changed', prevRegionType, regionType);
                 this.gis.setRegionType(regionType);
             }
             if (layers !== prevLayers || activeLayers !== prevActiveLayers) {
-                log.info('componentDidUpdate::layers changed', { layers: layers, prevLayers: prevLayers, activeLayers: activeLayers, prevActiveLayers: prevActiveLayers });
+                log.debug('componentDidUpdate::layers changed', { layers: layers, prevLayers: prevLayers, activeLayers: activeLayers, prevActiveLayers: prevActiveLayers });
                 var layerIdsToRemove = _lodash2.default.difference(prevActiveLayers, activeLayers);
                 _lodash2.default.forEach(layerIdsToRemove, function (layerId) {
                     _this2.removeLayer(layerId);
