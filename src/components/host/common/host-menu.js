@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 import Button from '@material-ui/core/Button'
 
 import {BaseDataContext} from '../../common/context'
-import helper from '../../common/helper'
 
 let t = null;
 
@@ -29,7 +28,7 @@ class HostMenu extends Component {
         <Button id='hostInventory' variant='outlined' color='primary' data-cy='hostInventoryBtn'><Link to='/SCP/host/inventory'>{t('host.txt-inventory')}</Link></Button>
         <Button id='hostKbid' variant='outlined' color='primary' data-cy='hostKbidBtn'><Link to='/SCP/host/kbid'>{t('host.txt-kbid')}</Link></Button>
         <Button id='hostGcb' variant='outlined' color='primary' data-cy='hostGcbBtn'><Link to='/SCP/host/gcb'>{t('host.txt-gcb')}</Link></Button>
-        <Button id='hostIndex' variant='outlined' color='primary' data-cy='hostListBtn'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
+        <Button id='hostCpe' variant='outlined' color='primary' data-cy='hostCpeBtn'><Link to='/SCP/host/cpe'>{t('host.txt-cpePage')}</Link></Button>
       </React.Fragment>      
     )
   }

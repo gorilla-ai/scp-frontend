@@ -1,24 +1,97 @@
 import React, { Component } from 'react'
-import { withRouter } from 'react-router'
-import { Link } from 'react-router-dom'
 import _ from 'lodash'
-import cx from 'classnames'
+
+import Button from '@material-ui/core/Button'
+import TextField from '@material-ui/core/TextField'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import Button from '@material-ui/core/Button'
-import Menu from '@material-ui/core/Menu'
-import MenuItem from '@material-ui/core/MenuItem'
-import TextField from '@material-ui/core/TextField'
-
 import {BaseDataContext} from '../common/context'
+import FilterQuery from './common/filter-query'
 import helper from '../common/helper'
-import MuiTableContent from '../common/mui-table-content'
+import HostMenu from './common/host-menu'
+import TableList from './common/table-list'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const FILTER_LIST = ['part', 'vendor', 'product', 'version', 'update', 'edition', 'language', 'swEdition', 'targetSw', 'targetHw', 'other', 'productCpename', 'isMatched', 'cpe23uri'];
+const TRUE_FALSE = ['true', 'false'];
+const FILTER_LIST = [
+  {
+    name: 'part',
+    displayType: 'text_field'
+  },
+  {
+    name: 'vendor',
+    displayType: 'text_field',
+  },
+  {
+    name: 'product',
+    displayType: 'text_field',
+  },
+  {
+    name: 'version',
+    displayType: 'text_field',
+  },
+  {
+    name: 'update',
+    displayType: 'text_field',
+  },
+  {
+    name: 'edition',
+    displayType: 'text_field',
+  },
+  {
+    name: 'language',
+    displayType: 'text_field',
+  },
+  {
+    name: 'swEdition',
+    displayType: 'text_field',
+  },
+  {
+    name: 'targetSw',
+    displayType: 'text_field',
+  },
+  {
+    name: 'targetHw',
+    displayType: 'text_field',
+  },
+  {
+    name: 'other',
+    displayType: 'text_field',
+  },
+  {
+    name: 'productCpename',
+    displayType: 'text_field',
+  },
+  {
+    name: 'isMatched',
+    displayType: 'select_list',
+    filterType: 'select_list'
+  }
+];
+const CPE_SEARCH = {
+  keyword: '',
+  count: 0
+};
+const CPE_FILTER = {
+  part: '',
+  vendor: '',
+  product: '',
+  update: '',
+  edition: '',
+  language: '',
+  swEdition: '',
+  targetSw: '',
+  targetHw: '',
+  other: '',
+  productCpename: '',
+  isMatched: ''
+};
+const CPE_FILTER_LIST = {
+  isMatched: []
+};
 const EDIT_LIST_PART1 = ['part', 'vendor', 'product', 'version', 'update', 'edition'];
 const EDIT_LIST_PART2 = ['language', 'swEdition', 'targetSw', 'targetHw', 'other', 'productCpename'];
 const FORM_VALIDATION = {
@@ -31,47 +104,52 @@ let t = null;
 let f = null;
 
 /**
- * Host CPE page
+ * Host CPE
  * @class
- * @author Ryan Chen <ryanchen@ns-guard.com>
- * @summary A react component to show the CPE page
+ * @summary A react component to show the Host CPE page
  */
-class Cpe extends Component {
+class HostCpe extends Component {
   constructor(props) {
     super(props);
 
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+
     this.state = {
-      showFilter: false,
-      cpeEditOpen: false,
       account: {
         id: '',
         login: false,
         fields: [],
-        logsLocale: ''
+        logsLocale: '',
+        departmentId: '',
+        limitedRole: false
       },
-      originalFilterData: {},
-      filterData: {
-        isMatched: 'all'
-      },
-      contextAnchor: null,
+      isMatched: [],
+      cpeSearch: _.cloneDeep(CPE_SEARCH),
+      cpeFilter: _.cloneDeep(CPE_FILTER),
+      cpeFilterList: _.cloneDeep(CPE_FILTER_LIST),
+      filterDataCount: 0,
+      tableContextAnchor: null,
+      filterContextAnchor: null,
+      showFilterQuery: false,
+      showFilterType: 'open', // 'open', 'load', 'save'
+      filterQueryList: [],
+      cpeEditOpen: false,
       currentCpeData: {},
       cpeData: {
         dataFieldsArr: ['_menu', 'part', 'vendor', 'product', 'version', 'update', 'edition', 'language', 'swEdition', 'targetSw', 'targetHw', 'other', 'cpe23uri', 'productCpename', 'isMatched'],
         dataFields: [],
         dataContent: null,
         sort: {
-          field: 'vendor',
+          field: '',
           desc: true
         },
         totalCount: 0,
-        currentPage: 1,
+        currentPage: 0,
         pageSize: 20
       },
       formValidation: _.cloneDeep(FORM_VALIDATION)
     };
-
-    t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.ah = getInstance('chewbacca');
   }
@@ -85,56 +163,54 @@ class Cpe extends Component {
     if (session.accountId) {
       tempAccount.id = session.accountId;
       tempAccount.login = true;
+      tempAccount.departmentId = session.departmentId;
+
+      if (!sessionRights.Module_Config) {
+        tempAccount.limitedRole = true;
+      }
 
       this.setState({
         account: tempAccount
       }, () => {
-        this.getFilterData();
-        this.loadCpe();
+        this.getCpeData();
       });
     }
-  }
-  /**
-   * Construct filter data
-   * @method
-   */
-  getFilterData = () => {
-    let tempFilterData = _.cloneDeep(this.state.filterData);
 
-    _.forEach(FILTER_LIST, val => {
-      if (val !== 'isMatched') {
-        tempFilterData[val] = '';
-      }
-    })
+    this.getIsMatched();
+  }
+  componentWillUnmount() {
+    helper.clearTimer();
+  }
+  getIsMatched = () => {
+    const isMatched = _.map(TRUE_FALSE, val => {
+      return {
+        value: val,
+        text: t('txt-' + val)
+      };
+    });
 
     this.setState({
-      originalFilterData: _.cloneDeep(tempFilterData),
-      filterData: tempFilterData
+      isMatched
     });
   }
   /**
-   * Load CPE data
+   * Get and set CPE data
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
    */
-  loadCpe = (fromPage) => {
+  getCpeData = (fromPage) => {
     const {baseUrl} = this.context;
-    const {filterData, cpeData} = this.state;
+    const {cpeSearch, cpeData} = this.state;
+    const sort = cpeData.sort.desc ? 'desc' : 'asc';
     const page = fromPage === 'currentPage' ? cpeData.currentPage : 0;
-    const url = `${baseUrl}/api/hmd/cpe/_search?page=${page + 1}&pageSize=${cpeData.pageSize}`;
-    let requestData = {};
+    const requestData = {
+      ...this.getCpeFilterRequestData()
+    };
+    let url = `${baseUrl}/api/hmd/cpe/_search?page=${page + 1}&pageSize=${cpeData.pageSize}`;
 
-    Object.keys(filterData).map(val => {
-      if (val === 'isMatched') {
-        if (filterData[val] !== 'all') {
-          requestData.isMatched = filterData[val];
-        }
-      } else {
-        if (filterData[val]) {
-          requestData[val] = filterData[val];
-        }
-      }
-    });
+    if (cpeData.sort.field) {
+      url += `&orders=${cpeData.sort.field} ${sort}`;
+    }
 
     this.ah.one({
       url,
@@ -144,17 +220,20 @@ class Cpe extends Component {
     })
     .then(data => {
       if (data) {
+        let tempCpeSearch = {...cpeSearch};
         let tempCpeData = {...cpeData};
 
         if (!data.rows || data.rows.length === 0) {
+          tempCpeSearch.count = 0;
           tempCpeData.dataContent = [];
           tempCpeData.totalCount = 0;
 
           this.setState({
+            cpeSearch: tempCpeSearch,
             cpeData: tempCpeData
           });
           return null;
-        }
+        }       
 
         tempCpeData.dataContent = data.rows;
         tempCpeData.totalCount = data.counts;
@@ -174,11 +253,11 @@ class Cpe extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu active'>
-                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
+                      <Button className='host-open-table-menu' variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)} data-cy='hostOpenTableMenuBtn'><i className='fg fg-more'></i></Button>
                     </div>
                   )
                 } else if (val === 'isMatched') {
-                  return <span>{value.toString()}</span>
+                  return <span className={'true-false-status true-false-status-' + value}>{t('txt-' + value)}</span>
                 } else {
                   return <span>{value}</span>
                 }
@@ -186,8 +265,10 @@ class Cpe extends Component {
             }
           };
         });
+        tempCpeSearch.count = helper.numberWithCommas(data.counts);
 
         this.setState({
+          cpeSearch: tempCpeSearch,
           cpeData: tempCpeData
         });
       }
@@ -198,225 +279,110 @@ class Cpe extends Component {
     })
   }
   /**
-   * Toggle filter content on/off
+   * Handle data change
    * @method
-   */
-  toggleFilter = () => {
-    this.setState({
-      showFilter: !this.state.showFilter
-    });
-  }
-  /**
-   * Handle filter click
-   * @method
-   * @param {string} type - form type ('filter' or 'edit')
    * @param {object} event - event object
    */
-  handleDataChange = (type, event) => {
-    const {filterData, currentCpeData} = this.state;
+  handleDataChange = (event) => {
+    const {currentCpeData} = this.state;
 
-    if (type === 'filter') {
-      let tempFilterData = {...filterData};
-      tempFilterData[event.target.name] = event.target.value;  
+    let tempCurrentCpeData = {...currentCpeData};
+    tempCurrentCpeData[event.target.name] = event.target.value;  
 
-      this.setState({
-        filterData: tempFilterData
-      });
-    } else if (type === 'edit') {
-      let tempCurrentCpeData = {...currentCpeData};
-      tempCurrentCpeData[event.target.name] = event.target.value;  
-
-      this.setState({
-        currentCpeData: tempCurrentCpeData
-      });
-    }
+    this.setState({
+      currentCpeData: tempCurrentCpeData
+    });
   }
   /**
-   * Check form group type
+   * Check table sort
    * @method
-   * @param {string} type - group type
-   * @returns CSS property object
+   * @param {string} field - table field name
+   * @returns true for sortable field
    */
-  checkFormGroup = (type) => {
-    if (type === 'cpe23uri') {
-      return {width: '50%'};
-    }
-  }
-  /**
-   * Display filter form
-   * @method
-   * @param {string} val - filter data
-   * @param {number} i - index of the filter data
-   * @returns HTML DOM
-   */
-  showFilterForm = (val, i) => {
-    const {filterData} = this.state;
+  checkSortable = (field) => {
+    const unSortableFields = ['_menu'];
 
-    if (val === 'isMatched') {
-      return (
-        <div key={i} className='group'>
-          <TextField
-            name='isMatched'
-            label={f('hostCpeFields.' + val)}
-            select
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={filterData.isMatched}
-            onChange={this.handleDataChange.bind(this, 'filter')}>
-            <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
-            <MenuItem value={true}>True</MenuItem>
-            <MenuItem value={false}>False</MenuItem>
-          </TextField>
-        </div>
-      )
+    if (_.includes(unSortableFields, field)) {
+      return false;
     } else {
-      return (
-        <div key={i} className='group' style={this.checkFormGroup(val)}>
-          <TextField
-            name={val}
-            label={f('hostCpeFields.' + val)}
-            variant='outlined'
-            fullWidth
-            size='small'
-            value={filterData[val]}
-            onChange={this.handleDataChange.bind(this, 'filter')} />
-        </div>
-      )
+      return true;
     }
   }
   /**
-   * Display filter content
+   * Get CPE filter request data
    * @method
-   * @returns HTML DOM
+   * @returns requestData object
    */
-  renderFilter = () => {
-    return (
-      <div className={cx('main-filter', {'active': this.state.showFilter})}>
-        <div className='filter-section config host'>
-          {FILTER_LIST.map(this.showFilterForm)}
-        </div>
-        <div className='button-group'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.loadCpe}>{t('txt-filter')}</Button>
-          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
-        </div>
-      </div>
-    )
-  }
-  /**
-   * Clear filter data
-   * @method
-   */
-  clearFilter = () => {
-    this.setState({
-      filterData: _.cloneDeep(this.state.originalFilterData)
-    });
-  }
-  /**
-   * Handle table pagination change
-   * @method
-   * @param {string} type - page type ('currentPage' or 'pageSize')
-   * @param {number} value - new page number
-   */
-  handlePaginationChange = (type, value) => {
-    let tempCpeData = {...this.state.cpeData};
-    tempCpeData[type] = Number(value);
+  getCpeFilterRequestData = () => {
+    const {cpeSearch, cpeFilter} = this.state;
+    let requestData = {};
 
-    if (type === 'pageSize') {
-      tempCpeData.currentPage = 0;
+    if (cpeSearch.keyword) {
+      requestData.cpe23uri = cpeSearch.keyword;
     }
 
-    this.setState({
-      cpeData: tempCpeData
-    }, () => {
-      this.loadCpe(type);
-    });
-  }
-  /**
-   * Handle table sort
-   * @method
-   * @param {string} field - sort field
-   * @param {string} boolean - sort type ('asc' or 'desc')
-   */
-  handleTableSort = (field, sort) => {
-    let tempCpeData = {...this.state.cpeData};
-    tempCpeData.sort.field = field;
-    tempCpeData.sort.desc = sort;
-
-    this.setState({
-      cpeData: tempCpeData
-    }, () => {
-      this.loadCpe();
-    });
-  }
-  /**
-   * Display content message
-   * @method
-   * @param {string} type - action type ('delete')
-   * @returns HTML DOM
-   */
-  getCpeMsgContent = (type) => {
-    if (type === 'delete') {
-      return (
-        <div className='content delete'>
-          <span>{t('txt-delete-msg')}?</span>
-        </div>
-      )
+    if (cpeFilter.part && cpeFilter.part.length > 0) {
+      requestData.part = cpeFilter.part;
     }
-  }
-  /**
-   * Display modal dialog
-   * @method
-   * @param {string} type - action type ('delete')
-   */
-  showDialog = (type) => {
-    PopupDialog.prompt({
-      title: t('txt-delete'),
-      id: 'modalWindowSmall',
-      confirmText: t('txt-ok'),
-      cancelText: t('txt-cancel'),
-      display: this.getCpeMsgContent(type),
-      act: (confirmed) => {
-        if (confirmed) {
-          this.cpeAction(type);
-        }
-      }
-    });
+    
+    if (cpeFilter.pavendort && cpeFilter.vendor.length > 0) {
+      requestData.vendor = cpeFilter.vendor;
+    }
 
-    this.handleCloseMenu();
-  }
-  /**
-   * Handle modal confirm
-   * @method
-   * @param {string} type - action type ('delete')
-   */
-  cpeAction = (type) => {
-    const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/hmd/cpe?id=${this.state.currentCpeData.id}`;
+    if (cpeFilter.product && cpeFilter.product.length > 0) {
+      requestData.product = cpeFilter.product;
+    }
 
-    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+    if (cpeFilter.version && cpeFilter.version.length > 0) {
+      requestData.version = cpeFilter.version;
+    }
 
-    ah.one({
-      url,
-      type: 'DELETE'
-    })
-    .then(() => {
-      this.loadCpe();
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    if (cpeFilter.update && cpeFilter.update.length > 0) {
+      requestData.update = cpeFilter.update;
+    }
+
+    if (cpeFilter.edition && cpeFilter.edition.length > 0) {
+      requestData.edition = cpeFilter.edition;
+    }
+
+    if (cpeFilter.language && cpeFilter.language.length > 0) {
+      requestData.language = cpeFilter.language;
+    }
+
+    if (cpeFilter.swEdition && cpeFilter.swEdition.length > 0) {
+      requestData.swEdition = cpeFilter.swEdition;
+    }
+
+    if (cpeFilter.targetSw && cpeFilter.targetSw.length > 0) {
+      requestData.targetSw = cpeFilter.targetSw;
+    }
+
+    if (cpeFilter.targetHw && cpeFilter.targetHw.length > 0) {
+      requestData.targetHw = cpeFilter.targetHw;
+    }
+
+    if (cpeFilter.other && cpeFilter.other.length > 0) {
+      requestData.other = cpeFilter.other;
+    }
+
+    if (cpeFilter.productCpename && cpeFilter.productCpename.length > 0) {
+      requestData.productCpename = cpeFilter.productCpename;
+    }
+
+    if (cpeFilter.isMatched === 'true' || cpeFilter.isMatched === 'false')
+      requestData.isMatched = cpeFilter.isMatched === 'true'
+
+    return requestData;
   }
   /**
    * Handle open menu
    * @method
-   * @param {object} cpe - active CPE data
+   * @param {string} cpe - active CPE
    * @param {object} event - event object
    */
   handleOpenMenu = (cpe, event) => {
     this.setState({
-      contextAnchor: event.currentTarget,
+      tableContextAnchor: event.currentTarget,
       currentCpeData: cpe
     });
   }
@@ -426,7 +392,8 @@ class Cpe extends Component {
    */
   handleCloseMenu = () => {
     this.setState({
-      contextAnchor: null
+      tableContextAnchor: null,
+      filterContextAnchor: null
     });
   }
   /**
@@ -457,7 +424,7 @@ class Cpe extends Component {
           fullWidth
           size='small'
           value={this.state.currentCpeData[val]}
-          onChange={this.handleDataChange.bind(this, 'edit')} />
+          onChange={this.handleDataChange.bind(this)} />
       </div>
     )
   }
@@ -490,7 +457,7 @@ class Cpe extends Component {
             error={!formValidation.cpe23uri.valid}
             helperText={formValidation.cpe23uri.valid ? '' : t('txt-required')}
             value={currentCpeData.cpe23uri}
-            onChange={this.handleDataChange.bind(this, 'edit')} />
+            onChange={this.handleDataChange.bind(this)} />
         </div>
       </div>
     )
@@ -560,7 +527,7 @@ class Cpe extends Component {
     })
     .then(data => {
       if (data) {
-        this.loadCpe();
+        this.getCpeData();
         this.closeCpeEditDialog();
       }
       return null;
@@ -580,8 +547,295 @@ class Cpe extends Component {
       formValidation: _.cloneDeep(FORM_VALIDATION)
     });
   }
+  /**
+   * Display modal dialog
+   * @method
+   */
+  handleCpeDelete = () => {
+    PopupDialog.prompt({
+      title: t('txt-delete'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: <div className='content delete'>
+          <span>{t('txt-delete-msg')}?</span>
+        </div>,
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteCpe();
+        }
+      }
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle modal confirm
+   * @method
+   */
+  deleteCpe = () => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/cpe?id=${this.state.currentCpeData.id}`;
+
+    helper.getVersion(baseUrl); //Reset global apiTimer and keep server session
+
+    ah.one({
+      url,
+      type: 'DELETE'
+    })
+    .then(() => {
+      this.getCpeData();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle reset button for host name search
+   * @method
+   * @param {string} type - reset button type ('cpeSearch')
+   */
+  handleResetBtn = (type) => {
+    const {cpeSearch} = this.state;
+
+    if (type === 'cpeSearch') {
+      let tempCpeSearch = {...cpeSearch};
+      tempCpeSearch.keyword = '';
+
+      this.setState({
+        cpeSearch: tempCpeSearch
+      });
+    }
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
+   */
+  handleTableSort = (field, sort) => {
+    const {cpeData} = this.state;
+    let tempCpeData = {...cpeData};
+    let tableField = field;
+
+    tempCpeData.sort.field = tableField;
+    tempCpeData.sort.desc = sort;
+
+    this.setState({
+      cpeData: tempCpeData
+    }, () => {
+      this.getCpeData();
+    });
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {number} value - new page number
+   */
+  handlePaginationChange = (type, value) => {
+    const {cpeData} = this.state;
+    let tempCpeData = {...cpeData};
+
+    tempCpeData[type] = value;
+
+    this.setState({
+      cpeData: tempCpeData
+    }, () => {
+      this.getCpeData(type);
+    });
+  }
+  /**
+   * Handle CPE search search
+   * @method
+   * @param {object} event - event object
+   */
+  handleCpeChange = (event) => {
+    let tempCpeSearch = {...this.state.cpeSearch};
+    tempCpeSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      cpeSearch: tempCpeSearch
+    });
+  }
+  /**
+   * Show filter query
+   * @method
+  */
+  handleShowFilterQuery = (type) => {
+    if (type === 'load') {
+      this.fetchFilterQuery()
+    }
+
+    this.setState({
+      showFilterQuery: true,
+      showFilterType: type,
+      filterContextAnchor: null
+    });
+  }
+  handleFilterQuery = (type, filterData) => {
+    if (type !== 'cancel') {
+      let filterDataCount = 0;
+      _.forEach(filterData.filter, (val, key) => {
+        if (typeof val === 'string') {
+          if (val !== '')
+            filterDataCount++;
+
+        } else if (Array.isArray(val)) {
+          if (val.length > 0 && val[0].input !== '')
+            filterDataCount++;
+
+        } else {
+          filterDataCount++;
+        }
+      })
+
+      this.setState({
+        cpeFilter: filterData.filter,
+        cpeFilterList: filterData.itemFilterList,
+        filterDataCount
+      }, () => {
+        this.getCpeData();
+        if (type === 'save')
+          this.saveFilterQuery(filterData.queryName);
+      });
+    }
+
+    this.setState({
+      showFilterQuery: false,
+      filterContextAnchor: null
+    });
+  }
+  handleDeleteFilterQuery = (id, queryName) => {
+    PopupDialog.prompt({
+      title: t('txt-deleteQuery'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: <div className='content delete'><span>{t('txt-delete-msg')}: {queryName}?</span></div>,
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteFilterQuery(id);
+        }
+      }
+    });
+  }
+  fetchFilterQuery = () => {
+    const {baseUrl} = this.context;
+    const {account, severityType} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?accountId=${account.id}&module=CPE`,
+      type: 'GET',
+      pcontentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        let filterQueryList = _.map(data, filter => {
+          let newFilter = {
+            id: filter.id,
+            name: filter.name,
+            content: _.cloneDeep(CPE_FILTER_LIST)
+          };
+          if (filter.queryText) {
+            let content = {
+              part: filter.queryText.part ? filter.queryText.part : '',
+              vendor: filter.queryText.vendor ? filter.queryText.vendor : '',
+              product: filter.queryText.product ? filter.queryText.product : '',
+              version: filter.queryText.version ? filter.queryText.version : '',
+              update: filter.queryText.update ? filter.queryText.update : '',
+              edition: filter.queryText.edition ? filter.queryText.edition : '',
+              language: filter.queryText.language ? filter.queryText.language : '',
+              swEdition: filter.queryText.swEdition ? filter.queryText.swEdition : '',
+              targetSw: filter.queryText.targetSw ? filter.queryText.targetSw : '',
+              targetHw: filter.queryText.targetHw ? filter.queryText.targetHw : '',
+              other: filter.queryText.other ? filter.queryText.other : '',
+              productCpename: filter.queryText.productCpename ? filter.queryText.productCpename : '',
+              isMatched: filter.queryText.isMatched === 'true' ? true : filter.queryText.isMatched === 'false' ? false : ''
+            }
+            newFilter.content = content;
+          }
+          return newFilter;
+        });
+
+        this.setState({filterQueryList});
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  saveFilterQuery = (queryName) => {
+    const {baseUrl} = this.context;
+    const {account} = this.state;
+
+    const requestData = {
+      ...this.getCpeFilterRequestData()
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText`,
+      data: JSON.stringify({
+        accountId: account.id,
+        module: 'CPE',
+        name: queryName,
+        queryText: requestData
+      }),
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-querySaved'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  deleteFilterQuery = (id) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/queryText?id=${id}`,
+      type: 'DELETE',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.fetchFilterQuery();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  handleFilterOpenMenu = (event) => {
+    this.setState({
+      filterContextAnchor: event.currentTarget
+    });
+  }
   render() {
-    const {showFilter, cpeEditOpen, contextAnchor, currentCpeData, cpeData} = this.state;
+    const {
+      account,
+      isMatched,
+      cpeSearch,
+      cpeFilter,
+      cpeFilterList,
+      filterDataCount,
+      filterQueryList,
+      tableContextAnchor,
+      filterContextAnchor,
+      showFilterQuery,
+      showFilterType,
+      cpeEditOpen,
+      cpeData
+    } = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -596,33 +850,51 @@ class Cpe extends Component {
 
     return (
       <div>
+        {showFilterQuery &&
+          <FilterQuery
+            page='cpe'
+            showFilterType={showFilterType}
+            account={account}
+            isMatched={isMatched}
+            filterList={FILTER_LIST}
+            originalFilter={CPE_FILTER}
+            filter={cpeFilter}
+            originalItemFilterList={CPE_FILTER_LIST}
+            itemFilterList={cpeFilterList}
+            onFilterQuery={this.handleFilterQuery}
+            onDeleteFilterQuery={this.handleDeleteFilterQuery}
+            filterQueryList={filterQueryList} />
+        }
+
         {cpeEditOpen &&
           this.showCpeEdit()
         }
-        <Menu
-          anchorEl={contextAnchor}
-          keepMounted
-          open={Boolean(contextAnchor)}
-          onClose={this.handleCloseMenu}>
-          <MenuItem id='cpeMenuEdit' onClick={this.toggleCpeEdit}>{t('txt-edit')}</MenuItem>
-          <MenuItem id='cpeMenuDelete' onClick={this.showDialog.bind(this, 'delete')}>{t('txt-delete')}</MenuItem>
-        </Menu>
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary'><Link to='/SCP/host'>{t('host.txt-hostList')}</Link></Button>
-            <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+            <HostMenu />
           </div>
         </div>
+
         <div className='data-content'>
           <div className='parent-content'>
-            {this.renderFilter()}
-
-            <div className='main-content'>
-              <header className='main-header'>{t('host.txt-cpePage')}</header>
-              <MuiTableContent
-                data={cpeData}
-                tableOptions={tableOptions} />
-            </div>
+            <TableList
+              page='cpe'
+              searchType='cpeSearch'
+              search={cpeSearch}
+              data={cpeData}
+              options={tableOptions}
+              tableAnchor={tableContextAnchor}
+              filterAnchor={filterContextAnchor}
+              getData={this.getCpeData}
+              toggleCpeEdit={this.toggleCpeEdit}
+              handleCpeDelete={this.handleCpeDelete}
+              onFilterQueryClick={this.handleShowFilterQuery}
+              filterDataCount={filterDataCount}
+              handleSearch={this.handleCpeChange}
+              handleReset={this.handleResetBtn}
+              handleFilterMenu={this.handleFilterOpenMenu}
+              handleCloseMenu={this.handleCloseMenu} />
           </div>
         </div>
       </div>
@@ -630,9 +902,9 @@ class Cpe extends Component {
   }
 }
 
-Cpe.contextType = BaseDataContext;
+HostCpe.contextType = BaseDataContext;
 
-Cpe.propTypes = {
+HostCpe.propTypes = {
 };
 
-export default withRouter(Cpe);
+export default HostCpe;

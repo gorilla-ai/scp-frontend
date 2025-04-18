@@ -672,7 +672,6 @@ class HostKbid extends Component {
       title +=  ' > ' + this.state.currentKbid;
     }
 
-console.log(this.state.currentKbid)
     return (
       <ModalDialog
         id='showKbidDialog'

@@ -6,7 +6,7 @@ import XLSX from 'xlsx'
 import TextField from '@material-ui/core/TextField'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-import FileUpload from '../common/file-upload'
+import FileUpload from '../../common/file-upload'
 
 let t = null;
 

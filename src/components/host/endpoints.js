@@ -3493,6 +3493,12 @@ class HostEndPoints extends Component {
 
     this.handleCloseMenu();
   }
+  handleHmdDownload = (type) => {
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/hmd/download?ver=${type}`;
+    window.open(url, '_blank');
+    this.handleCloseMenu();
+  }
   render() {
     const {
       account,
@@ -3628,6 +3634,7 @@ class HostEndPoints extends Component {
               onFilterQueryClick={this.handleShowFilterQuery}
               toggleHmdUploadFile={this.toggleHmdUploadFile}
               toggleHmdSettings={this.toggleHmdSettings}
+              handleHmdDownload={this.handleHmdDownload}
               filterDataCount={filterDataCount}
               handleSearch={this.handleCpeChange}
               handleReset={this.handleResetBtn}

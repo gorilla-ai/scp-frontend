@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, Fragment } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
@@ -202,6 +202,9 @@ class TableList extends Component {
     } else if (page === 'endpoints') {
       headerTitle = t('host.txt-endpoint');
       searchLabel = t('host.txt-ipOrHostName');
+    } else if (page === 'cpe') {
+      headerTitle = t('host.txt-cpePage');
+      searchLabel = t('host.txt-cpe23uri');
     }
     
     return (
@@ -215,12 +218,20 @@ class TableList extends Component {
           keepMounted
           open={Boolean(tableAnchor)}
           onClose={this.props.handleCloseMenu}>
+          {page !== 'cpe' &&
           <MenuItem onClick={this.props.getActiveData.bind(this, 'open')}>{t('txt-view')}</MenuItem>
+          }
           {page === 'malware' &&
-            <MenuItem onClick={this.props.handleAddWhitelist.bind(this)}>{t('txt-addWhiteList')}</MenuItem>
+          <MenuItem onClick={this.props.handleAddWhitelist.bind(this)}>{t('txt-addWhiteList')}</MenuItem>
           }
           {page === 'endpoints' &&
-            <MenuItem onClick={this.props.toggleShowMemo}>{t('txt-memo')}</MenuItem>
+          <MenuItem onClick={this.props.toggleShowMemo}>{t('txt-memo')}</MenuItem>
+          }
+          {page === 'cpe' &&
+          <MenuItem onClick={this.props.toggleCpeEdit}>{t('txt-edit')}</MenuItem>
+          }
+          {page === 'cpe' &&
+          <MenuItem onClick={this.props.handleCpeDelete}>{t('txt-delete')}</MenuItem>
           }
         </Menu>
 
@@ -306,6 +317,8 @@ class TableList extends Component {
                 >
                   <MenuItem onClick={this.props.executeMoreAction.bind(this, 'start', {name: t('host.endpoints.txt-upgradeHmd'), type: 'hmdUpgrade'})}>{t('host.endpoints.txt-upgradeHmd')}</MenuItem>
                   <MenuItem onClick={this.props.toggleHmdUploadFile.bind(this)}>{t('host.endpoints.txt-uploadHmdPrograms')}</MenuItem>
+                  <MenuItem onClick={this.props.handleHmdDownload.bind(this, 'windows')}>{t('hmd-scan.txt-hmdDownloadWindows')}</MenuItem>
+                  <MenuItem onClick={this.props.handleHmdDownload.bind(this, 'linux')}>{t('hmd-scan.txt-hmdDownloadLinux')}</MenuItem>
                   { adminPrivilege &&
                   <React.Fragment>
                     <Divider />
@@ -414,11 +427,13 @@ TableList.propTypes = {
   exportAnchor: PropTypes.object,
   moreAnchor: PropTypes.object,
   getData: PropTypes.func.isRequired,
-  getActiveData: PropTypes.func.isRequired,
+  getActiveData: PropTypes.func,
   handleAddWhitelist: PropTypes.func,
   toggleShowMemo: PropTypes.func,
+  toggleCpeEdit: PropTypes.func,
+  handleCpeDelete: PropTypes.func,
   executeMoreAction: PropTypes.func,
-  exportList: PropTypes.func.isRequired,
+  exportList: PropTypes.func,
   onFilterQueryClick: PropTypes.func.isRequired,
   filterDataCount: PropTypes.number.isRequired,
   handleSearch: PropTypes.func.isRequired,

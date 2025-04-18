@@ -21,7 +21,7 @@ import MultiInput from 'react-ui/build/src/components/multi-input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../common/context'
-import CpeHeader from './cpe-header'
+import CpeHeader from './common/cpe-header'
 import FileUpload from '../common/file-upload'
 import helper from '../common/helper'
 import InputPath from '../common/input-path'

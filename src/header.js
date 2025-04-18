@@ -547,7 +547,7 @@ class Header extends Component {
                 }
 
                 {(sessionRights.Module_Common || sessionRights.Module_Account) &&
-                  <Link id='header-link-host' to='/SCP/host' className={cx('item', {'active': this.getActiveTab('host')})}>{t('txt-host-eng')}</Link>
+                  <Link id='header-link-host' to='/SCP/host/endpoints' className={cx('item', {'active': this.getActiveTab('host')})}>{t('txt-host-eng')}</Link>
                 }
 
                 {/*<Link to='/SCP/dashboard/statisticsUIF' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>*/}

@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
@@ -411,7 +410,6 @@ class FilterQuery extends Component {
   }
   handleFilterQueryChange = (event) => {
     const {filterQueryList} = this.props;
-
     let filterQuery = _.find(filterQueryList, ['id', event.target.value]);
 
     this.setState({
@@ -576,7 +574,7 @@ class FilterQuery extends Component {
    * @returns HTML DOM
    */
   showFilterDisplay = (val, i) => {
-    const {page, severityType, vendorType, connectionStatus, version, fileIntegrity, procMonitor, isPE, isPEExtension, isVerifyTrust} = this.props;
+    const {page, severityType, vendorType, connectionStatus, version, fileIntegrity, procMonitor, isPE, isPEExtension, isVerifyTrust, isMatched} = this.props;
     const {filter, itemFilterList} = this.state;
     const filterName = val.name;
     const displayType = val.displayType;
@@ -621,6 +619,10 @@ class FilterQuery extends Component {
         selectOptions = procMonitor;
         label = t('host.endpoints.txt-procMonitor');
       }
+    } else if (page === 'cpe') {
+      label = f('hostCpeFields.' + filterName);
+      if (filterName === 'isMatched')
+        selectOptions = isMatched;
     }
 
     if (displayType === 'text_field') {
@@ -685,7 +687,7 @@ class FilterQuery extends Component {
 
     } else if (displayType === 'select_list') {
       const value = filter[filterName] !== undefined ? filter[filterName] : '';
-
+      
       return (
         <div key={i} className='group'>
           <TextField
@@ -922,9 +924,9 @@ FilterQuery.propTypes = {
   page: PropTypes.string.isRequired,
   showFilterType: PropTypes.string,
   account: PropTypes.object.isRequired,
-  departmentList: PropTypes.array.isRequired,
-  departmentNameMapping: PropTypes.object.isRequired,
-  limitedDepartment: PropTypes.array.isRequired,
+  departmentList: PropTypes.array,
+  departmentNameMapping: PropTypes.object,
+  limitedDepartment: PropTypes.array,
   originalSystemList: PropTypes.array,
   systemList: PropTypes.array,
   severityType: PropTypes.array,
@@ -936,6 +938,7 @@ FilterQuery.propTypes = {
   isPE: PropTypes.array,
   isPEExtension: PropTypes.array,
   isVerifyTrust: PropTypes.array,
+  isMatched: PropTypes.array,
   filterList: PropTypes.array.isRequired,
   originalFilter: PropTypes.object.isRequired,
   filter: PropTypes.object.isRequired,

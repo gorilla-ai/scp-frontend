@@ -21,7 +21,6 @@ import DashboardStats from './components/dashboard/statistics'
 import EdgeManagement from './components/configuration/edge/edge'
 import EsManagement from './components/configuration/es/es-manage'
 import Header from './header'
-import Host from './components/host/index'
 import HostCpe from './components/host/cpe'
 import HostEndPoints from './components/host/endpoints'
 import HostInventory from './components/host/inventory'
@@ -116,12 +115,6 @@ const DashboardStatsComp = () => (
 const DashboardMapsComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <DashboardMaps />
-  </BaseDataContext.Provider>
-);
-
-const HostComp = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <Host />
   </BaseDataContext.Provider>
 );
 
@@ -372,7 +365,6 @@ const Main = () => (
       <Route exact path='/SCP/dashboard/statisticsUIF' component={StatisticsUIFComp} />
       {/*<Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />*/}
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
-      <Route exact path='/SCP/host' component={HostComp} />
       <Route exact path='/SCP/host/cpe' component={HostCpeComp} />
       <Route exact path='/SCP/host/inventory' component={HostInventoryComp} />
       <Route exact path='/SCP/host/endpoints' component={HostEndPointsComp} />
