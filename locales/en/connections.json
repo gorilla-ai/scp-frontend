@@ -625,6 +625,7 @@
     "txt-kbidName": "KBID Name",
     "txt-endpoint": "Endpoint",
     "txt-ipOrHostName": "IP or Host Name",
+    "txt-cpe23uri": "CPE Name",
     "txt-exposedDevices": "Exposed Devices",
     "txt-departmentName": "Department",
     "txt-ip": "IP",

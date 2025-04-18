@@ -816,7 +816,7 @@
     "targetHw": "Target Hardware",
     "departmentSelected": "Department",
     "other": "Other",
-    "cpe23uri": "cpe23Uri",
+    "cpe23uri": "CPE Name",
     "productCpename": "Product Name",
     "isMatched": "Matched",
     "system": "System",
